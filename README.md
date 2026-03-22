@@ -2,7 +2,7 @@
 
 > **A comprehensive petroleum engineering function library and Excel add-in for natural gas, oil, CNG, and LNG calculations.**
 
-[![Tests](https://img.shields.io/badge/tests-628%20passing-brightgreen)](./test)
+[![Tests](https://img.shields.io/badge/tests-723%20passing-brightgreen)](./test)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -28,7 +28,7 @@
 
 ## What Is P365?
 
-**Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **650+ engineering calculations** organized into 22 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design, nodal analysis, LNG thermodynamics, and wellbore heat transfer.
+**Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **700+ engineering calculations** organized into 24 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design, nodal analysis, LNG thermodynamics, wellbore heat transfer, geomechanics, and composite skin factor analysis.
 
 P365 is designed to work **inside Microsoft Excel** as a custom function library (UDFs), letting engineers use familiar spreadsheet workflows backed by rigorous, well-tested engineering correlations. It is also available as a standalone TypeScript/Node.js library for integration into web applications, pipelines, or custom tooling.
 
@@ -42,8 +42,9 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 | **Production Engineers** | VFP, ESP, gas lift, rod pump, nodal analysis |
 | **Facilities Engineers** | Surface facilities, flow assurance, pipe sizing |
 | **Gas Engineers** | PVT, AGA-8, heating value, CNG/LNG, compressors |
-| **Completions/Frac Engineers** | Hydraulic fracturing geometry, proppant, CfD |
-| **Petrophysicists** | SCAL — relative permeability, capillary pressure |
+| **Completions/Frac Engineers** | Hydraulic fracturing geometry, proppant, CfD, skin analysis |
+| **Drilling Engineers** | Geomechanics: fracture gradient, mud window, wellbore stability |
+| **Petrophysicists** | SCAL — relative permeability, capillary pressure, IFT, wettability |
 | **Field Production Analysts** | Field production profiles, multi-well scheduling, EUR |
 | **Consultants & Students** | Reference-quality correlations with clear naming |
 
@@ -51,8 +52,8 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 
 ## Features
 
-- ✅ **628 passing unit tests** — every correlation is independently verified
-- ✅ **22 engineering modules** covering the full production lifecycle
+- ✅ **723 passing unit tests** — every correlation is independently verified
+- ✅ **24 engineering modules** covering the full production lifecycle
 - ✅ **Field units throughout** — psi, °F, STB, scf, ft, cp, md
 - ✅ **Named after correlation authors** — `P365.PVT.Z.ByDAK` is the Dranchuk-Abou-Kassem method
 - ✅ **Pure functions** — no side effects, no global state, fully testable
@@ -514,7 +515,82 @@ Supported components: `C1, C2, C3, iC4, nC4, iC5, nC5, C6, C7, N2, CO2, H2S, H2,
 
 ---
 
-## Excel Add-in
+### New in Session 6
+
+**GEO — Geomechanics**
+| Function | Description |
+|----------|-------------|
+| `P365.GEO.OverburdenStress` | Total vertical (overburden) stress (psi) |
+| `P365.GEO.OverburdenGradient` | Overburden gradient (psi/ft) from bulk density |
+| `P365.GEO.BulkDensityFromSonic` | Gardner (1974) bulk density from sonic log |
+| `P365.GEO.NormalPorePressure` | Hydrostatic (normal) pore pressure at depth |
+| `P365.GEO.NormalTransitTime` | Normal compaction trend transit time (Eaton) |
+| `P365.GEO.PorePressureEaton` | Pore pressure from Eaton's sonic method |
+| `P365.GEO.EffectiveVerticalStress` | Terzaghi/Biot effective vertical stress |
+| `P365.GEO.BiotCoefficient` | Biot coefficient from bulk moduli |
+| `P365.GEO.MinHorizontalStress` | Minimum horizontal stress (Eaton 1975) |
+| `P365.GEO.FractureGradient.Eaton` | Fracture gradient — Eaton (1975) method |
+| `P365.GEO.FractureGradient.HubbertWillis` | Fracture gradient — Hubbert-Willis (1957) |
+| `P365.GEO.FractureGradient.MatthewsKelly` | Fracture gradient — Matthews-Kelly (1967) |
+| `P365.GEO.FractureClosurePressure` | Fracture closure pressure (= min h-stress) |
+| `P365.GEO.MudWindow` | Drilling mud weight window (min/max ppg) |
+| `P365.GEO.UCSFromYoungsModulus` | UCS from dynamic Young's modulus (Chang) |
+| `P365.GEO.MohrCoulombShearStrength` | Mohr-Coulomb shear strength |
+| `P365.GEO.WellboreCollapseGradient` | Wellbore collapse pressure (minimum mud weight) |
+| `P365.GEO.StaticPoissonRatio` | Dynamic-to-static Poisson's ratio (Eissa-Kazi) |
+| `P365.GEO.CastagnaVs` | Shear wave velocity from Vp (Castagna mudrock line) |
+| `P365.GEO.DynamicElasticModuli` | Young's modulus and Poisson's ratio from sonic |
+| `P365.GEO.OffshoreOverburden` | Offshore overburden corrected for water depth |
+| `P365.GEO.EMWToGradient` | Mud weight (ppg) to gradient (psi/ft) |
+| `P365.GEO.GradientToEMW` | Gradient (psi/ft) to mud weight (ppg) |
+
+**SKIN — Composite Skin Factor**
+| Function | Description |
+|----------|-------------|
+| `P365.SKIN.Hawkins` | Hawkins (1956) damage skin factor |
+| `P365.SKIN.EffectiveWellboreRadius` | Effective wellbore radius from skin |
+| `P365.SKIN.FlowEfficiency` | Flow efficiency (PI ratio vs. undamaged well) |
+| `P365.SKIN.Perforation.KarakasTariq` | Karakas-Tariq (1991) perforation skin |
+| `P365.SKIN.Perforation.McLeod` | McLeod simplified perforation skin |
+| `P365.SKIN.NonDarcy.Beta` | Non-Darcy β coefficient (Jones 1987) |
+| `P365.SKIN.NonDarcy.D` | Non-Darcy rate coefficient D |
+| `P365.SKIN.NonDarcy.Skin` | Rate-dependent skin (D × q) |
+| `P365.SKIN.PartialPenetration` | Papatzacos (1987) partial penetration skin |
+| `P365.SKIN.GravelPack` | Gravel pack skin factor |
+| `P365.SKIN.Total` | Composite total skin (sum of all components) |
+| `P365.SKIN.PressureDrop` | Additional ΔP due to skin (field units) |
+| `P365.SKIN.ProductivityRatio` | Productivity ratio vs. ideal (S=0) |
+| `P365.SKIN.StimulationRatio` | Post/pre-stimulation PI ratio |
+
+**SCAL — Extensions (IFT + Wettability)**
+| Function | Description |
+|----------|-------------|
+| `P365.SCAL.IFT.ScaledPc` | IFT-scaled capillary pressure (Stegemeier 1977) |
+| `P365.SCAL.IFT.CapillaryNumber` | Capillary number Nc (viscous/capillary ratio) |
+| `P365.SCAL.IFT.ResidualOilSat` | Residual oil saturation vs. Nc (Taber trapping) |
+| `P365.SCAL.IFT.Endpoints` | IFT-adjusted Kr endpoints (miscible flooding) |
+| `P365.SCAL.Wettability.Amott` | Amott wettability index (Iw, Io, WI_AH) |
+| `P365.SCAL.Wettability.USBM` | USBM wettability index (Donaldson et al. 1969) |
+
+---
+
+## Office Add-in Suite
+
+P365 is designed to span the full Microsoft 365 application suite. Each add-in uses the same underlying engineering function library.
+
+| App | Status | What It Does |
+|-----|--------|--------------|
+| **Excel** | ✅ Core (Sessions 1–6) | UDF functions, ribbon tab, blueprints — the full product |
+| **Word** | 🗺️ Planned | Report templates, auto-fill calculation values, pipe sizing summary tables |
+| **Outlook** | 🗺️ Planned | Auto-generate pipe sizing summary emails, calculation result cards |
+| **Teams** | 🗺️ Planned | Embedded web calculator tab, bot Q&A, adaptive card results |
+| **PowerPoint** | 🗺️ Planned | Auto-generate slide decks from calculation results |
+| **OneNote** | 🗺️ Planned | Insert P365 calculation blocks into field notes and job logs |
+| **Access** | 🗺️ Planned | Jobs database, pipe inventory, well data, calculation snapshots |
+
+See `src/addins/` for planning documents and API interfaces for each add-in.
+
+
 
 When loaded in Excel, P365 functions appear as **Custom Functions (UDFs)** with full IntelliSense support.
 
@@ -630,7 +706,7 @@ Petroleum-365/
 | Command | Description |
 |---------|-------------|
 | `npm install` | Install all dependencies |
-| `npx jest --no-coverage` | Run all 628 unit tests |
+| `npx jest --no-coverage` | Run all 723 unit tests |
 | `npx tsc --noEmit` | TypeScript type-check (0 errors expected) |
 | `npm run build` | Build for production |
 

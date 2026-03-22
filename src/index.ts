@@ -34,6 +34,8 @@ import * as HVExports     from "./functions/hv";
 import * as AGA8Exports   from "./functions/aga8";
 import * as NodalExports  from "./functions/nodal";
 import * as WHTExports    from "./functions/wht";
+import * as GEOExports    from "./functions/geo";
+import * as SKINExports   from "./functions/skin";
 
 // ─── Re-export raw modules ────────────────────────────────────────────────────
 export * as P365_PVT_Gas   from "./functions/pvt/gas";
@@ -59,6 +61,8 @@ export * as P365_HV        from "./functions/hv";
 export * as P365_AGA8      from "./functions/aga8";
 export * as P365_Nodal     from "./functions/nodal";
 export * as P365_WHT       from "./functions/wht";
+export * as P365_GEO       from "./functions/geo";
+export * as P365_SKIN      from "./functions/skin";
 export { unitConverter, getUnitsForCategory, getCategories, listUnits } from "./functions/utilities/unitConverter";
 
 // ─── P365 Namespace Object ────────────────────────────────────────────────────
@@ -459,6 +463,20 @@ export const P365 = {
       StoneII: SCALExports.stoneTwoKro,
     },
     RockCompressibility: SCALExports.newmanRockCompressibility,
+
+    // IFT-dependent capillary pressure (EOR / miscible flooding)
+    IFT: {
+      ScaledPc:           SCALExports.scalIFTScaledPc,
+      CapillaryNumber:    SCALExports.scalCapillaryNumber,
+      ResidualOilSat:     SCALExports.scalResidualOilSaturation,
+      Endpoints:          SCALExports.scalIFTEndpoints,
+    },
+
+    // Wettability indices
+    Wettability: {
+      Amott:  SCALExports.scalAmottWettability,
+      USBM:   SCALExports.scalUSBMWettability,
+    },
   },
 
   // ─── EoS — Equation of State ───────────────────────────────────────────────
@@ -576,4 +594,86 @@ export const P365 = {
     InsulationThickness:  WHTExports.whtInsulationThickness,
     HeatLoss:             WHTExports.whtHeatLoss,
   },
+
+  // ─── GEO — Geomechanics ────────────────────────────────────────────────────
+  GEO: {
+    // Unit helpers
+    EMWToGradient:          GEOExports.geoEMWToGradient,
+    GradientToEMW:          GEOExports.geoGradientToEMW,
+
+    // Overburden
+    OverburdenStress:       GEOExports.geoOverburdenStress,
+    OverburdenGradient:     GEOExports.geoOverburdenGradient,
+    BulkDensityFromSonic:   GEOExports.geoBulkDensityFromSonic,
+
+    // Pore pressure
+    NormalTransitTime:      GEOExports.geoNormalTransitTime,
+    PorePressureEaton:      GEOExports.geoPorePressureEaton,
+    NormalPorePressure:     GEOExports.geoNormalPorePressure,
+
+    // Effective stress
+    EffectiveVerticalStress: GEOExports.geoEffectiveVerticalStress,
+    BiotCoefficient:        GEOExports.geoBiotCoefficient,
+
+    // Horizontal stress
+    MinHorizontalStress:    GEOExports.geoMinHorizontalStress,
+
+    // Fracture gradient
+    FractureGradient: {
+      HubbertWillis:   GEOExports.geoFractureGradientHubbertWillis,
+      MatthewsKelly:   GEOExports.geoFractureGradientMatthewsKelly,
+      Eaton:           GEOExports.geoFractureGradientEaton,
+    },
+    FractureClosurePressure: GEOExports.geoFractureClosurePressure,
+
+    // Mud window
+    MudWindow:              GEOExports.geoMudWindow,
+
+    // Rock strength
+    UCSFromYoungsModulus:   GEOExports.geoUCSFromYoungsModulus,
+    MohrCoulombShearStrength: GEOExports.geoMohrCoulombShearStrength,
+    WellboreCollapseGradient: GEOExports.geoWellboreCollapseGradient,
+
+    // Elastic properties
+    StaticPoissonRatio:     GEOExports.geoStaticPoissonRatio,
+    CastagnaVs:             GEOExports.geoCastagnaVs,
+    DynamicElasticModuli:   GEOExports.geoDynamicElasticModuli,
+
+    // Offshore
+    OffshoreOverburden:     GEOExports.geoOffshoreOverburden,
+  },
+
+  // ─── SKIN — Composite Skin Factor ─────────────────────────────────────────
+  SKIN: {
+    // Hawkins damage skin
+    Hawkins:               SKINExports.skinHawkins,
+    EffectiveWellboreRadius: SKINExports.skinEffectiveWellboreRadius,
+    FlowEfficiency:        SKINExports.skinFlowEfficiency,
+
+    // Perforation skin
+    Perforation: {
+      KarakasTariq:  SKINExports.skinKarakasTariq,
+      McLeod:        SKINExports.skinPerforation,
+    },
+
+    // Non-Darcy (turbulent) skin
+    NonDarcy: {
+      Beta:  SKINExports.skinNonDarcyBeta,
+      D:     SKINExports.skinNonDarcyD,
+      Skin:  SKINExports.skinNonDarcy,
+    },
+
+    // Partial penetration
+    PartialPenetration:    SKINExports.skinPartialPenetration,
+
+    // Gravel pack
+    GravelPack:            SKINExports.skinGravelPack,
+
+    // Composite / utilities
+    Total:                 SKINExports.skinTotal,
+    PressureDrop:          SKINExports.skinPressureDrop,
+    ProductivityRatio:     SKINExports.skinProductivityRatio,
+    StimulationRatio:      SKINExports.skinStimulationRatio,
+  },
+
 } as const;

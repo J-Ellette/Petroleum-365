@@ -30,8 +30,17 @@ src/
     aga8/           ← AGA-8 Z-factor for custody transfer
     nodal/          ← Nodal Analysis (IPR + VLP)
     wht/            ← Wellbore Heat Transfer
+    geo/            ← Geomechanics (pore pressure, fracture gradient, stability)
+    skin/           ← Composite Skin Factor
     utilities/      ← Unit converter, spline, math utils
     pipe/           ← Pipe sizing calculator
+  addins/           ← Office add-in planning and helpers
+    word/           ← Word Document add-in (report templates)
+    outlook/        ← Outlook MailApp add-in (email generation)
+    teams/          ← Teams add-in (tab + bot + adaptive cards)
+    powerpoint/     ← PowerPoint add-in (slide deck generation)
+    onenote/        ← OneNote Notebook add-in (calculation notes)
+    access/         ← Access Database schema + integration
   taskpane/         ← React UI (Blueprint Manager, Function Browser)
   commands/         ← Ribbon command handlers
 test/               ← Jest unit tests (mirrors src/functions/)
@@ -301,14 +310,76 @@ Good stopping point after EoS + ESP + GL + RP + CNG/LNG + VEH + DCA extensions w
 #### Stopping Point — Session 5
 Good stopping point after HV + AGA-8 + Nodal + WHT + README with 628 tests passing.
 
-#### Next Session — Session 6 (Planned)
+### Session 6 — GEO + SKIN + SCAL Extensions + Office Add-in Planning
+**Status:** Complete
+
+#### Completed
+- [x] Implemented GEO — Geomechanics (src/functions/geo/index.ts):
+  - [x] `geoEMWToGradient`, `geoGradientToEMW`: mud weight unit conversions
+  - [x] `geoOverburdenStress`, `geoOverburdenGradient`: total vertical stress
+  - [x] `geoBulkDensityFromSonic`: Gardner (1974) acoustic density correlation
+  - [x] `geoNormalPorePressure`, `geoNormalTransitTime`: hydrostatic baseline
+  - [x] `geoPorePressureEaton`: Eaton (1975) sonic pore pressure prediction
+  - [x] `geoEffectiveVerticalStress`: Terzaghi / Biot effective stress
+  - [x] `geoBiotCoefficient`: poroelastic Biot coefficient from bulk moduli
+  - [x] `geoMinHorizontalStress`: Eaton minimum horizontal stress
+  - [x] `geoFractureGradientHubbertWillis`: Hubbert-Willis (1957) method
+  - [x] `geoFractureGradientMatthewsKelly`: Matthews-Kelly (1967) method
+  - [x] `geoFractureGradientEaton`: Eaton (1975) fracture gradient (most used)
+  - [x] `geoFractureClosurePressure`: FCP from min horizontal stress
+  - [x] `geoMudWindow`: drilling mud weight window (min/lower/upper/max ppg)
+  - [x] `geoUCSFromYoungsModulus`: Chang et al. UCS from dynamic E
+  - [x] `geoMohrCoulombShearStrength`: Mohr-Coulomb failure criterion
+  - [x] `geoWellboreCollapseGradient`: minimum mud weight for wellbore stability
+  - [x] `geoStaticPoissonRatio`: Eissa-Kazi dynamic-to-static conversion
+  - [x] `geoCastagnaVs`: Castagna mudrock line (Vp → Vs)
+  - [x] `geoDynamicElasticModuli`: Young's modulus + Poisson's ratio from sonic
+  - [x] `geoOffshoreOverburden`: offshore overburden with seawater column
+- [x] Implemented SKIN — Composite Skin Factor (src/functions/skin/index.ts):
+  - [x] `skinHawkins`: Hawkins (1956) damage skin from altered permeability zone
+  - [x] `skinEffectiveWellboreRadius`: r_w' = r_w × exp(−S)
+  - [x] `skinFlowEfficiency`: PI ratio vs. undamaged well
+  - [x] `skinKarakasTariq`: Karakas-Tariq (1991) perforation skin (phasing, SPF)
+  - [x] `skinPerforation`: McLeod simplified perforation + damage skin
+  - [x] `skinNonDarcyBeta`: Non-Darcy β coefficient (Jones 1987)
+  - [x] `skinNonDarcyD`: Non-Darcy rate coefficient D ((Mscf/d)⁻¹)
+  - [x] `skinNonDarcy`: Rate-dependent skin contribution D × q
+  - [x] `skinPartialPenetration`: Papatzacos (1987) incomplete interval skin
+  - [x] `skinGravelPack`: Gravel pack skin (Hawkins applied to GP zone)
+  - [x] `skinTotal`: Composite sum of all skin components
+  - [x] `skinPressureDrop`: ΔP due to skin (field units)
+  - [x] `skinProductivityRatio`: PR = (ideal PI) / (actual PI)
+  - [x] `skinStimulationRatio`: Post/pre-stimulation PI ratio
+- [x] Extended SCAL with IFT-dependent capillary pressure (EOR):
+  - [x] `scalIFTScaledPc`: Stegemeier (1977) IFT-scaled capillary pressure
+  - [x] `scalCapillaryNumber`: Capillary number Nc (viscous/capillary forces)
+  - [x] `scalResidualOilSaturation`: Sor vs. Nc trapping correlation (Taber 1969)
+  - [x] `scalIFTEndpoints`: IFT-adjusted Kr endpoints (miscible flooding)
+  - [x] `scalAmottWettability`: Amott (1959) wettability index (Iw, Io, WI_AH)
+  - [x] `scalUSBMWettability`: USBM wettability index (Donaldson et al. 1969)
+- [x] Planned Office add-ins for Word, Outlook, Teams, PowerPoint, OneNote, Access:
+  - [x] `src/addins/word/index.ts`: template library, value injection helpers, pipe sizing formatter
+  - [x] `src/addins/outlook/index.ts`: email template library, HTML table builder, pipe sizing email
+  - [x] `src/addins/teams/index.ts`: Adaptive Card builder, bot EL lookup, quick Q&A database
+  - [x] `src/addins/powerpoint/index.ts`: slide template library, brand colors, chart data builders
+  - [x] `src/addins/onenote/index.ts`: note block builders, field measurement log, OneNote HTML
+  - [x] `src/addins/access/index.ts`: database schema (tblJobs, tblClients, tblWells, tblPipeInventory, tblCalcSnapshots), standard queries, integration options
+- [x] Updated src/index.ts with GEO, SKIN namespaces and SCAL IFT/Wettability extensions
+- [x] Written 95 new Jest unit tests (723 total, all passing)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+- [x] README.md updated with new modules, 24-module count, 723 tests, Office add-in suite table
+
+#### Stopping Point — Session 6
+Good stopping point after GEO + SKIN + SCAL IFT/Wettability extensions + Office add-in planning with 723 tests passing.
+
+#### Next Session — Session 7 (Planned)
 - [ ] Office.js taskpane UI — Blueprint Manager, Function Browser (React)
 - [ ] Ribbon implementation (6 groups: PVT, IPR/VLP, MBE, PTA, FRAC, Lift)
 - [ ] Custom Functions metadata (functions.json) — map all functions to Excel UDFs
-- [ ] Additional SCAL: IFT-dependent capillary pressure (EOR scaling)
-- [ ] Wellbore inflow model: composite skin (damage + perforation + non-Darcy)
-- [ ] Geomechanics basics: pore pressure prediction, fracture gradient (Eaton)
-- [ ] Web deployment / Netlify/Azure manifest hosting
+- [ ] DCA extended models: Transient Hyperbolic, Extended Exponential, Ansah-Knowles-Buba
+- [ ] FRAC extended: Uniaxial strain poroelastic closure stress model
+- [ ] Wellbore integrity: production casing burst/collapse, cement top, shoe test
+- [ ] Web deployment / Netlify/Azure manifest hosting for web calculator
 
 ## Function Naming Convention
 `P365.[Category].[Property].[Qualifier].By[Author]`
@@ -335,6 +406,8 @@ Good stopping point after HV + AGA-8 + Nodal + WHT + README with 628 tests passi
 | AGA8 | AGA-8 Custody Transfer Z-factor |
 | Nodal | Nodal Analysis (IPR + VLP) |
 | WHT | Wellbore Heat Transfer |
+| GEO | Geomechanics (pore pressure, fracture gradient, wellbore stability) |
+| SKIN | Composite Skin Factor (Hawkins, perforations, non-Darcy, partial penetration) |
 
 ## Key Engineering Details (from P365.md)
 - Pipe material roughness: Bare Steel 0.000150 ft · Coated Steel 0.000100 ft · PE 0.000005 ft
