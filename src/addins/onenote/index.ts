@@ -152,3 +152,193 @@ export function buildFieldMeasurementLog(
   <p><i>Recorded with Petroleum 365 (P365)</i></p>
 </div>`.trim();
 }
+
+// ─── Additional Note Block Builders ──────────────────────────────────────────
+
+/**
+ * Build a PVT data block for OneNote.
+ */
+export function buildPvtDataBlock(params: {
+  wellName: string;
+  timestamp: string;
+  pressure_psia: number;
+  temp_F: number;
+  zFactor: number;
+  bg_rcf_scf: number;
+  bo_rbStb: number;
+  hhv_BTUscf: number;
+  notes?: string;
+}): string {
+  return buildOneNoteBlock(
+    `PVT Data — ${params.wellName}`,
+    {
+      "Well Name":      params.wellName,
+      "Pressure":       `${params.pressure_psia.toFixed(1)} psia`,
+      "Temperature":    `${params.temp_F.toFixed(1)} °F`,
+      "Z-Factor":       params.zFactor.toFixed(4),
+      "Bg":             `${params.bg_rcf_scf.toFixed(5)} rcf/scf`,
+      "Bo":             `${params.bo_rbStb.toFixed(4)} rb/STB`,
+      "HHV":            `${params.hhv_BTUscf.toFixed(2)} BTU/scf`,
+    },
+    params.timestamp,
+    params.notes,
+  );
+}
+
+/**
+ * Build a gas composition block for OneNote.
+ */
+export function buildGasCompositionBlock(params: {
+  sampleId: string;
+  timestamp: string;
+  molarMass_lbMol: number;
+  specificGravity: number;
+  hhv_BTUscf: number;
+  lhv_BTUscf: number;
+  wobbeIndex: number;
+  co2_mol?: number;
+  h2s_mol?: number;
+  notes?: string;
+}): string {
+  const rows: Record<string, string> = {
+    "Sample ID":       params.sampleId,
+    "Molar Mass":      `${params.molarMass_lbMol.toFixed(3)} lb/mol`,
+    "Specific Gravity": params.specificGravity.toFixed(4),
+    "HHV":             `${params.hhv_BTUscf.toFixed(2)} BTU/scf`,
+    "LHV":             `${params.lhv_BTUscf.toFixed(2)} BTU/scf`,
+    "Wobbe Index":     `${params.wobbeIndex.toFixed(2)} BTU/scf`,
+  };
+  if (params.co2_mol !== undefined) rows["CO2"] = `${params.co2_mol.toFixed(2)} mol%`;
+  if (params.h2s_mol !== undefined) rows["H2S"] = `${params.h2s_mol.toFixed(2)} mol%`;
+
+  return buildOneNoteBlock(`Gas Composition — ${params.sampleId}`, rows, params.timestamp, params.notes);
+}
+
+/**
+ * Build a well test interpretation block for OneNote.
+ */
+export function buildWellTestBlock(params: {
+  wellName: string;
+  testDate: string;
+  producingTime_hr: number;
+  flowRate_STBd: number;
+  permeability_md: number;
+  skin: number;
+  pStar_psia: number;
+  reservoirPressure_psia: number;
+  notes?: string;
+}): string {
+  return buildOneNoteBlock(
+    `Well Test — ${params.wellName}`,
+    {
+      "Well Name":           params.wellName,
+      "Test Date":           params.testDate,
+      "Producing Time":      `${params.producingTime_hr.toFixed(1)} hr`,
+      "Flow Rate":           `${params.flowRate_STBd.toFixed(0)} STB/d`,
+      "Permeability":        `${params.permeability_md.toFixed(2)} md`,
+      "Skin":                params.skin.toFixed(2),
+      "P* (extrapolated)":   `${params.pStar_psia.toFixed(1)} psia`,
+      "Reservoir Pressure":  `${params.reservoirPressure_psia.toFixed(1)} psia`,
+    },
+    params.testDate,
+    params.notes,
+  );
+}
+
+/**
+ * Build a well performance block for OneNote.
+ */
+export function buildWellPerformanceBlock(params: {
+  wellName: string;
+  timestamp: string;
+  operatingRate_STBd: number;
+  operatingPwf_psia: number;
+  reservoirPressure_psia: number;
+  skin: number;
+  pi_STBdPsi: number;
+  notes?: string;
+}): string {
+  return buildOneNoteBlock(
+    `Well Performance — ${params.wellName}`,
+    {
+      "Well Name":           params.wellName,
+      "Operating Rate":      `${params.operatingRate_STBd.toFixed(0)} STB/d`,
+      "Operating Pwf":       `${params.operatingPwf_psia.toFixed(1)} psia`,
+      "Reservoir Pressure":  `${params.reservoirPressure_psia.toFixed(1)} psia`,
+      "Skin":                params.skin.toFixed(2),
+      "Productivity Index":  `${params.pi_STBdPsi.toFixed(3)} STB/d/psi`,
+    },
+    params.timestamp,
+    params.notes,
+  );
+}
+
+/**
+ * Build a DCA forecast block for OneNote.
+ */
+export function buildDcaForecastBlock(params: {
+  wellName: string;
+  timestamp: string;
+  model: string;
+  qi_STBd: number;
+  di_pct: number;
+  b_factor: number;
+  eur_MBbl: number;
+  forecastYears: number;
+  notes?: string;
+}): string {
+  return buildOneNoteBlock(
+    `DCA Forecast — ${params.wellName}`,
+    {
+      "Well Name":       params.wellName,
+      "Model":           params.model,
+      "Initial Rate":    `${params.qi_STBd.toFixed(0)} STB/d`,
+      "Decline Rate":    `${params.di_pct.toFixed(2)}%/yr`,
+      "b-factor":        params.b_factor.toFixed(3),
+      "EUR":             `${params.eur_MBbl.toFixed(1)} MBbl`,
+      "Forecast Period": `${params.forecastYears} yr`,
+    },
+    params.timestamp,
+    params.notes,
+  );
+}
+
+/**
+ * Build a complete OneNote page HTML combining multiple note blocks.
+ */
+export function buildJobSummaryPage(params: {
+  jobNumber: string;
+  projectName: string;
+  client: string;
+  engineer: string;
+  date: string;
+  location: string;
+  blocks: string[];
+}): string {
+  const metaRows = [
+    ["Job Number", params.jobNumber],
+    ["Project Name", params.projectName],
+    ["Client", params.client],
+    ["Engineer", params.engineer],
+    ["Date", params.date],
+    ["Location", params.location],
+  ]
+    .map(([k, v]) => `<tr><td><b>${k}</b></td><td>${v}</td></tr>`)
+    .join("");
+
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>${params.projectName} — ${params.jobNumber}</title></head>
+<body style="font-family:Calibri,sans-serif">
+  <h1>Job Summary — ${params.projectName}</h1>
+  <table border="1" style="border-collapse:collapse;margin-bottom:16px">
+    <tr>
+      <th style="background:#1a5276;color:white;padding:4px 8px">Field</th>
+      <th style="background:#1a5276;color:white;padding:4px 8px">Value</th>
+    </tr>
+    ${metaRows}
+  </table>
+  ${params.blocks.join("\n  ")}
+</body>
+</html>`.trim();
+}
