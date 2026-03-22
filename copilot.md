@@ -128,27 +128,74 @@ webpack.config.js   ← Build config
 #### Stopping Point — Session 2
 Good stopping point after IPR + MBE + PTA with 214 tests passing.
 
-#### Next Session — Session 3 (Planned)
-- [ ] VFP / Vertical Flow Performance (Beggs-Brill, Gray, Hagedorn-Brown)
-- [ ] Surface Facilities (choke, compressor)
-- [ ] Flow Assurance (hydrate prediction, MEG/methanol dosing, corrosion)
-- [ ] Hydraulic Fracturing functions (PKN geometry, proppant settling)
-- [ ] Field Production Profile templates (buildup-plateau-decline)
-- [ ] Gas Flow equations (Panhandle A&B, AGA)
-- [ ] CNG/LNG functions (density, BOG, storage)
-- [ ] Office.js taskpane UI — Blueprint Manager, Function Browser
-- [ ] Ribbon implementation (6 groups + Library + Unit Conversion)
+### Session 3 — VFP + SF + FA + FRAC + FPP + SCAL
+**Status:** Complete
 
-#### Session 3 (Planned)
-- [ ] VFP / multiphase vertical flow (Beggs-Brill, Gray, Hagedorn-Brown)
-- [ ] Surface Facilities (choke sizing, compressor power)
-- [ ] Flow Assurance (hydrate prediction/inhibitor, corrosion, erosion)
-- [ ] Gas Flow (Panhandle A&B, AGA, non-Darcy)
-- [ ] CNG/LNG thermodynamics (density, BOG, storage, regasification)
-- [ ] Hydraulic Fracturing (PKN geometry, proppant settling, CfD, skin)
-- [ ] Field Production Profile (buildup-plateau-decline model)
-- [ ] EoS (Peng-Robinson flash, phase envelope)
-- [ ] Blueprint templates (actual Excel sheet XML)
+#### Completed
+- [x] Implemented VFP — Vertical Flow Performance (src/functions/vfp/index.ts):
+  - [x] Single-phase liquid: Fanning/Darcy-Weisbach (ΔP, BHP)
+  - [x] Single-phase gas: average T-Z method (BHP, outlet pressure)
+  - [x] Beggs & Brill (1973): gradient, BHP, VLP curve — any inclination
+  - [x] Gray (1974): pressure gradient for gas-condensate wells
+  - [x] Hagedorn & Brown (1965): oil well pressure gradient
+  - [x] Turner et al. (1969) critical velocity + minimum gas rate for liftoff
+  - [x] VLP curve generator for nodal analysis
+- [x] Implemented SF — Surface Facilities (src/functions/sf/index.ts):
+  - [x] Choke: Gilbert, Ros, Baxendell, Achong, Pilehvari critical flow correlations
+  - [x] Choke rate, bean size, critical flow check, all-correlations comparison
+  - [x] Gas pipeline: Panhandle A & B flow rate and outlet pressure
+  - [x] Gas pipeline comparison function (all three correlations)
+  - [x] Compressor: polytropic power (hp), interstage pressures, discharge temperature
+- [x] Implemented FA — Flow Assurance (src/functions/fa/index.ts):
+  - [x] Hammerschmidt (1934) hydrate temperature depression (methanol, MEG, DEG, TEG, CaCl₂)
+  - [x] Hammerschmidt inverse: required inhibitor concentration
+  - [x] Katz (1945) hydrate formation temperature from specific gravity
+  - [x] Methanol injection rate (lb/d), MEG injection rate (bbl/d)
+  - [x] de Waard-Milliams (1991) CO2 corrosion rate (mm/yr)
+  - [x] CO2 partial pressure, corrosion severity, inhibited rate, corrosion allowance
+  - [x] API RP 14E erosion: mixture density, erosional velocity, mixture velocity, ratio, risk
+  - [x] Integrated flow assurance assessment (hydrate + corrosion + erosion)
+- [x] Implemented FRAC — Hydraulic Fracturing (src/functions/frac/index.ts):
+  - [x] PKN geometry: avg width, max width, volume, fluid efficiency, net pressure
+  - [x] KGD geometry: avg width, volume
+  - [x] Radial (penny-shaped) fracture radius
+  - [x] Carter (1957) leakoff coefficient and cumulative fluid loss
+  - [x] Stokes/modified proppant settling velocity (ft/min) + Walton hindered settling
+  - [x] Dimensionless fracture conductivity CfD
+  - [x] Cinco-Ley/Samaniego fractured well equivalent skin factor
+  - [x] Fracture stimulation ratio (folds of increase)
+  - [x] Proppant density and fracture permeability reference tables
+- [x] Implemented FPP — Field Production Profile (src/functions/fpp/index.ts):
+  - [x] Buildup-Plateau-Decline (BPD) model: rate at time t, cumulative production
+  - [x] Rate profile generator (time series array), economic limit cutoff
+  - [x] EUR calculation (analytical Arps decline, economic limit search)
+  - [x] Profile statistics: peak rate, peak time, plateau average, EUR
+  - [x] Multi-well schedule aggregation: rate, full time-series profile
+- [x] Implemented SCAL — Special Core Analysis (src/functions/scal/index.ts):
+  - [x] Corey power-law Kr: krw, kro, table generator (oil-water)
+  - [x] LET (Lomeland-Ebeltoft-Thomas 2005): krw, kro
+  - [x] Honarpour (1982) gas-oil Kr: sandstone and carbonate
+  - [x] Brooks-Corey capillary pressure (Pc, Sw from Pc, height above FWL)
+  - [x] Van Genuchten (1980) capillary pressure model
+  - [x] Leverett J-function: J calculation and Pc from J (cross-rock scaling)
+  - [x] Stone I (1970) and Stone II (1973) three-phase oil Kr
+  - [x] Buckley-Leverett (1942) fractional flow + Welge (1952) tangent construction
+  - [x] Newman (1973) rock compressibility (sandstone, limestone, chalk)
+- [x] Updated src/index.ts with VFP, SF, FA, FRAC, FPP, SCAL namespaces
+- [x] Written 161 new Jest unit tests (375 total, all passing)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+
+#### Stopping Point — Session 3
+Good stopping point after VFP + SF + FA + FRAC + FPP + SCAL with 375 tests passing.
+
+#### Next Session — Session 4 (Planned)
+- [ ] EoS (Peng-Robinson flash, bubble/dew point, phase envelope)
+- [ ] CNG/LNG (density GIIGNL, BOG, GGE, storage, compression, vaporizer)
+- [ ] ESP (pump sizing, TDH, motor, cable, gas handling)
+- [ ] Gas Lift (injection design, valve setting, Thornhill-Craver throughput)
+- [ ] Rod Pump (sizing, polished rod loads, pumping unit torque)
+- [ ] Van Everdingen-Hurst aquifer model (MBE extension)
+- [ ] Additional DCA models (PLE, stretched exponential, Logistic Growth, Duong extended)
 - [ ] Office.js taskpane UI — Blueprint Manager, Function Browser
 - [ ] Ribbon implementation (6 groups + Library + Unit Conversion)
 - [ ] Web deployment / Netlify/Azure manifest hosting
