@@ -19,6 +19,12 @@ import * as PipeExports  from "./functions/pipe";
 import * as IPRExports   from "./functions/ipr";
 import * as MBEExports   from "./functions/mbe";
 import * as PTAExports   from "./functions/pta";
+import * as VFPExports   from "./functions/vfp";
+import * as SFExports    from "./functions/sf";
+import * as FAExports    from "./functions/fa";
+import * as FRACExports  from "./functions/frac";
+import * as FPPExports   from "./functions/fpp";
+import * as SCALExports  from "./functions/scal";
 
 // ─── Re-export raw modules ────────────────────────────────────────────────────
 export * as P365_PVT_Gas   from "./functions/pvt/gas";
@@ -29,6 +35,12 @@ export * as P365_Pipe      from "./functions/pipe";
 export * as P365_IPR       from "./functions/ipr";
 export * as P365_MBE       from "./functions/mbe";
 export * as P365_PTA       from "./functions/pta";
+export * as P365_VFP       from "./functions/vfp";
+export * as P365_SF        from "./functions/sf";
+export * as P365_FA        from "./functions/fa";
+export * as P365_FRAC      from "./functions/frac";
+export * as P365_FPP       from "./functions/fpp";
+export * as P365_SCAL      from "./functions/scal";
 export { unitConverter, getUnitsForCategory, getCategories, listUnits } from "./functions/utilities/unitConverter";
 
 // ─── P365 Namespace Object ────────────────────────────────────────────────────
@@ -254,5 +266,160 @@ export const P365 = {
       C:   PTAExports.wellboreStorageCoefficient,
       CD:  PTAExports.wellboreStorageCoefficientCD,
     },
+  },
+
+  // ─── VFP — Vertical Flow Performance ──────────────────────────────────────
+  VFP: {
+    Liquid: {
+      DeltaP: VFPExports.singlePhaseLiquidDeltaP,
+      BHP:    VFPExports.singlePhaseLiquidBHP,
+    },
+    Gas: {
+      BHP:      VFPExports.singlePhaseGasBHP,
+      OutletP:  VFPExports.singlePhaseGasOutletP,
+    },
+    BeggsBrill: {
+      Gradient: VFPExports.beggsBrillGradient,
+      BHP:      VFPExports.beggsBrillBHP,
+      VLPCurve: VFPExports.vlpCurveBeggsBrill,
+    },
+    Gray: {
+      Gradient: VFPExports.grayGradient,
+    },
+    HagedornBrown: {
+      Gradient: VFPExports.hagedornBrownGradient,
+    },
+    LiquidLoading: {
+      TurnerCriticalVelocity:   VFPExports.turnerCriticalVelocity,
+      MinimumGasRateForLiftoff: VFPExports.minimumGasRateForLiftoff,
+    },
+  },
+
+  // ─── SF — Surface Facilities ───────────────────────────────────────────────
+  SF: {
+    Choke: {
+      Rate:           SFExports.chokeRate,
+      BeanSize:       SFExports.chokeBeanSize,
+      IsCritical:     SFExports.isCriticalFlow,
+      AllCorrelations: SFExports.chokeAllCorrelations,
+    },
+    Pipeline: {
+      PanhandleA:         SFExports.panhandleA,
+      PanhandleAOutletP:  SFExports.panhandleAOutletP,
+      PanhandleB:         SFExports.panhandleB,
+      PanhandleBOutletP:  SFExports.panhandleBOutletP,
+      Comparison:         SFExports.gasPipelineComparison,
+    },
+    Compressor: {
+      Power:           SFExports.compressorPower,
+      Interstage:      SFExports.interstageCompression,
+      DischargeTemp:   SFExports.compressorDischargeTemp,
+    },
+  },
+
+  // ─── FA — Flow Assurance ───────────────────────────────────────────────────
+  FA: {
+    Hydrate: {
+      HammerschmidtDepression:    FAExports.hammerschmidtDepression,
+      HammerschmidtConcentration: FAExports.hammerschmidtConcentration,
+      KatzTemp:                   FAExports.katzHydrateTemp,
+      MethanolRate:               FAExports.methanolInjectionRate,
+      MEGRate:                    FAExports.megInjectionRate,
+    },
+    Corrosion: {
+      DeWaardMilliams:    FAExports.deWaardMilliamsCorrosion,
+      Severity:           FAExports.corrosionSeverity,
+      CO2PartialPressure: FAExports.co2PartialPressure,
+      InhibitedRate:      FAExports.inhibitedCorrosionRate,
+      Allowance:          FAExports.corrosionAllowance,
+    },
+    Erosion: {
+      MixtureDensity:   FAExports.mixtureDensity,
+      ErosionalVelocity: FAExports.erosionalVelocity,
+      MixtureVelocity:  FAExports.mixtureVelocity,
+      Ratio:            FAExports.erosionRatio,
+      RiskClass:        FAExports.erosionRiskClass,
+    },
+    Assessment: FAExports.flowAssuranceAssessment,
+  },
+
+  // ─── FRAC — Hydraulic Fracturing ──────────────────────────────────────────
+  FRAC: {
+    PKN: {
+      AverageWidth:   FRACExports.pknAverageWidth,
+      MaxWidth:       FRACExports.pknMaxWidth,
+      Volume:         FRACExports.pknFractureVolume,
+      FluidEfficiency: FRACExports.pknFluidEfficiency,
+      NetPressure:    FRACExports.pknNetPressure,
+    },
+    KGD: {
+      AverageWidth:   FRACExports.kgdAverageWidth,
+      Volume:         FRACExports.kgdFractureVolume,
+    },
+    Radial: {
+      Radius:         FRACExports.radialFractureRadius,
+    },
+    Leakoff: {
+      CartierCoeff:   FRACExports.carterLeakoffCoeff,
+      CumulativeLoss: FRACExports.carterCumulativeLoss,
+    },
+    Proppant: {
+      SettlingVelocity:       FRACExports.proppantSettlingVelocity,
+      HinderedSettlingVelocity: FRACExports.hinderedSettlingVelocity,
+    },
+    CfD:                FRACExports.dimensionlessConductivity,
+    FracturedWellSkin:  FRACExports.fracturedWellSkin,
+    StimulationRatio:   FRACExports.fractureStimulationRatio,
+  },
+
+  // ─── FPP — Field Production Profile ───────────────────────────────────────
+  FPP: {
+    Rate:             FPPExports.fieldProductionRate,
+    Cumulative:       FPPExports.fieldCumulativeProduction,
+    RateProfile:      FPPExports.fieldRateProfile,
+    EUR:              FPPExports.fieldEUR,
+    ProfileStats:     FPPExports.profileStats,
+    MultiWell: {
+      Rate:           FPPExports.multiWellRate,
+      RateProfile:    FPPExports.multiWellRateProfile,
+    },
+  },
+
+  // ─── SCAL — Special Core Analysis ─────────────────────────────────────────
+  SCAL: {
+    Corey: {
+      Krw:     SCALExports.coreyKrw,
+      Kro:     SCALExports.coreyKro,
+      KrTable: SCALExports.coreyKrTable,
+    },
+    LET: {
+      Krw: SCALExports.letKrw,
+      Kro: SCALExports.letKro,
+    },
+    Honarpour: {
+      Krg: SCALExports.honarpourKrg,
+      Kro: SCALExports.honarpourKro,
+    },
+    BrooksCorey: {
+      Pc:         SCALExports.brooksCoreyPc,
+      SwFromPc:   SCALExports.brooksCoreySwFromPc,
+      PcToHeight: SCALExports.pcToHeight,
+    },
+    VanGenuchten: {
+      Pc: SCALExports.vanGenuchtenPc,
+    },
+    Leverett: {
+      J:  SCALExports.leverettJ,
+      Pc: SCALExports.leverettPc,
+    },
+    BuckleyLeverett: {
+      Fw:               SCALExports.buckleyLeverettFw,
+      WelgeConstruction: SCALExports.welgeConstruction,
+    },
+    StoneKro: {
+      StoneI:  SCALExports.stoneOneKro,
+      StoneII: SCALExports.stoneTwoKro,
+    },
+    RockCompressibility: SCALExports.newmanRockCompressibility,
   },
 } as const;
