@@ -2,7 +2,7 @@
 
 > **A comprehensive petroleum engineering function library and Excel add-in for natural gas, oil, CNG, and LNG calculations.**
 
-[![Tests](https://img.shields.io/badge/tests-1116%20passing-brightgreen)](./test)
+[![Tests](https://img.shields.io/badge/tests-1238%20passing-brightgreen)](./test)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -28,7 +28,7 @@
 
 ## What Is P365?
 
-**Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **750+ engineering calculations** organized into 25 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design, nodal analysis, LNG thermodynamics, wellbore heat transfer, geomechanics, composite skin factor analysis, and wellbore integrity (casing design, cement jobs, shoe tests).
+**Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **800+ engineering calculations** organized into 27 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design (including poroelastic closure stress and Nolte G-function analysis), nodal analysis, LNG thermodynamics, wellbore heat transfer, geomechanics, composite skin factor analysis, wellbore integrity (casing design, cement jobs, shoe tests), and **reservoir simulation INCLUDE file generation** (Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, and batch file generator).
 
 P365 is designed to work **inside Microsoft Excel** as a custom function library (UDFs), letting engineers use familiar spreadsheet workflows backed by rigorous, well-tested engineering correlations. It is also available as a standalone TypeScript/Node.js library for integration into web applications, pipelines, or custom tooling. The full **Office 365 add-in suite** — Word, Outlook, Teams, PowerPoint, OneNote, and Access — extends P365 calculations into reports, emails, collaboration cards, presentations, field notes, and job databases.
 
@@ -53,7 +53,7 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 ## Features
 
 - ✅ **723 passing unit tests** — every correlation is independently verified
-- ✅ **25 engineering modules** covering the full production lifecycle
+- ✅ **27 engineering modules** covering the full production lifecycle
 - ✅ **Field units throughout** — psi, °F, STB, scf, ft, cp, md
 - ✅ **Named after correlation authors** — `P365.PVT.Z.ByDAK` is the Dranchuk-Abou-Kassem method
 - ✅ **Pure functions** — no side effects, no global state, fully testable
@@ -91,7 +91,9 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 | 22 | **GEO** | Geomechanics | Eaton pore pressure, fracture gradient (3 methods), mud window, wellbore stability |
 | 23 | **SKIN** | Composite Skin Factor | Hawkins, Karakas-Tariq, non-Darcy, partial penetration, gravel pack |
 | 24 | **WBI** | Wellbore Integrity | Casing burst/collapse, buoyancy, cement volume/density, FIT/LOT/XLOT, mud window |
-| 25 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions |
+| 25 | **SIM** | Sim INCLUDE Generator | Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, Corey table builder, File Generator |
+| 26 | **Blueprints** | Blueprint Manager Catalog | 35+ structured blueprint templates with category/search/install metadata |
+| 27 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions |
 
 ---
 
@@ -838,6 +840,60 @@ Supports **60+ categories** and **1,500+ unit pairs** including pressure, temper
 
 ---
 
+### FRAC Extended — Poroelastic Closure & Nolte-G Analysis (Session 9)
+
+**Closure Stress & Net Pressure**
+| Function | Description |
+|----------|-------------|
+| `P365.FRAC.Poroelastic.Closure` | σ_h from uniaxial strain model: [ν/(1-ν)]·(σ_v − α·Pp) + α·Pp + Δσ_tect |
+| `P365.FRAC.NetPressure` | Net pressure: P_net = P_treating − σ_closure − P_friction |
+| `P365.FRAC.FluidEfficiency` | Fluid efficiency η = V_frac / V_injected (0–1) |
+| `P365.FRAC.ISIP` | Bottomhole ISIP from surface pressure + hydrostatic head |
+| `P365.FRAC.SurfaceTreatingPressure` | Wellhead STP = P_BH − hydrostatic + pipe friction + perf friction |
+| `P365.FRAC.BreakdownPressure` | Fracture initiation: P_bd = σ_h + T₀ − P_pore (Hubbert-Willis) |
+
+**Nolte G-Function Analysis**
+| Function | Description |
+|----------|-------------|
+| `P365.FRAC.Nolte.G` | G(ΔtD) = (4/3)·[(1+ΔtD)^1.5 − ΔtD^1.5 − 1] — step-rate test diagnostic |
+| `P365.FRAC.Nolte.Closure` | P_closure = P_ISIP − (dP/dG) × G_closure from G-function plot |
+| `P365.FRAC.Nolte.Leakoff` | Carter leakoff coefficient from G-function slope |
+
+---
+
+### SIM — Reservoir Simulation INCLUDE File Generator (Session 9)
+
+**Eclipse Keywords**
+| Function | Description |
+|----------|-------------|
+| `P365.SIM.SWOF` | Generate Eclipse SWOF keyword text from water-oil Kr table (Sw, krw, krow, Pcow) |
+| `P365.SIM.SGOF` | Generate Eclipse SGOF keyword text from gas-oil Kr table (Sg, krg, krog, Pcgo) |
+| `P365.SIM.PVTO` | Generate Eclipse PVTO (live oil) PVT table text with undersaturated branches |
+| `P365.SIM.PVDG` | Generate Eclipse PVDG (dry gas) PVT table text |
+| `P365.SIM.PVTW` | Generate Eclipse PVTW (water PVT) single-line keyword |
+
+**CMG Keywords**
+| Function | Description |
+|----------|-------------|
+| `P365.SIM.WOTABLE` | Generate CMG STARS/GEM WOTABLE (water-oil Kr) keyword |
+| `P365.SIM.GOTABLE` | Generate CMG STARS/GEM GOTABLE (gas-oil Kr) keyword |
+
+**Table Builders**
+| Function | Description |
+|----------|-------------|
+| `P365.SIM.BuildSwofTable` | Build SWOF table array from Corey kr parameters (N evenly-spaced points) |
+| `P365.SIM.BuildSgofTable` | Build SGOF table array from Corey kr parameters |
+| `P365.SIM.KrEndpointTable` | Formatted SCAL endpoint summary table for Eclipse comment block |
+
+**File Generator**
+| Function | Description |
+|----------|-------------|
+| `P365.SIM.GenerateFromTemplate` | Render simulation input file from template with @TOKEN substitution |
+| `P365.SIM.ValidateTokens` | Validate token map against template — returns missing token names |
+| `P365.SIM.BatchGenerate` | Generate multiple output files from one template + case table |
+
+---
+
 ## Development
 
 ### Project Structure
@@ -846,6 +902,7 @@ Supports **60+ categories** and **1,500+ unit pairs** including pressure, temper
 Petroleum-365/
 ├── src/
 │   ├── index.ts                  ← P365 namespace (all exports)
+│   ├── functions.json            ← UDF registrations (62 entries)
 │   └── functions/
 │       ├── pvt/                  ← PVT: gas.ts, oil.ts, water.ts
 │       ├── dca/                  ← Decline curve analysis
@@ -854,7 +911,7 @@ Petroleum-365/
 │       ├── mbe/                  ← Material balance
 │       ├── pta/                  ← Pressure transient analysis
 │       ├── eos/                  ← Equation of state (PR)
-│       ├── frac/                 ← Hydraulic fracturing
+│       ├── frac/                 ← Hydraulic fracturing (+ poroelastic, Nolte-G)
 │       ├── esp/                  ← Electric submersible pump
 │       ├── gl/                   ← Gas lift
 │       ├── rp/                   ← Rod pump
@@ -867,8 +924,21 @@ Petroleum-365/
 │       ├── aga8/                 ← AGA-8 Z-factor
 │       ├── nodal/                ← Nodal analysis
 │       ├── wht/                  ← Wellbore heat transfer
+│       ├── geo/                  ← Geomechanics
+│       ├── skin/                 ← Composite skin factor
+│       ├── wbi/                  ← Wellbore integrity
+│       ├── sim/                  ← Sim INCLUDE file generator (Session 9)
 │       ├── pipe/                 ← Pipe sizing
 │       └── utilities/            ← Unit converter
+├── src/addins/
+│   ├── blueprints/               ← Blueprint Manager catalog (Session 9)
+│   ├── browser/                  ← Function Browser catalog (Session 9)
+│   ├── word/                     ← Word add-in helpers
+│   ├── outlook/                  ← Outlook add-in helpers
+│   ├── teams/                    ← Teams Adaptive Card builders
+│   ├── powerpoint/               ← PowerPoint slide builders
+│   ├── onenote/                  ← OneNote note builders
+│   └── access/                   ← Access database schema + queries
 ├── test/                         ← Jest tests (mirrors src/functions)
 ├── manifest.xml                  ← Office Add-in manifest
 ├── package.json
@@ -882,7 +952,7 @@ Petroleum-365/
 | Command | Description |
 |---------|-------------|
 | `npm install` | Install all dependencies |
-| `npx jest --no-coverage` | Run all 723 unit tests |
+| `npx jest --no-coverage` | Run all 1238 unit tests |
 | `npx tsc --noEmit` | TypeScript type-check (0 errors expected) |
 | `npm run build` | Build for production |
 
