@@ -25,6 +25,11 @@ src/
     eos/            ← Equation of State
     frac/           ← Hydraulic Fracturing
     fpp/            ← Field Production Profile
+    cnglng/         ← CNG and LNG calculations
+    hv/             ← Heating Value (GPA 2145)
+    aga8/           ← AGA-8 Z-factor for custody transfer
+    nodal/          ← Nodal Analysis (IPR + VLP)
+    wht/            ← Wellbore Heat Transfer
     utilities/      ← Unit converter, spline, math utils
     pipe/           ← Pipe sizing calculator
   taskpane/         ← React UI (Blueprint Manager, Function Browser)
@@ -252,17 +257,58 @@ Good stopping point after VFP + SF + FA + FRAC + FPP + SCAL with 375 tests passi
 #### Stopping Point — Session 4
 Good stopping point after EoS + ESP + GL + RP + CNG/LNG + VEH + DCA extensions with 539 tests passing.
 
-#### Next Session — Session 5 (Planned)
+### Session 5 — HV + AGA-8 + Nodal + WHT + README
+**Status:** Complete
+
+#### Completed
+- [x] Implemented HV — Heating Value (src/functions/hv/index.ts):
+  - [x] `hvMolecularWeight`: mixture MW from composition (GPA 2145)
+  - [x] `hvSpecificGravity`: gas SG from composition
+  - [x] `hvHHV`: Higher Heating Value (BTU/scf)
+  - [x] `hvLHV`: Lower Heating Value (BTU/scf)
+  - [x] `hvWobbeIndex`: Wobbe Index = HHV / √SG
+  - [x] `hvHHV_MJNm3`, `hvLHV_MJNm3`: SI heating values
+  - [x] `hvAnalysis`: complete composition analysis (MW, SG, HHV, LHV, Wobbe)
+  - [x] 18 supported components: C1–C7, iC4, nC4, iC5, nC5, N2, CO2, H2S, H2, CO, O2, He, H2O, Ar
+- [x] Implemented AGA-8 Z-factor (src/functions/aga8/index.ts):
+  - [x] `aga8CharProps`: critical properties for 15 standard gas components
+  - [x] `aga8MixProps`: mixture Tc/Pc/MW/ω via Kay's mixing rule
+  - [x] `aga8Z`: Z-factor (SI: MPa, K) via Hall-Yarborough on mixture pseudo-criticals
+  - [x] `aga8Density`: molar density (mol/L) from Z
+  - [x] `aga8CompressibilityFactor`: field-unit wrapper (psia, °F)
+- [x] Implemented Nodal Analysis (src/functions/nodal/index.ts):
+  - [x] `nodalOperatingPoint`: generic IPR + VLP bisection solver
+  - [x] `nodalIPRVogel`: oil well nodal (Vogel IPR + Beggs-Brill VLP)
+  - [x] `nodalGasWell`: gas well nodal (Darcy IPR + single-phase avg T-Z)
+  - [x] `nodalSweep`: evaluate function over rate range (returns curve data)
+  - [x] Self-contained — no circular imports from ipr/vfp modules
+- [x] Implemented WHT — Wellbore Heat Transfer (src/functions/wht/index.ts):
+  - [x] `whtGeothermalTemp`: formation temperature at depth (geothermal gradient)
+  - [x] `whtOHTC`: overall heat transfer coefficient (cylindrical coordinates)
+  - [x] `whtFluidTemp`: Ramey (1962) fluid temperature profile along wellbore
+  - [x] `whtInsulationThickness`: required insulation for target U (BTU/hr/ft²/°F)
+  - [x] `whtHeatLoss`: total wellbore heat loss rate (BTU/hr)
+- [x] Built out README.md with full documentation:
+  - [x] Purpose, target audience, features overview
+  - [x] Complete function reference for all 22 modules (650+ functions)
+  - [x] Installation, usage (TypeScript + Excel), naming convention
+  - [x] Development guide, project structure, coding conventions
+  - [x] Unit converter reference, blueprints list, Excel add-in guide
+- [x] Updated src/index.ts with HV, AGA8, Nodal, WHT namespaces and re-exports
+- [x] Written 89 new Jest unit tests (628 total, all passing)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+
+#### Stopping Point — Session 5
+Good stopping point after HV + AGA-8 + Nodal + WHT + README with 628 tests passing.
+
+#### Next Session — Session 6 (Planned)
 - [ ] Office.js taskpane UI — Blueprint Manager, Function Browser (React)
 - [ ] Ribbon implementation (6 groups: PVT, IPR/VLP, MBE, PTA, FRAC, Lift)
-- [ ] Custom Functions metadata (functions.json) — map all 539 functions to Excel UDFs
-- [ ] Heating Value functions (HHV, LHV, Wobbe Index from gas composition)
-- [ ] AGA-8 (1992/2017) compressibility equation for custody transfer
-- [ ] Nodal analysis (IPR + VLP intersection, operating point)
-- [ ] Web deployment / Netlify/Azure manifest hosting
-- [ ] Additional DCA: Duong extended, EUR sensitivity analysis
-- [ ] Wellbore heat transfer (geothermal gradient, insulation, OHTC)
+- [ ] Custom Functions metadata (functions.json) — map all functions to Excel UDFs
 - [ ] Additional SCAL: IFT-dependent capillary pressure (EOR scaling)
+- [ ] Wellbore inflow model: composite skin (damage + perforation + non-Darcy)
+- [ ] Geomechanics basics: pore pressure prediction, fracture gradient (Eaton)
+- [ ] Web deployment / Netlify/Azure manifest hosting
 
 ## Function Naming Convention
 `P365.[Category].[Property].[Qualifier].By[Author]`
@@ -284,6 +330,11 @@ Good stopping point after EoS + ESP + GL + RP + CNG/LNG + VEH + DCA extensions w
 | FRAC | Hydraulic Fracturing |
 | FPP | Field Production Profile |
 | RP | Rod Pump |
+| CNG/LNG | Gas Monetization |
+| HV | Heating Value (GPA 2145) |
+| AGA8 | AGA-8 Custody Transfer Z-factor |
+| Nodal | Nodal Analysis (IPR + VLP) |
+| WHT | Wellbore Heat Transfer |
 
 ## Key Engineering Details (from P365.md)
 - Pipe material roughness: Bare Steel 0.000150 ft · Coated Steel 0.000100 ft · PE 0.000005 ft
