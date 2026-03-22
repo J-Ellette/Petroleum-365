@@ -188,17 +188,81 @@ Good stopping point after IPR + MBE + PTA with 214 tests passing.
 #### Stopping Point — Session 3
 Good stopping point after VFP + SF + FA + FRAC + FPP + SCAL with 375 tests passing.
 
-#### Next Session — Session 4 (Planned)
-- [ ] EoS (Peng-Robinson flash, bubble/dew point, phase envelope)
-- [ ] CNG/LNG (density GIIGNL, BOG, GGE, storage, compression, vaporizer)
-- [ ] ESP (pump sizing, TDH, motor, cable, gas handling)
-- [ ] Gas Lift (injection design, valve setting, Thornhill-Craver throughput)
-- [ ] Rod Pump (sizing, polished rod loads, pumping unit torque)
-- [ ] Van Everdingen-Hurst aquifer model (MBE extension)
-- [ ] Additional DCA models (PLE, stretched exponential, Logistic Growth, Duong extended)
-- [ ] Office.js taskpane UI — Blueprint Manager, Function Browser
-- [ ] Ribbon implementation (6 groups + Library + Unit Conversion)
+### Session 4 — EoS + ESP + GL + RP + CNG/LNG + VEH + DCA Extensions
+**Status:** Complete
+
+#### Completed
+- [x] Implemented EoS — Equation of State (src/functions/eos/index.ts):
+  - [x] PR cubic roots solver (Cardano's method for all 3 roots)
+  - [x] Peng-Robinson A, B parameters (kappa, alpha, a(T), b)
+  - [x] PR Z-factor for vapor (max root) and liquid (min root)
+  - [x] Fugacity coefficient ln(φ) from PR EoS
+  - [x] Multi-component mixing rules (van der Waals, binary interaction kij)
+  - [x] Bubble point pressure (successive substitution, Wilson K-values)
+  - [x] Dew point pressure (successive substitution, Wilson K-values)
+  - [x] Two-phase flash (Rachford-Rice, up to 200 iterations, tol 1e-8)
+- [x] Implemented ESP — Electric Submersible Pump (src/functions/esp/index.ts):
+  - [x] Total Dynamic Head (TDH): static + friction + backpressure
+  - [x] Hydraulic HP and Brake HP
+  - [x] Number of pump stages (ceiling of TDH / head per stage)
+  - [x] Motor HP (with service factor), motor current (3-phase)
+  - [x] Cable voltage drop (resistance × current × depth)
+  - [x] Void fraction at pump intake (free gas fraction)
+  - [x] Gas handling risk classification (low/moderate/severe)
+  - [x] Operating point: pump curve vs TDH intersection by linear interpolation
+- [x] Implemented GL — Gas Lift (src/functions/gl/index.ts):
+  - [x] Current GLR, required injection rate, total GLR
+  - [x] Thornhill-Craver orifice throughput (critical and subcritical flow)
+  - [x] Valve dome pressure at depth, TRO (test rack opening) pressure
+  - [x] Valve closing pressure, spread, injection pressure at depth
+  - [x] Critical flow check (Pdown/Pup < 0.55)
+  - [x] Optimal injection depth (tubing vs casing pressure crossover)
+- [x] Implemented RP — Rod Pump (src/functions/rp/index.ts):
+  - [x] Pump displacement (bore, stroke, SPM, efficiency → bbl/d)
+  - [x] Fluid load and rod weight calculations
+  - [x] PPRL (peak polished rod load) and MPRL (minimum polished rod load)
+  - [x] Peak torque at gear reducer
+  - [x] Counterbalance effect at crank angle
+  - [x] Motor HP requirement
+  - [x] Stroke length from crank geometry
+  - [x] API pumping unit class designation
+- [x] Implemented CNG/LNG (src/functions/cnglng/index.ts):
+  - [x] CNG density (ideal-gas law with Z-factor correction)
+  - [x] CNG cylinder usable capacity (scf), GGE, DGE conversions
+  - [x] Fill time calculation, cascade bank design (3-bank system)
+  - [x] LNG density: GIIGNL-style correlation (T_K, MW dependent)
+  - [x] LNG density from mole composition (additive volumes)
+  - [x] BOG rate (kg/d and MJ/d), vaporization enthalpy (Watson correlation)
+  - [x] LNG heel calculation (voyage BOG), MMBtu conversion, tonne conversion
+  - [x] LNG price to Henry Hub equivalent
+- [x] Extended MBE with Van Everdingen-Hurst aquifer model:
+  - [x] vehQFunction(tD): dimensionless cumulative influx (3-range polynomial fit)
+  - [x] vehPD(tD, rD): dimensionless pressure (Ei-function based)
+  - [x] vehAquiferConstant(phi, ct, h, ri, theta): B' (bbl/psi, field units)
+  - [x] vehTD(t_days, k, phi, mu_w, ct, ri): dimensionless time
+  - [x] vehWaterInflux(B_prime, deltaP_arr, Q_arr, tD_arr): superposition We (bbl)
+- [x] Extended DCA with 3 new models:
+  - [x] PLE (Power Law Exponential): rate and cumulative (pleRate, pleCumulative)
+  - [x] SEPD (Stretched Exponential): rate and cumulative (sepdRate, sepdCumulative)
+  - [x] LGM (Logistic Growth Model): rate, cumulative, EUR (lgmRate, lgmCumulative, lgmEUR)
+- [x] Updated src/index.ts with EoS, ESP, GL, RP, CNGLNG namespaces and DCA/MBE extensions
+- [x] Written 164 new Jest unit tests (539 total, all passing)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+
+#### Stopping Point — Session 4
+Good stopping point after EoS + ESP + GL + RP + CNG/LNG + VEH + DCA extensions with 539 tests passing.
+
+#### Next Session — Session 5 (Planned)
+- [ ] Office.js taskpane UI — Blueprint Manager, Function Browser (React)
+- [ ] Ribbon implementation (6 groups: PVT, IPR/VLP, MBE, PTA, FRAC, Lift)
+- [ ] Custom Functions metadata (functions.json) — map all 539 functions to Excel UDFs
+- [ ] Heating Value functions (HHV, LHV, Wobbe Index from gas composition)
+- [ ] AGA-8 (1992/2017) compressibility equation for custody transfer
+- [ ] Nodal analysis (IPR + VLP intersection, operating point)
 - [ ] Web deployment / Netlify/Azure manifest hosting
+- [ ] Additional DCA: Duong extended, EUR sensitivity analysis
+- [ ] Wellbore heat transfer (geothermal gradient, insulation, OHTC)
+- [ ] Additional SCAL: IFT-dependent capillary pressure (EOR scaling)
 
 ## Function Naming Convention
 `P365.[Category].[Property].[Qualifier].By[Author]`
