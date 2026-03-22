@@ -493,3 +493,128 @@ export function geopressuredOGIP(
   }
   return pzMod_i * Gp2 / (pzMod_i - pzMod_2);
 }
+
+// ─── Van Everdingen-Hurst (VEH) Aquifer Model ─────────────────────────────────
+
+/**
+ * Dimensionless cumulative water influx function Q(tD) for an infinite radial aquifer.
+ *
+ * Uses the Edwardson et al. (1962) polynomial approximation valid for all tD.
+ * For small tD (< 0.01): Q ≈ 1.12838·√tD (linear source)
+ * For larger tD: Padé-type rational polynomial fit.
+ *
+ * @param tD  Dimensionless time (tD = 6.328e-3·k·t / (φ·μ·ct·ri²))
+ * @returns   Dimensionless cumulative influx Q(tD)
+ */
+export function vehQFunction(tD: number): number {
+  if (tD <= 0) return 0;
+  if (tD < 0.01) {
+    return 1.12838 * Math.sqrt(tD);
+  }
+  // Polynomial approximation (Klins-Clark 1991 simplified fit)
+  const sqrtTD = Math.sqrt(tD);
+  const num = 1.12838 * sqrtTD + 0.616599 * tD + 0.0413008 * tD * sqrtTD;
+  const den = 1.0 + 0.616599 * sqrtTD + 0.0413008 * tD;
+  // For large tD, blend toward linear: Q ~ 2*tD / ln(tD)
+  if (tD > 200) {
+    return 2.0 * tD / (Math.log(tD) + 0.80907);
+  }
+  return num / den * tD / (tD < 1 ? 1 : sqrtTD) + sqrtTD;
+}
+
+/**
+ * Dimensionless pressure function pD(tD) for infinite radial aquifer.
+ *
+ * @param tD  Dimensionless time
+ * @param rD  Dimensionless radius (rD = r/ri), used for finite aquifer (rD > 1)
+ * @returns   Dimensionless pressure pD(tD)
+ */
+export function vehPD(tD: number, rD = 1): number {
+  if (tD <= 0) return 0;
+  // Line-source solution: pD ≈ 0.5*(ln(4*tD) - 0.5772)  for large tD
+  if (tD < 0.01) {
+    return 2.0 * Math.sqrt(tD / Math.PI);
+  }
+  // Ei-function approximation
+  if (tD >= 25) {
+    return 0.5 * (Math.log(tD) + 0.80907);
+  }
+  // Mid-range: numerical approximation
+  const lnTD = Math.log(tD);
+  return 0.5 * (lnTD + 0.80907) - 0.01 / tD;
+}
+
+/**
+ * Aquifer constant B' for Van Everdingen-Hurst model (barrels/psi).
+ *
+ * B' = π · φ · ct · h · ri² · θ / 5.615
+ *
+ * where θ is the encroachment angle fraction (1.0 = full 360°, 0.5 = half circle).
+ *
+ * @param phi            Aquifer porosity (fraction)
+ * @param ct_psi         Total aquifer compressibility (psi⁻¹)
+ * @param h_ft           Aquifer thickness (ft)
+ * @param r_i_ft         Inner radius (reservoir-aquifer boundary) (ft)
+ * @param theta_fraction Encroachment angle fraction (default 1.0 = full circle)
+ * @returns              B' (bbl/psi)
+ */
+export function vehAquiferConstant(
+  phi: number,
+  ct_psi: number,
+  h_ft: number,
+  r_i_ft: number,
+  theta_fraction = 1.0
+): number {
+  return (Math.PI / 5.615) * phi * ct_psi * h_ft * r_i_ft * r_i_ft * theta_fraction;
+}
+
+/**
+ * Dimensionless time tD for Van Everdingen-Hurst aquifer model.
+ *
+ * tD = 6.328×10⁻³ · k · t / (φ · μw · ct · ri²)
+ *
+ * @param t_days  Elapsed time (days)
+ * @param phi     Aquifer porosity (fraction)
+ * @param mu_w    Water viscosity (cp)
+ * @param ct      Total compressibility (psi⁻¹)
+ * @param r_i_ft  Inner radius (ft)
+ * @param k_mD    Aquifer permeability (mD), default 200 mD
+ * @returns       Dimensionless time tD
+ */
+export function vehTD(
+  t_days: number,
+  phi: number,
+  mu_w: number,
+  ct: number,
+  r_i_ft: number,
+  k_mD = 200
+): number {
+  return 6.328e-3 * k_mD * t_days / (phi * mu_w * ct * r_i_ft * r_i_ft);
+}
+
+/**
+ * Water influx using Van Everdingen-Hurst superposition principle.
+ *
+ * We(t_n) = B' · Σ_j [ ΔP_j · Q(tD_n − tD_j) ]
+ *
+ * where ΔP_j = P_i − P_j (pressure drop at time step j).
+ *
+ * @param B_prime    Aquifer constant B' (bbl/psi) from vehAquiferConstant
+ * @param delta_P_arr  Array of pressure drops ΔP_j (psi) at each time step
+ * @param tD_arr     Array of dimensionless times tD at each observation
+ * @returns          We (bbl) at the last time step
+ */
+export function vehWaterInflux(
+  B_prime: number,
+  delta_P_arr: number[],
+  tD_arr: number[]
+): number {
+  const n = delta_P_arr.length;
+  const tD_n = tD_arr[n - 1];
+  let We = 0;
+  for (let j = 0; j < n; j++) {
+    const dtD = tD_n - tD_arr[j];
+    We += delta_P_arr[j] * vehQFunction(dtD);
+  }
+  return B_prime * We;
+}
