@@ -177,3 +177,131 @@ describe("EUR calculation", () => {
     expect(eur2).toBeGreaterThan(eur1);
   });
 });
+
+// ─── PLE, SEPD, LGM Tests ────────────────────────────────────────────────────
+
+import {
+  pleRate,
+  pleCumulative,
+  sepdRate,
+  sepdCumulative,
+  lgmRate,
+  lgmCumulative,
+  lgmEUR,
+} from "../../src/functions/dca";
+
+describe("pleRate — Power Law Exponential rate", () => {
+  test("At t=0, rate = qi", () => {
+    expect(pleRate(0, 1000, 0.001, 5.0, 0.5)).toBeCloseTo(1000, 5);
+  });
+
+  test("Rate decreases over time", () => {
+    const q1 = pleRate(1, 1000, 0.001, 5.0, 0.5);
+    const q2 = pleRate(10, 1000, 0.001, 5.0, 0.5);
+    expect(q2).toBeLessThan(q1);
+  });
+
+  test("Higher D_inf gives faster decline at late times", () => {
+    const q1 = pleRate(100, 1000, 0.001, 5.0, 0.5);
+    const q2 = pleRate(100, 1000, 0.01,  5.0, 0.5);
+    expect(q2).toBeLessThan(q1);
+  });
+});
+
+describe("pleCumulative — PLE cumulative production", () => {
+  test("Returns 0 at t=0", () => {
+    expect(pleCumulative(0, 1000, 0.001, 5.0, 0.5)).toBeCloseTo(0, 5);
+  });
+
+  test("Monotonically increases with time", () => {
+    const c1 = pleCumulative(5,  1000, 0.001, 5.0, 0.5);
+    const c2 = pleCumulative(10, 1000, 0.001, 5.0, 0.5);
+    expect(c2).toBeGreaterThan(c1);
+  });
+
+  test("Cumulative > 0 for positive rate and time", () => {
+    expect(pleCumulative(12, 1000, 0.001, 5.0, 0.5)).toBeGreaterThan(0);
+  });
+});
+
+describe("sepdRate — Stretched Exponential rate", () => {
+  test("At t=0, rate = qi", () => {
+    expect(sepdRate(0, 1000, 24, 0.5)).toBeCloseTo(1000, 5);
+  });
+
+  test("Rate decreases monotonically", () => {
+    const q1 = sepdRate(6,  1000, 24, 0.5);
+    const q2 = sepdRate(12, 1000, 24, 0.5);
+    expect(q2).toBeLessThan(q1);
+  });
+
+  test("At t = tau, rate = qi/e when n=1", () => {
+    const tau = 24;
+    expect(sepdRate(tau, 1000, tau, 1.0)).toBeCloseTo(1000 / Math.E, 2);
+  });
+
+  test("Higher n gives slower early decline", () => {
+    const q_n05 = sepdRate(1, 1000, 24, 0.5);
+    const q_n10 = sepdRate(1, 1000, 24, 1.0);
+    expect(q_n10).toBeGreaterThan(q_n05);
+  });
+});
+
+describe("sepdCumulative — SEPD cumulative", () => {
+  test("Returns 0 at t=0", () => {
+    expect(sepdCumulative(0, 1000, 24, 0.5)).toBeCloseTo(0, 5);
+  });
+
+  test("Monotonically increases", () => {
+    const c1 = sepdCumulative(12, 1000, 24, 0.5);
+    const c2 = sepdCumulative(24, 1000, 24, 0.5);
+    expect(c2).toBeGreaterThan(c1);
+  });
+});
+
+describe("lgmRate — Logistic Growth Model rate", () => {
+  test("Returns 0 at t=0", () => {
+    expect(lgmRate(0, 1e6, 100, 2.0)).toBe(0);
+  });
+
+  test("Rate has a peak then declines", () => {
+    const rates = [1, 5, 10, 20, 50, 100].map(t => lgmRate(t, 1e6, 100, 2.0));
+    const peak = Math.max(...rates);
+    expect(peak).toBeGreaterThan(rates[0]);
+  });
+
+  test("Returns positive values for t > 0", () => {
+    expect(lgmRate(10, 1e6, 100, 2.0)).toBeGreaterThan(0);
+  });
+});
+
+describe("lgmCumulative — LGM cumulative", () => {
+  test("Returns 0 at t=0", () => {
+    expect(lgmCumulative(0, 1e6, 100, 2.0)).toBeCloseTo(0, 5);
+  });
+
+  test("Approaches K as t → ∞", () => {
+    const K = 1e6;
+    const cum = lgmCumulative(1e6, K, 100, 2.0);
+    expect(cum).toBeCloseTo(K, -2);
+  });
+
+  test("Monotonically increases", () => {
+    const c1 = lgmCumulative(10,  1e6, 100, 2.0);
+    const c2 = lgmCumulative(100, 1e6, 100, 2.0);
+    expect(c2).toBeGreaterThan(c1);
+  });
+
+  test("Exact formula: K * t^n / (a + t^n)", () => {
+    const K = 1e6, a = 100, n = 2, t = 20;
+    const expected = K * Math.pow(t, n) / (a + Math.pow(t, n));
+    expect(lgmCumulative(t, K, a, n)).toBeCloseTo(expected, 5);
+  });
+});
+
+describe("lgmEUR — LGM EUR", () => {
+  test("EUR = K (carrying capacity)", () => {
+    expect(lgmEUR(1e6)).toBe(1e6);
+    expect(lgmEUR(500000)).toBe(500000);
+  });
+});

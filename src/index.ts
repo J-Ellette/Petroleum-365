@@ -10,21 +10,26 @@
  *   P365.UnitConverter(100, "psia", "bar")
  */
 
-import * as GasExports   from "./functions/pvt/gas";
-import * as OilExports   from "./functions/pvt/oil";
-import * as WaterExports from "./functions/pvt/water";
-import * as DCAExports   from "./functions/dca";
+import * as GasExports    from "./functions/pvt/gas";
+import * as OilExports    from "./functions/pvt/oil";
+import * as WaterExports  from "./functions/pvt/water";
+import * as DCAExports    from "./functions/dca";
 import { unitConverter, getUnitsForCategory, getCategories, listUnits } from "./functions/utilities/unitConverter";
-import * as PipeExports  from "./functions/pipe";
-import * as IPRExports   from "./functions/ipr";
-import * as MBEExports   from "./functions/mbe";
-import * as PTAExports   from "./functions/pta";
-import * as VFPExports   from "./functions/vfp";
-import * as SFExports    from "./functions/sf";
-import * as FAExports    from "./functions/fa";
-import * as FRACExports  from "./functions/frac";
-import * as FPPExports   from "./functions/fpp";
-import * as SCALExports  from "./functions/scal";
+import * as PipeExports   from "./functions/pipe";
+import * as IPRExports    from "./functions/ipr";
+import * as MBEExports    from "./functions/mbe";
+import * as PTAExports    from "./functions/pta";
+import * as VFPExports    from "./functions/vfp";
+import * as SFExports     from "./functions/sf";
+import * as FAExports     from "./functions/fa";
+import * as FRACExports   from "./functions/frac";
+import * as FPPExports    from "./functions/fpp";
+import * as SCALExports   from "./functions/scal";
+import * as EoSExports    from "./functions/eos";
+import * as ESPExports    from "./functions/esp";
+import * as GLExports     from "./functions/gl";
+import * as RPExports     from "./functions/rp";
+import * as CNGLNGExports from "./functions/cnglng";
 
 // ─── Re-export raw modules ────────────────────────────────────────────────────
 export * as P365_PVT_Gas   from "./functions/pvt/gas";
@@ -41,6 +46,11 @@ export * as P365_FA        from "./functions/fa";
 export * as P365_FRAC      from "./functions/frac";
 export * as P365_FPP       from "./functions/fpp";
 export * as P365_SCAL      from "./functions/scal";
+export * as P365_EoS       from "./functions/eos";
+export * as P365_ESP       from "./functions/esp";
+export * as P365_GL        from "./functions/gl";
+export * as P365_RP        from "./functions/rp";
+export * as P365_CNGLNG    from "./functions/cnglng";
 export { unitConverter, getUnitsForCategory, getCategories, listUnits } from "./functions/utilities/unitConverter";
 
 // ─── P365 Namespace Object ────────────────────────────────────────────────────
@@ -147,6 +157,19 @@ export const P365 = {
       Cumulative: DCAExports.duongCumulative,
       Fit:        DCAExports.duongFit,
     },
+    PLE: {
+      Rate:       DCAExports.pleRate,
+      Cumulative: DCAExports.pleCumulative,
+    },
+    SEPD: {
+      Rate:       DCAExports.sepdRate,
+      Cumulative: DCAExports.sepdCumulative,
+    },
+    LGM: {
+      Rate:       DCAExports.lgmRate,
+      Cumulative: DCAExports.lgmCumulative,
+      EUR:        DCAExports.lgmEUR,
+    },
   },
 
   // ─── Unit Converter ────────────────────────────────────────────────────────
@@ -232,6 +255,13 @@ export const P365 = {
       FetkovichWei:        MBEExports.fetkovichWei,
       FetkovichJ:          MBEExports.fetkovichAquiferJ,
       FetkovichInfluxStep: MBEExports.fetkovichWaterInfluxStep,
+      VEH: {
+        QFunction:       MBEExports.vehQFunction,
+        PD:              MBEExports.vehPD,
+        AquiferConstant: MBEExports.vehAquiferConstant,
+        TD:              MBEExports.vehTD,
+        WaterInflux:     MBEExports.vehWaterInflux,
+      },
     },
   },
 
@@ -421,5 +451,83 @@ export const P365 = {
       StoneII: SCALExports.stoneTwoKro,
     },
     RockCompressibility: SCALExports.newmanRockCompressibility,
+  },
+
+  // ─── EoS — Equation of State ───────────────────────────────────────────────
+  EoS: {
+    PR: {
+      AB:                 EoSExports.prAB,
+      CubicRoots:         EoSExports.prCubicRoots,
+      ZFactor:            EoSExports.prZFactor,
+      FugacityCoefficient: EoSExports.prFugacityCoefficient,
+      MixAB:              EoSExports.prMixAB,
+      BubblePoint:        EoSExports.prBubblePoint,
+      DewPoint:           EoSExports.prDewPoint,
+      Flash:              EoSExports.prFlash,
+    },
+  },
+
+  // ─── ESP — Electric Submersible Pump ──────────────────────────────────────
+  ESP: {
+    TDH:            ESPExports.espTDH,
+    HydraulicHP:    ESPExports.espHydraulicHP,
+    BrakeHP:        ESPExports.espBrakeHP,
+    PumpStages:     ESPExports.espPumpStages,
+    MotorHP:        ESPExports.espMotorHP,
+    MotorCurrent:   ESPExports.espMotorCurrent,
+    CableVoltageDrop: ESPExports.espCableVoltageDrop,
+    VoidFraction:   ESPExports.espVoidFraction,
+    GasHandling:    ESPExports.espGasHandling,
+    OperatingPoint: ESPExports.espOperatingPoint,
+  },
+
+  // ─── GL — Gas Lift ─────────────────────────────────────────────────────────
+  GL: {
+    TargetGLR:              GLExports.glTargetGLR,
+    RequiredInjectionRate:  GLExports.glRequiredInjectionRate,
+    TotalGLR:               GLExports.glTotalGLR,
+    ThornhillCraver:        GLExports.thornhillCraver,
+    ValveDomePressure:      GLExports.glValveDomePressure,
+    ValveTRO:               GLExports.glValveTRO,
+    ValveClosingPressure:   GLExports.glValveClosingPressure,
+    InjectionPressureAtDepth: GLExports.glInjectionPressureAtDepth,
+    CriticalFlowCheck:      GLExports.glCriticalFlowCheck,
+    OptimalInjectionDepth:  GLExports.glOptimalInjectionDepth,
+  },
+
+  // ─── RP — Rod Pump ─────────────────────────────────────────────────────────
+  RP: {
+    PumpDisplacement:    RPExports.rpPumpDisplacement,
+    FluidLoad:           RPExports.rpFluidLoad,
+    RodWeight:           RPExports.rpRodWeight,
+    PolishedRodLoadUp:   RPExports.rpPolishedRodLoadUp,
+    PolishedRodLoadDown: RPExports.rpPolishedRodLoadDown,
+    PeakTorque:          RPExports.rpPeakTorque,
+    CounterbalanceEffect: RPExports.rpCounterbalanceEffect,
+    MotorHP:             RPExports.rpMotorHP,
+    StrokeLength:        RPExports.rpStrokeLength,
+    PumpingUnitClass:    RPExports.rpPumpingUnitClass,
+  },
+
+  // ─── CNG / LNG ─────────────────────────────────────────────────────────────
+  CNGLNG: {
+    CNG: {
+      Density:         CNGLNGExports.cngDensity,
+      CylinderCapacity: CNGLNGExports.cngCylinderCapacity,
+      GGE:             CNGLNGExports.cngGGE,
+      DGE:             CNGLNGExports.cngDGE,
+      FillTime:        CNGLNGExports.cngFillTime,
+      CascadeDesign:   CNGLNGExports.cngCascadeDesign,
+    },
+    LNG: {
+      DensityGIIGNL:        CNGLNGExports.lngDensityGIIGNL,
+      DensityFromComposition: CNGLNGExports.lngDensityFromComposition,
+      BOGRate:              CNGLNGExports.lngBOGRate,
+      VaporizationEnthalpy: CNGLNGExports.lngVaporizationEnthalpy,
+      HeelCalculation:      CNGLNGExports.lngHeelCalculation,
+      ToMMBtu:              CNGLNGExports.lngToMMBtu,
+      PriceToHenryHub:      CNGLNGExports.lngPriceToHenryHub,
+      TonneToMMBtu:         CNGLNGExports.lngTonneToMMBtu,
+    },
   },
 } as const;

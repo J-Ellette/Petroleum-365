@@ -251,3 +251,107 @@ describe("Geopressured Modified p/Z", () => {
     expect(ogipGeo).toBeGreaterThan(0);
   });
 });
+
+// ─── Van Everdingen-Hurst (VEH) Tests ─────────────────────────────────────────
+
+import {
+  vehQFunction,
+  vehPD,
+  vehAquiferConstant,
+  vehTD,
+  vehWaterInflux,
+} from "../../src/functions/mbe";
+
+describe("vehQFunction — dimensionless cumulative influx", () => {
+  test("Q(0) = 0", () => {
+    expect(vehQFunction(0)).toBeCloseTo(0, 8);
+  });
+
+  test("Q(tD) > 0 for tD > 0", () => {
+    expect(vehQFunction(1)).toBeGreaterThan(0);
+    expect(vehQFunction(100)).toBeGreaterThan(0);
+  });
+
+  test("Q(tD) is monotonically increasing", () => {
+    const q1 = vehQFunction(1);
+    const q5 = vehQFunction(5);
+    const q50 = vehQFunction(50);
+    expect(q5).toBeGreaterThan(q1);
+    expect(q50).toBeGreaterThan(q5);
+  });
+
+  test("Small tD: Q ≈ 1.12838*sqrt(tD)", () => {
+    const tD = 0.001;
+    expect(vehQFunction(tD)).toBeCloseTo(1.12838 * Math.sqrt(tD), 3);
+  });
+});
+
+describe("vehPD — dimensionless pressure", () => {
+  test("pD(0) = 0", () => {
+    expect(vehPD(0)).toBeCloseTo(0, 6);
+  });
+
+  test("pD increases with tD", () => {
+    expect(vehPD(10)).toBeGreaterThan(vehPD(1));
+  });
+
+  test("Large tD: pD ≈ 0.5*(ln(tD) + 0.80907)", () => {
+    const tD = 100;
+    const expected = 0.5 * (Math.log(tD) + 0.80907);
+    expect(vehPD(tD)).toBeCloseTo(expected, 1);
+  });
+});
+
+describe("vehAquiferConstant — B prime", () => {
+  test("Returns positive B' for positive inputs", () => {
+    const Bp = vehAquiferConstant(0.25, 1e-5, 100, 5000);
+    expect(Bp).toBeGreaterThan(0);
+  });
+
+  test("B' doubles when ri doubles (quadratic dependence)", () => {
+    const B1 = vehAquiferConstant(0.25, 1e-5, 100, 5000);
+    const B2 = vehAquiferConstant(0.25, 1e-5, 100, 10000);
+    expect(B2).toBeCloseTo(4 * B1, 3);
+  });
+
+  test("Half-circle aquifer (theta=0.5) gives half the B'", () => {
+    const B1 = vehAquiferConstant(0.25, 1e-5, 100, 5000, 1.0);
+    const B2 = vehAquiferConstant(0.25, 1e-5, 100, 5000, 0.5);
+    expect(B2).toBeCloseTo(0.5 * B1, 5);
+  });
+});
+
+describe("vehTD — dimensionless time", () => {
+  test("Returns positive tD", () => {
+    expect(vehTD(365, 0.25, 0.5, 1e-5, 5000)).toBeGreaterThan(0);
+  });
+
+  test("tD proportional to time", () => {
+    const t1 = vehTD(100, 0.25, 0.5, 1e-5, 5000);
+    const t2 = vehTD(200, 0.25, 0.5, 1e-5, 5000);
+    expect(t2).toBeCloseTo(2 * t1, 5);
+  });
+});
+
+describe("vehWaterInflux — superposition water influx", () => {
+  test("Returns positive We for pressure drops", () => {
+    const Bp = 10;                   // bbl/psi
+    const deltaP = [50, 50, 50];    // psi drops
+    const tD = [1, 2, 3];
+    const We = vehWaterInflux(Bp, deltaP, tD);
+    expect(We).toBeGreaterThan(0);
+  });
+
+  test("We increases with B prime", () => {
+    const deltaP = [50, 50, 50];
+    const tD = [1, 2, 3];
+    const We1 = vehWaterInflux(5,  deltaP, tD);
+    const We2 = vehWaterInflux(10, deltaP, tD);
+    expect(We2).toBeCloseTo(2 * We1, 5);
+  });
+
+  test("Zero pressure drop gives zero We", () => {
+    const We = vehWaterInflux(10, [0, 0, 0], [1, 2, 3]);
+    expect(We).toBeCloseTo(0, 8);
+  });
+});

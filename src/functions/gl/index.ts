@@ -95,8 +95,8 @@ export function thornhillCraver(
   let q_Mscfd: number;
 
   if (pressure_ratio < critical_ratio) {
-    // Critical (choked) flow
-    const flow_coeff = Math.sqrt(k / (k + 1)) * Math.pow(2 / (k + 1), 1 / (k - 1));
+    // Critical (choked) flow: Fc = √(k·(2/(k+1))^((k+1)/(k-1)))
+    const flow_coeff = Math.sqrt(k * Math.pow(2 / (k + 1), (k + 1) / (k - 1)));
     q_Mscfd = 155.5 * A_in2 * P_up_psia / Math.sqrt(SG_gas * T_R) * flow_coeff;
   } else {
     // Subcritical flow — isentropic expansion

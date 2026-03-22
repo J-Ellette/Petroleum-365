@@ -352,3 +352,140 @@ export function arpsEUR(
   tLimit = (Math.pow(Qi / qLimit, b) - 1) / (b * Di);
   return arpsCumulative(Qi, Di, b, tLimit);
 }
+
+// ─── Power Law Exponential (PLE) Decline ─────────────────────────────────────
+
+/**
+ * Power Law Exponential (PLE) decline rate at time t.
+ *
+ * q(t) = qi · exp(−D∞·t − (Di/n)·t^n)
+ *
+ * @param t     Time (consistent units)
+ * @param q_i   Initial rate at t = 0
+ * @param D_inf Terminal (infinite-time) decline rate (1/time)
+ * @param D_i   Initial decline rate coefficient
+ * @param n     Time exponent (0 < n < 1 for unconventional wells)
+ * @returns     Rate at time t
+ */
+export function pleRate(t: number, q_i: number, D_inf: number, D_i: number, n: number): number {
+  return q_i * Math.exp(-D_inf * t - (D_i / n) * Math.pow(t, n));
+}
+
+/**
+ * Power Law Exponential (PLE) cumulative production from t = 0 to t.
+ *
+ * Computed by trapezoidal numerical integration (1000 steps).
+ *
+ * @param t     Time (consistent units)
+ * @param q_i   Initial rate at t = 0
+ * @param D_inf Terminal decline rate (1/time)
+ * @param D_i   Initial decline rate coefficient
+ * @param n     Time exponent
+ * @returns     Cumulative production from 0 to t
+ */
+export function pleCumulative(t: number, q_i: number, D_inf: number, D_i: number, n: number): number {
+  if (t <= 0) return 0;
+  const steps = 1000;
+  const dt = t / steps;
+  let cum = 0;
+  let q_prev = pleRate(0, q_i, D_inf, D_i, n);
+  for (let i = 1; i <= steps; i++) {
+    const ti = i * dt;
+    const q_curr = pleRate(ti, q_i, D_inf, D_i, n);
+    cum += 0.5 * (q_prev + q_curr) * dt;
+    q_prev = q_curr;
+  }
+  return cum;
+}
+
+// ─── Stretched Exponential PD (SEPD) Decline ─────────────────────────────────
+
+/**
+ * Stretched Exponential Production Decline (SEPD) rate at time t.
+ *
+ * q(t) = qi · exp(−(t/τ)^n)
+ *
+ * @param t    Time (consistent units)
+ * @param q_i  Initial rate at t = 0
+ * @param tau  Characteristic time constant (same units as t)
+ * @param n    Stretching exponent (0 < n ≤ 1)
+ * @returns    Rate at time t
+ */
+export function sepdRate(t: number, q_i: number, tau: number, n: number): number {
+  return q_i * Math.exp(-Math.pow(t / tau, n));
+}
+
+/**
+ * Stretched Exponential Production Decline (SEPD) cumulative production.
+ *
+ * Computed by trapezoidal numerical integration (1000 steps).
+ *
+ * @param t    Time
+ * @param q_i  Initial rate
+ * @param tau  Characteristic time
+ * @param n    Stretching exponent
+ * @returns    Cumulative production from 0 to t
+ */
+export function sepdCumulative(t: number, q_i: number, tau: number, n: number): number {
+  if (t <= 0) return 0;
+  const steps = 1000;
+  const dt = t / steps;
+  let cum = 0;
+  let q_prev = sepdRate(0, q_i, tau, n);
+  for (let i = 1; i <= steps; i++) {
+    const ti = i * dt;
+    const q_curr = sepdRate(ti, q_i, tau, n);
+    cum += 0.5 * (q_prev + q_curr) * dt;
+    q_prev = q_curr;
+  }
+  return cum;
+}
+
+// ─── Logistic Growth Model (LGM) ─────────────────────────────────────────────
+
+/**
+ * Logistic Growth Model (LGM) instantaneous rate at time t.
+ *
+ * q(t) = K·a·n·t^(n−1) / (a + t^n)²
+ *
+ * @param t  Time (> 0)
+ * @param K  Carrying capacity / EUR (same units as cumulative production)
+ * @param a  Time scaling parameter
+ * @param n  Hyperbolic exponent (> 0)
+ * @returns  Rate at time t
+ */
+export function lgmRate(t: number, K: number, a: number, n: number): number {
+  if (t <= 0) return 0;
+  const tn = Math.pow(t, n);
+  const denom = (a + tn) * (a + tn);
+  return K * a * n * Math.pow(t, n - 1) / denom;
+}
+
+/**
+ * Logistic Growth Model (LGM) cumulative production at time t.
+ *
+ * N(t) = K · t^n / (a + t^n)
+ *
+ * @param t  Time (> 0)
+ * @param K  Carrying capacity / EUR
+ * @param a  Time scaling parameter
+ * @param n  Hyperbolic exponent
+ * @returns  Cumulative production at time t
+ */
+export function lgmCumulative(t: number, K: number, a: number, n: number): number {
+  if (t <= 0) return 0;
+  const tn = Math.pow(t, n);
+  return K * tn / (a + tn);
+}
+
+/**
+ * Estimate Ultimate Recovery (EUR) for the Logistic Growth Model.
+ *
+ * For LGM, EUR = K (carrying capacity as t → ∞).
+ *
+ * @param K  Carrying capacity parameter
+ * @returns  EUR = K
+ */
+export function lgmEUR(K: number): number {
+  return K;
+}

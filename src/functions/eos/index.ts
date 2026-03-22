@@ -493,12 +493,38 @@ export function prFlash(
 
   let K = wilsonK(P_psia, T_R, Tc_R_arr, Pc_psia_arr, omega_arr);
 
+  // Single-phase checks using Wilson K-values
+  const sumKz  = z_arr.reduce((s, zi, i) => s + K[i] * zi, 0);
+  const sumZoK = z_arr.reduce((s, zi, i) => s + zi / K[i], 0);
+
+  // Helper to compute Z-factors for a given composition
+  const getZ = (comp: number[], getMax: boolean) => {
+    const { A_mix, B_mix } = prMixAB(T_R, P_psia, Tc_R_arr, Pc_psia_arr, omega_arr, comp, kij_arr);
+    const roots = prCubicRoots(A_mix, B_mix);
+    return getMax ? Math.max(...roots) : Math.min(...roots);
+  };
+
+  if (sumKz <= 1.0) {
+    // All liquid (P above bubble point)
+    const Zl = getZ(z_arr, false);
+    const Zv = getZ(z_arr, true);
+    return { V_frac: 0, x_i: z_arr.slice(), y_i: z_arr.slice(), Zv, Zl };
+  }
+  if (sumZoK <= 1.0) {
+    // All vapor (P below dew point)
+    const Zv = getZ(z_arr, true);
+    const Zl = getZ(z_arr, false);
+    return { V_frac: 1, x_i: z_arr.slice(), y_i: z_arr.slice(), Zv, Zl };
+  }
+
   let V     = 0.5;
   let x_i   = z_arr.slice();
   let y_i   = z_arr.slice();
 
   for (let iter = 0; iter < MAX_ITER; iter++) {
     V   = rachfordRice(K, z_arr);
+    // Clamp V to [0,1] for numerical stability
+    V   = Math.max(0, Math.min(1, V));
     x_i = z_arr.map((zi, i) => zi / (1 + V * (K[i] - 1)));
     y_i = x_i.map((xi, i) => K[i] * xi);
 
@@ -538,16 +564,15 @@ export function prFlash(
   }
 
   // Return best available result after max iterations
-  const { A_mix: Av, B_mix: Bv, a_i_arr: av_i, b_i_arr: bv_i } =
+  const { A_mix: Av_f, B_mix: Bv_f } =
     prMixAB(T_R, P_psia, Tc_R_arr, Pc_psia_arr, omega_arr, y_i, kij_arr);
-  const { A_mix: Al, B_mix: Bl } =
+  const { A_mix: Al_f, B_mix: Bl_f } =
     prMixAB(T_R, P_psia, Tc_R_arr, Pc_psia_arr, omega_arr, x_i, kij_arr);
-  void av_i; void bv_i;
   return {
     V_frac: V,
     x_i,
     y_i,
-    Zv: Math.max(...prCubicRoots(Av, Bv)),
-    Zl: Math.min(...prCubicRoots(Al, Bl)),
+    Zv: Math.max(...prCubicRoots(Av_f, Bv_f)),
+    Zl: Math.min(...prCubicRoots(Al_f, Bl_f)),
   };
 }
