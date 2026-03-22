@@ -474,6 +474,49 @@ Good stopping point after DCA extended models + Wellbore Integrity + functions.j
 - [ ] Web deployment / Netlify/Azure manifest hosting for web calculator
 - [ ] Reservoir simulation tie-in: Eclipse/CMG INCLUDE file generator for kr curves
 
+### Session 9 — FRAC Extended Models + SIM INCLUDE Generator + Blueprint/Browser Catalogs
+**Status:** Complete
+
+#### Completed
+- [x] Extended FRAC module (src/functions/frac/index.ts) with 9 new functions:
+  - [x] **Poroelastic Closure**: `fracPoroelasticClosure` — uniaxial strain σ_h = [ν/(1-ν)]·(σ_v − α·Pp) + α·Pp + Δσ_tect
+  - [x] **Net Pressure**: `fracNetPressure` — P_net = P_treating − σ_closure − P_friction
+  - [x] **Fluid Efficiency**: `fracFluidEfficiency` — η = V_frac / V_injected
+  - [x] **ISIP**: `fracISIP` — bottomhole ISIP from surface pressure + hydrostatic column
+  - [x] **Nolte G-Function**: `fracNolteG` — G(ΔtD) = (4/3)·[(1+ΔtD)^1.5 − ΔtD^1.5 − 1]
+  - [x] **G-Derived Closure**: `fracGDerivedClosure` — P_closure = P_ISIP − (dP/dG) × G_closure
+  - [x] **Nolte Leakoff**: `fracNolteLeakoff` — CL from G-function slope (Carter model)
+  - [x] **Surface Treating Pressure**: `fracSurfaceTreatingPressure` — wellhead STP from BH pressure
+  - [x] **Breakdown Pressure**: `fracBreakdownPressure` — Hubbert-Willis tensile failure criterion
+- [x] New SIM module (src/functions/sim/index.ts) — 14 functions + interfaces:
+  - [x] Eclipse keywords: `simSWOF`, `simSGOF`, `simPVTO`, `simPVDG`, `simPVTW`
+  - [x] CMG keywords: `simWOTABLE`, `simGOTABLE`
+  - [x] SCAL endpoint table: `simKrEndpointTable` — formatted comment block for Eclipse DATA
+  - [x] Corey table builders: `simBuildSwofTable`, `simBuildSgofTable`
+  - [x] File Generator: `simGenerateFromTemplate`, `simValidateTokens`, `simBatchGenerate`
+  - [x] Type interfaces: `SwofRow`, `SgofRow`, `PvtoRow`, `PvtgRow`, `PvdgRow`, `KrEndpoints`
+- [x] New Blueprint Manager catalog (src/addins/blueprints/index.ts):
+  - [x] 35+ blueprint entries across PVT, DCA, IPR, MBE, PTA, VFP, SF, FA, FRAC, SCAL, GEO, WBI, ESP, GL, CNG/LNG, Utilities
+  - [x] Accessor functions: `getBlueprintsByCategory`, `searchBlueprints`, `getBlueprintById`, `getBlueprintCategories`
+- [x] New Function Browser catalog (src/addins/browser/index.ts):
+  - [x] 20+ function entries with full documentation: syntax, params, returns, example formula, related functions
+  - [x] Accessor functions: `searchFunctions`, `getFunctionsByCategory`, `getFunctionById`, `getFunctionCategories`, `getRelatedFunctions`
+- [x] Updated src/index.ts with SIM namespace + FRAC extended (Poroelastic/Nolte groups)
+- [x] Expanded functions.json from 48 → 62 UDF registrations (added FRAC extended + SIM module)
+- [x] Written 122 new Jest unit tests (1238 total, all passing — up from 1116)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+- [x] Updated copilot.md and README.md for Session 9 (27 modules, 1238 tests, 62 UDFs)
+
+#### Stopping Point — Session 9
+Good stopping point after FRAC extended (poroelastic closure + Nolte-G analysis) + SIM INCLUDE file generator (Eclipse/CMG) + Blueprint Manager + Function Browser catalogs. 1238 tests passing.
+
+#### Next Session — Session 10 (Planned)
+- [ ] Office.js taskpane UI — React Blueprint Manager + Function Browser (live taskpane HTML)
+- [ ] Ribbon manifest update (6 function library groups + Library/Toolbox buttons)
+- [ ] Expand functions.json to 100+ entries (add PVT/IPR/MBE/PTA/GEO/SKIN coverage)
+- [ ] Eclipse Results Import — .SMSPEC file parser (binary → Excel worksheet rows)
+- [ ] Web deployment / Netlify/Azure manifest hosting for web calculator URL
+
 ## Function Naming Convention
 `P365.[Category].[Property].[Qualifier].By[Author]`
 
@@ -502,6 +545,7 @@ Good stopping point after DCA extended models + Wellbore Integrity + functions.j
 | GEO | Geomechanics (pore pressure, fracture gradient, wellbore stability) |
 | SKIN | Composite Skin Factor (Hawkins, perforations, non-Darcy, partial penetration) |
 | WBI | Wellbore Integrity (casing burst/collapse, cement, FIT/LOT/XLOT, mud window) |
+| SIM | Reservoir Simulation INCLUDE Generator (Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, file generator) |
 
 ## Key Engineering Details (from P365.md)
 - Pipe material roughness: Bare Steel 0.000150 ft · Coated Steel 0.000100 ft · PE 0.000005 ft

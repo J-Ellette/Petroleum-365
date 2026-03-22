@@ -37,6 +37,7 @@ import * as WHTExports    from "./functions/wht";
 import * as GEOExports    from "./functions/geo";
 import * as SKINExports   from "./functions/skin";
 import * as WBIExports    from "./functions/wbi";
+import * as SIMExports    from "./functions/sim";
 
 // ─── Re-export raw modules ────────────────────────────────────────────────────
 export * as P365_PVT_Gas   from "./functions/pvt/gas";
@@ -65,6 +66,7 @@ export * as P365_WHT       from "./functions/wht";
 export * as P365_GEO       from "./functions/geo";
 export * as P365_SKIN      from "./functions/skin";
 export * as P365_WBI       from "./functions/wbi";
+export * as P365_SIM       from "./functions/sim";
 export { unitConverter, getUnitsForCategory, getCategories, listUnits } from "./functions/utilities/unitConverter";
 
 // ─── P365 Namespace Object ────────────────────────────────────────────────────
@@ -446,6 +448,23 @@ export const P365 = {
     CfD:                FRACExports.dimensionlessConductivity,
     FracturedWellSkin:  FRACExports.fracturedWellSkin,
     StimulationRatio:   FRACExports.fractureStimulationRatio,
+
+    // Poroelastic closure stress and net pressure (Session 9)
+    Poroelastic: {
+      Closure:            FRACExports.fracPoroelasticClosure,
+    },
+    NetPressure:          FRACExports.fracNetPressure,
+    FluidEfficiency:      FRACExports.fracFluidEfficiency,
+    ISIP:                 FRACExports.fracISIP,
+    SurfaceTreatingPressure: FRACExports.fracSurfaceTreatingPressure,
+    BreakdownPressure:    FRACExports.fracBreakdownPressure,
+
+    // Nolte G-function analysis
+    Nolte: {
+      G:             FRACExports.fracNolteG,
+      Closure:       FRACExports.fracGDerivedClosure,
+      Leakoff:       FRACExports.fracNolteLeakoff,
+    },
   },
 
   // ─── FPP — Field Production Profile ───────────────────────────────────────
@@ -754,6 +773,32 @@ export const P365 = {
     // Hydrostatic helpers
     HydrostaticPressure:   WBIExports.wbiHydrostaticPressure,
     PressureToEMW:         WBIExports.wbiPressureToEMW,
+  },
+
+  // ─── SIM — Reservoir Simulation INCLUDE File Generator ────────────────────
+  SIM: {
+    // Eclipse keywords
+    SWOF:              SIMExports.simSWOF,
+    SGOF:              SIMExports.simSGOF,
+    PVTO:              SIMExports.simPVTO,
+    PVDG:              SIMExports.simPVDG,
+    PVTW:              SIMExports.simPVTW,
+
+    // CMG keywords
+    WOTABLE:           SIMExports.simWOTABLE,
+    GOTABLE:           SIMExports.simGOTABLE,
+
+    // SCAL endpoint summary
+    KrEndpointTable:   SIMExports.simKrEndpointTable,
+
+    // Corey table builders
+    BuildSwofTable:    SIMExports.simBuildSwofTable,
+    BuildSgofTable:    SIMExports.simBuildSgofTable,
+
+    // File generator
+    GenerateFromTemplate: SIMExports.simGenerateFromTemplate,
+    ValidateTokens:       SIMExports.simValidateTokens,
+    BatchGenerate:        SIMExports.simBatchGenerate,
   },
 
 } as const;

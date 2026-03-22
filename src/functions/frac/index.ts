@@ -345,3 +345,221 @@ export const PROPPANT_KF_MD = {
   "High-strength ceramic":  150000,
   "Bauxite":                200000,
 } as const;
+
+// ─── Poroelastic Closure Stress (Uniaxial Strain Model) ───────────────────────
+
+/**
+ * Minimum horizontal stress from the uniaxial strain / poroelastic model.
+ *
+ * σ_h = [ν/(1-ν)] × (σ_v − α·P_p) + α·P_p + Δσ_tectonic
+ *
+ * This is the standard reservoir geomechanics model (Eaton-style uniaxial strain)
+ * that accounts for both the tectonic stress component and the poroelastic effect
+ * of pore pressure. For a tectonic-stress-free basin, Δσ_tectonic = 0.
+ *
+ * Reference: Zoback (2007) "Reservoir Geomechanics", Chapter 3.
+ *
+ * @param sigma_v_psi       Vertical (overburden) stress (psi)
+ * @param P_pore_psi        Pore pressure (psi)
+ * @param nu                Poisson's ratio (unitless)
+ * @param alpha             Biot coefficient (0–1, typically 0.6–1.0)
+ * @param dSigma_tect_psi   Tectonic stress offset (psi); 0 for uniaxial-strain only
+ * @returns                 Minimum horizontal stress σ_h (psi)
+ */
+export function fracPoroelasticClosure(
+  sigma_v_psi: number,
+  P_pore_psi: number,
+  nu: number,
+  alpha: number,
+  dSigma_tect_psi: number
+): number {
+  if (nu <= 0 || nu >= 1) throw new Error("Poisson's ratio must be between 0 and 1 (exclusive)");
+  if (alpha < 0 || alpha > 1) throw new Error("Biot coefficient must be between 0 and 1");
+  const k = nu / (1 - nu);
+  return k * (sigma_v_psi - alpha * P_pore_psi) + alpha * P_pore_psi + dSigma_tect_psi;
+}
+
+/**
+ * Net treating pressure at fracture initiation.
+ *
+ * P_net = P_treating − σ_closure − P_friction
+ *
+ * P_net represents the pressure above closure that drives fracture opening.
+ * Positive P_net → fracture is open; P_net ≤ 0 → no fracture growth.
+ *
+ * @param P_treating_psi    Bottomhole treating pressure (psi)
+ * @param sigma_closure_psi Fracture closure / minimum horizontal stress (psi)
+ * @param P_friction_psi    Near-wellbore and perforation friction pressure (psi); default 0
+ * @returns                 Net pressure (psi)
+ */
+export function fracNetPressure(
+  P_treating_psi: number,
+  sigma_closure_psi: number,
+  P_friction_psi = 0
+): number {
+  return P_treating_psi - sigma_closure_psi - P_friction_psi;
+}
+
+/**
+ * Fluid efficiency at end of pumping.
+ *
+ * η = V_frac / V_injected = 1 − (2 × V_leakoff) / V_injected
+ *
+ * Derived from mass balance: V_injected = V_fracture + V_leakoff,
+ * and the Carter leakoff model assumes V_leakoff ≈ 2·CL·A·√t (integrated).
+ *
+ * @param V_frac_bbl      Fracture volume at end-of-pump (bbl) — from geometry
+ * @param V_inj_bbl       Total injected fluid volume (bbl)
+ * @returns               Fluid efficiency (0–1)
+ */
+export function fracFluidEfficiency(V_frac_bbl: number, V_inj_bbl: number): number {
+  if (V_inj_bbl <= 0) throw new Error("Injected volume must be positive");
+  return Math.min(1, Math.max(0, V_frac_bbl / V_inj_bbl));
+}
+
+/**
+ * Instantaneous Shut-In Pressure (ISIP) from surface pressure.
+ *
+ * ISIP_BH = P_surface + ρ·g·TVD − P_pipe_friction
+ *
+ * P_pipe_friction ≈ 0 at shut-in (no flow).
+ * Fluid gradient: γ_fluid (psi/ft) = fluid_density_ppg × 0.052
+ *
+ * @param P_surface_psi       Surface ISIP (psi) — read immediately at shut-in
+ * @param TVD_ft              True vertical depth to mid-perforation (ft)
+ * @param fluid_density_ppg   Fluid density in pounds per gallon
+ * @returns                   Bottomhole ISIP (psi)
+ */
+export function fracISIP(
+  P_surface_psi: number,
+  TVD_ft: number,
+  fluid_density_ppg: number
+): number {
+  const hydrostatic = fluid_density_ppg * 0.052 * TVD_ft;
+  return P_surface_psi + hydrostatic;
+}
+
+// ─── Nolte-G Function Analysis ────────────────────────────────────────────────
+
+/**
+ * Nolte G-function value at dimensionless shut-in time Δt_D.
+ *
+ * G(Δt_D) = (4/3) × [(1 + Δt_D)^(3/2) − Δt_D^(3/2) − 1]
+ *
+ * Where Δt_D = Δt / t_p  (shut-in time / pump time).
+ *
+ * Reference: Nolte (1979); Valkó & Economides (1995) Chapter 11.
+ *
+ * @param deltaT_D    Dimensionless shut-in time Δt/t_p (≥ 0)
+ * @returns           G-function value (dimensionless)
+ */
+export function fracNolteG(deltaT_D: number): number {
+  if (deltaT_D < 0) throw new Error("Dimensionless shut-in time must be ≥ 0");
+  return (4 / 3) * (Math.pow(1 + deltaT_D, 1.5) - Math.pow(deltaT_D, 1.5) - 1);
+}
+
+/**
+ * Closure pressure from Nolte G-function analysis.
+ *
+ * At closure, the G*dP/dG vs G plot deviates from linearity.
+ * The y-intercept of the linear portion extrapolated to G=0 gives P_closure.
+ *
+ * P_closure = P_isip − (dP/dG)_linear × G_closure
+ *
+ * This function computes P_closure given the ISIP, the linear slope
+ * dP/dG (psi/unit G), and the G value at which closure is identified.
+ *
+ * @param P_isip_psi    Instantaneous shut-in pressure (psi)
+ * @param dPdG_psi      Slope of P vs G during linear (fracture-open) period (psi/unit G)
+ * @param G_closure     G-function value at closure (typically 0.5–5)
+ * @returns             Fracture closure pressure (psi)
+ */
+export function fracGDerivedClosure(
+  P_isip_psi: number,
+  dPdG_psi: number,
+  G_closure: number
+): number {
+  return P_isip_psi - dPdG_psi * G_closure;
+}
+
+/**
+ * Leakoff coefficient from Nolte G-function slope.
+ *
+ * CL = (dP/dG) × (E' × V_inj) / (π² × rp × hp² × G_p)
+ *
+ * Simplified field approximation for radial leakoff (Carter model):
+ *   CL ≈ (dP/dG × Vp) / (E' × rp × hp)
+ *
+ * Standard form (after Nolte 1986):
+ *   CL = (qi / (2 · rp · Af)) × (dG/dCL)^-1
+ *
+ * Practical direct form from linear G-function plot:
+ *   CL = (dP/dG × qi × t_p) / (E' × Af)
+ *
+ * @param dPdG_psi      Slope of P vs G (psi/unit G)
+ * @param E_prime_psi   Plane-strain modulus E' = E/(1-ν²) (psi)
+ * @param qi_bpm        Injection rate (bbl/min)
+ * @param tp_min        Pump time (min)
+ * @param Af_ft2        Fracture area (one wing, ft²)
+ * @returns             Carter leakoff coefficient CL (ft/√min)
+ */
+export function fracNolteLeakoff(
+  dPdG_psi: number,
+  E_prime_psi: number,
+  qi_bpm: number,
+  tp_min: number,
+  Af_ft2: number
+): number {
+  if (E_prime_psi <= 0 || Af_ft2 <= 0) throw new Error("E' and Af must be positive");
+  // Convert bbl/min → ft³/min
+  const qi_ft3min = qi_bpm * 5.61458;
+  return (dPdG_psi * qi_ft3min * tp_min) / (E_prime_psi * Af_ft2);
+}
+
+/**
+ * Surface treating pressure during fracture pumping.
+ *
+ * P_surface = P_BH − Hydrostatic + Pipe_friction + Perf_friction + Near-WB friction
+ *
+ * P_surface = BHTP − γ_fluid·TVD + ΔP_pipe + ΔP_perf
+ *
+ * @param P_BH_psi        Bottomhole treating pressure (psi)
+ * @param TVD_ft          True vertical depth to perforations (ft)
+ * @param fluid_ppg       Fluid density during pumping (ppg)
+ * @param dP_pipe_psi     Pipe friction pressure loss (psi)
+ * @param dP_perf_psi     Perforation friction pressure loss (psi)
+ * @returns               Wellhead / surface treating pressure (psi)
+ */
+export function fracSurfaceTreatingPressure(
+  P_BH_psi: number,
+  TVD_ft: number,
+  fluid_ppg: number,
+  dP_pipe_psi: number,
+  dP_perf_psi: number
+): number {
+  const hydrostatic = fluid_ppg * 0.052 * TVD_ft;
+  return P_BH_psi - hydrostatic + dP_pipe_psi + dP_perf_psi;
+}
+
+/**
+ * Fracture breakdown pressure from tensile failure.
+ *
+ * P_breakdown = σ_h + T₀ − P_pore
+ *
+ * Where σ_h = minimum horizontal stress, T₀ = tensile strength.
+ * Assumes vertical wellbore in a standard stress regime.
+ *
+ * Reference: Hubbert & Willis (1957), modified for poroelastic effect.
+ *
+ * @param sigma_h_psi     Minimum horizontal stress (psi)
+ * @param T0_psi          Rock tensile strength (psi); typical 500–2000 psi
+ * @param P_pore_psi      Pore pressure (psi)
+ * @returns               Fracture breakdown pressure (psi)
+ */
+export function fracBreakdownPressure(
+  sigma_h_psi: number,
+  T0_psi: number,
+  P_pore_psi: number
+): number {
+  return sigma_h_psi + T0_psi - P_pore_psi;
+}

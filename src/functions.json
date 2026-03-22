@@ -1121,6 +1121,350 @@
       "result": {
         "dimensionality": "scalar"
       }
+    },
+    {
+      "id": "P365.FRAC.POROELASTIC.CLOSURE",
+      "name": "P365.FRAC.Poroelastic.Closure",
+      "description": "Minimum horizontal stress from the uniaxial strain / poroelastic model. sigma_h = [nu/(1-nu)]*(sigma_v - alpha*Pp) + alpha*Pp + dSigma_tect. Used as fracture closure pressure estimate.",
+      "parameters": [
+        {
+          "name": "sigma_v_psi",
+          "description": "Vertical (overburden) stress (psi)"
+        },
+        {
+          "name": "P_pore_psi",
+          "description": "Pore pressure (psi)"
+        },
+        {
+          "name": "nu",
+          "description": "Poisson's ratio (0-1)"
+        },
+        {
+          "name": "alpha",
+          "description": "Biot coefficient (0-1)"
+        },
+        {
+          "name": "dSigma_tect_psi",
+          "description": "Tectonic stress offset (psi); 0 for uniaxial-strain only"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.FRAC.NETPRESSURE",
+      "name": "P365.FRAC.NetPressure",
+      "description": "Net treating pressure: P_net = P_treating - sigma_closure - P_friction. Positive P_net drives fracture growth.",
+      "parameters": [
+        {
+          "name": "P_treating_psi",
+          "description": "Bottomhole treating pressure (psi)"
+        },
+        {
+          "name": "sigma_closure_psi",
+          "description": "Fracture closure / minimum horizontal stress (psi)"
+        },
+        {
+          "name": "P_friction_psi",
+          "description": "Near-wellbore + perforation friction (psi); default 0"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.FRAC.FLUIDEFFICIENCY",
+      "name": "P365.FRAC.FluidEfficiency",
+      "description": "Fluid efficiency at end of pumping: eta = V_frac / V_injected (0-1). Indicates what fraction of injected fluid created fracture volume.",
+      "parameters": [
+        {
+          "name": "V_frac_bbl",
+          "description": "Fracture volume at end-of-pump (bbl)"
+        },
+        {
+          "name": "V_inj_bbl",
+          "description": "Total injected fluid volume (bbl)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.FRAC.ISIP",
+      "name": "P365.FRAC.ISIP",
+      "description": "Bottomhole instantaneous shut-in pressure from surface ISIP. ISIP_BH = P_surface + fluid_density_ppg * 0.052 * TVD_ft.",
+      "parameters": [
+        {
+          "name": "P_surface_psi",
+          "description": "Surface ISIP (psi) \u2014 read immediately at shut-in"
+        },
+        {
+          "name": "TVD_ft",
+          "description": "True vertical depth to mid-perforation (ft)"
+        },
+        {
+          "name": "fluid_density_ppg",
+          "description": "Fluid density during pumping (ppg)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.FRAC.NOLTE.G",
+      "name": "P365.FRAC.Nolte.G",
+      "description": "Nolte G-function at dimensionless shut-in time deltaT_D = deltaT/tp. G = (4/3)*[(1+deltaT_D)^1.5 - deltaT_D^1.5 - 1]. Used for step-rate test closure analysis.",
+      "parameters": [
+        {
+          "name": "deltaT_D",
+          "description": "Dimensionless shut-in time deltaT/tp (>= 0)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.FRAC.NOLTE.CLOSURE",
+      "name": "P365.FRAC.Nolte.Closure",
+      "description": "Fracture closure pressure from Nolte G-function plot. P_closure = P_isip - dPdG * G_closure (psi).",
+      "parameters": [
+        {
+          "name": "P_isip_psi",
+          "description": "Instantaneous shut-in pressure (psi)"
+        },
+        {
+          "name": "dPdG_psi",
+          "description": "Linear slope dP/dG from G-function plot (psi/unit G)"
+        },
+        {
+          "name": "G_closure",
+          "description": "G-function value at closure (dimensionless)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.FRAC.BREAKDOWNPRESSURE",
+      "name": "P365.FRAC.BreakdownPressure",
+      "description": "Fracture initiation / breakdown pressure: P_bd = sigma_h + T0 - P_pore. Based on Hubbert-Willis tensile failure criterion.",
+      "parameters": [
+        {
+          "name": "sigma_h_psi",
+          "description": "Minimum horizontal stress (psi)"
+        },
+        {
+          "name": "T0_psi",
+          "description": "Rock tensile strength (psi); typical 500-2000 psi"
+        },
+        {
+          "name": "P_pore_psi",
+          "description": "Pore pressure (psi)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SIM.SWOF",
+      "name": "P365.SIM.SWOF",
+      "description": "Generate Eclipse SWOF keyword INCLUDE file content from a water-oil saturation table (Sw, krw, krow, Pcow). Returns formatted string ready for Eclipse DATA file.",
+      "parameters": [
+        {
+          "name": "rows",
+          "description": "Array of SWOF table rows [{Sw, krw, krow, Pcow}, ...]"
+        },
+        {
+          "name": "satRegion",
+          "description": "Saturation region number (default 1)"
+        },
+        {
+          "name": "comment",
+          "description": "Optional comment header for the block"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SIM.SGOF",
+      "name": "P365.SIM.SGOF",
+      "description": "Generate Eclipse SGOF keyword INCLUDE file content from a gas-oil saturation table (Sg, krg, krog, Pcgo). Returns formatted string ready for Eclipse DATA file.",
+      "parameters": [
+        {
+          "name": "rows",
+          "description": "Array of SGOF table rows [{Sg, krg, krog, Pcgo}, ...]"
+        },
+        {
+          "name": "satRegion",
+          "description": "Saturation region number (default 1)"
+        },
+        {
+          "name": "comment",
+          "description": "Optional comment header"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SIM.PVDG",
+      "name": "P365.SIM.PVDG",
+      "description": "Generate Eclipse PVDG (dry gas PVT) keyword INCLUDE file content. Columns: P(psia) | Bg(bbl/Mscf) | Ug(cp).",
+      "parameters": [
+        {
+          "name": "rows",
+          "description": "Array of PVDG rows [{P, Bg, Ug}, ...]"
+        },
+        {
+          "name": "pvtRegion",
+          "description": "PVT region number (default 1)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SIM.PVTW",
+      "name": "P365.SIM.PVTW",
+      "description": "Generate Eclipse PVTW (water PVT) keyword. Format: P_ref | Bw | Cw | Uw | dUw/dP.",
+      "parameters": [
+        {
+          "name": "P_ref_psia",
+          "description": "Reference pressure (psia)"
+        },
+        {
+          "name": "Bw_ref",
+          "description": "Water FVF at reference pressure (bbl/STB)"
+        },
+        {
+          "name": "Cw_psi",
+          "description": "Water compressibility (1/psi)"
+        },
+        {
+          "name": "Uw_cp",
+          "description": "Water viscosity (cp)"
+        },
+        {
+          "name": "dUwdP",
+          "description": "Viscosibility (cp/psi), usually 0"
+        },
+        {
+          "name": "pvtRegion",
+          "description": "PVT region number (default 1)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SIM.BUILDSWOFTABLE",
+      "name": "P365.SIM.BuildSwofTable",
+      "description": "Build a SWOF table using Corey power-law kr correlations. Returns array of {Sw, krw, krow, Pcow=0} rows ready for simSWOF().",
+      "parameters": [
+        {
+          "name": "Swi",
+          "description": "Connate water saturation (fraction)"
+        },
+        {
+          "name": "Sorw",
+          "description": "Residual oil saturation to water (fraction)"
+        },
+        {
+          "name": "krw_max",
+          "description": "Max water Kr at Sorw (fraction)"
+        },
+        {
+          "name": "krow_max",
+          "description": "Max oil Kr at Swi (fraction)"
+        },
+        {
+          "name": "nw",
+          "description": "Corey water exponent"
+        },
+        {
+          "name": "no",
+          "description": "Corey oil exponent (to water)"
+        },
+        {
+          "name": "nPoints",
+          "description": "Number of saturation table points (default 20)"
+        }
+      ],
+      "result": {
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "id": "P365.SIM.BUILDSGOFTABLE",
+      "name": "P365.SIM.BuildSgofTable",
+      "description": "Build a SGOF table using Corey power-law kr correlations. Returns array of {Sg, krg, krog, Pcgo=0} rows ready for simSGOF().",
+      "parameters": [
+        {
+          "name": "Swi",
+          "description": "Connate water saturation (fraction)"
+        },
+        {
+          "name": "Sgc",
+          "description": "Critical gas saturation (fraction)"
+        },
+        {
+          "name": "Sorg",
+          "description": "Residual oil to gas (fraction)"
+        },
+        {
+          "name": "krg_max",
+          "description": "Max gas Kr at Sorg (fraction)"
+        },
+        {
+          "name": "krog_max",
+          "description": "Max oil Kr at Sgc (fraction)"
+        },
+        {
+          "name": "ng",
+          "description": "Corey gas exponent"
+        },
+        {
+          "name": "nog",
+          "description": "Corey oil exponent (to gas)"
+        },
+        {
+          "name": "nPoints",
+          "description": "Number of saturation table points (default 20)"
+        }
+      ],
+      "result": {
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "id": "P365.SIM.GENERATEFROMTEMPLATE",
+      "name": "P365.SIM.GenerateFromTemplate",
+      "description": "Render a simulation input file from a template with @TOKEN placeholders. Implements the File Generator workflow for Eclipse, CMG, and any text-based simulator input.",
+      "parameters": [
+        {
+          "name": "template",
+          "description": "Template string with @TOKEN placeholders (e.g. @PERM, @PHI)"
+        },
+        {
+          "name": "tokens",
+          "description": "Token-value map object {TOKEN: value, ...}"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
     }
   ]
 }
