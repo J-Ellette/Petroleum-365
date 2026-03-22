@@ -1,0 +1,189 @@
+{
+  "functions": [
+    {
+      "id": "P365.PVT.Z.BYDAK",
+      "name": "P365.PVT.Z.ByDAK",
+      "description": "Gas Z-factor by Dranchuk-Abou-Kassem (DAK) correlation. Valid 1.0 ≤ Tpr ≤ 3.0; 0.2 ≤ Ppr ≤ 30.",
+      "parameters": [
+        { "name": "T_F",   "description": "Temperature (°F)" },
+        { "name": "P_psia","description": "Pressure (psia)" },
+        { "name": "Tpc",   "description": "Pseudo-critical temperature (°R)" },
+        { "name": "Ppc",   "description": "Pseudo-critical pressure (psia)" }
+      ],
+      "result": { "dimensionality": "scalar" }
+    },
+    {
+      "id": "P365.PVT.Z.BYBRILLBEGGS",
+      "name": "P365.PVT.Z.ByBrillBeggs",
+      "description": "Gas Z-factor by Brill-Beggs explicit correlation (no iteration). Good for 1.15 ≤ Tpr ≤ 2.4; Ppr ≤ 15.",
+      "parameters": [
+        { "name": "T_F",   "description": "Temperature (°F)" },
+        { "name": "P_psia","description": "Pressure (psia)" },
+        { "name": "Tpc",   "description": "Pseudo-critical temperature (°R)" },
+        { "name": "Ppc",   "description": "Pseudo-critical pressure (psia)" }
+      ],
+      "result": { "dimensionality": "scalar" }
+    },
+    {
+      "id": "P365.PVT.Z.BYHALL_YARBOROUGH",
+      "name": "P365.PVT.Z.ByHallYarborough",
+      "description": "Gas Z-factor by Hall-Yarborough iterative method (highly accurate).",
+      "parameters": [
+        { "name": "T_F",   "description": "Temperature (°F)" },
+        { "name": "P_psia","description": "Pressure (psia)" },
+        { "name": "Tpc",   "description": "Pseudo-critical temperature (°R)" },
+        { "name": "Ppc",   "description": "Pseudo-critical pressure (psia)" }
+      ],
+      "result": { "dimensionality": "scalar" }
+    },
+    {
+      "id": "P365.PVT.PSEUDOCRITICAL.BYLEEKESLER",
+      "name": "P365.PVT.PseudoCritical.ByLeeKesler",
+      "description": "Gas pseudo-critical temperature (°R) and pressure (psia) from specific gravity using Lee-Kesler correlation. Returns [Tpc, Ppc].",
+      "parameters": [
+        { "name": "sg", "description": "Gas specific gravity (air = 1.0)" }
+      ],
+      "result": { "dimensionality": "matrix" }
+    },
+    {
+      "id": "P365.PVT.PB.BYSTANDING",
+      "name": "P365.PVT.Pb.ByStanding",
+      "description": "Oil bubble point pressure by Standing correlation (1947).",
+      "parameters": [
+        { "name": "sg_gas",      "description": "Gas specific gravity (air = 1.0)" },
+        { "name": "API",         "description": "Oil API gravity (°API)" },
+        { "name": "Rs_scfSTB",   "description": "Solution GOR (scf/STB)" },
+        { "name": "T_F",         "description": "Reservoir temperature (°F)" }
+      ],
+      "result": { "dimensionality": "scalar" }
+    },
+    {
+      "id": "P365.PVT.PB.BYVASQUEZBEGGS",
+      "name": "P365.PVT.Pb.ByVasquezBeggs",
+      "description": "Oil bubble point pressure by Vasquez-Beggs correlation (1980).",
+      "parameters": [
+        { "name": "sg_gas",    "description": "Gas specific gravity" },
+        { "name": "API",       "description": "Oil API gravity" },
+        { "name": "Rs_scfSTB", "description": "Solution GOR (scf/STB)" },
+        { "name": "T_F",       "description": "Temperature (°F)" }
+      ],
+      "result": { "dimensionality": "scalar" }
+    },
+    {
+      "id": "P365.PVT.SG.OIL.FROMAPI",
+      "name": "P365.PVT.SG.Oil.FromAPI",
+      "description": "Convert API gravity to oil specific gravity.",
+      "parameters": [
+        { "name": "API", "description": "Oil API gravity (°API)" }
+      ],
+      "result": { "dimensionality": "scalar" }
+    },
+    {
+      "id": "P365.DCA.ARPS.RATE",
+      "name": "P365.DCA.Arps.Rate",
+      "description": "Arps hyperbolic decline rate at time t. b=0 → exponential; b=1 → harmonic.",
+      "parameters": [
+        { "name": "Qi", "description": "Initial rate at t=0" },
+        { "name": "Di", "description": "Initial nominal decline rate (1/time)" },
+        { "name": "b",  "description": "Hyperbolic exponent (0 ≤ b ≤ 2)" },
+        { "name": "t",  "description": "Time (same unit as Di)" }
+      ],
+      "result": { "dimensionality": "scalar" }
+    },
+    {
+      "id": "P365.DCA.ARPS.CUMULATIVE",
+      "name": "P365.DCA.Arps.Cumulative",
+      "description": "Arps hyperbolic cumulative production from t=0 to t.",
+      "parameters": [
+        { "name": "Qi", "description": "Initial rate" },
+        { "name": "Di", "description": "Initial nominal decline rate" },
+        { "name": "b",  "description": "Hyperbolic exponent" },
+        { "name": "t",  "description": "Time" }
+      ],
+      "result": { "dimensionality": "scalar" }
+    },
+    {
+      "id": "P365.DCA.ARPS.FIT",
+      "name": "P365.DCA.Arps.Fit",
+      "description": "Fit Arps decline parameters [Qi, Di, b] to production history. Returns spill array [Qi, Di, b].",
+      "parameters": [
+        { "name": "times", "description": "Array of time values", "dimensionality": "matrix" },
+        { "name": "rates", "description": "Array of rate values", "dimensionality": "matrix" }
+      ],
+      "result": { "dimensionality": "matrix" }
+    },
+    {
+      "id": "P365.DCA.DUONG.RATE",
+      "name": "P365.DCA.Duong.Rate",
+      "description": "Duong decline rate for unconventional reservoirs (transient linear flow).",
+      "parameters": [
+        { "name": "q1", "description": "Rate coefficient (rate at t=1)" },
+        { "name": "a",  "description": "Exponential coefficient" },
+        { "name": "m",  "description": "Power-law exponent (typically 1.0–1.2)" },
+        { "name": "t",  "description": "Time (must be > 0)" }
+      ],
+      "result": { "dimensionality": "scalar" }
+    },
+    {
+      "id": "P365.UNITCONVERTER",
+      "name": "P365.UnitConverter",
+      "description": "Convert a value between any two petroleum engineering units. Supports 1500+ units, scaled units (e.g. '640 acre'), and unit expressions (e.g. 'bbl*psi/day').",
+      "parameters": [
+        { "name": "Value",    "description": "Numeric value to convert" },
+        { "name": "UnitFrom", "description": "Source unit abbreviation (e.g. 'psia', 'bar', 'ft3')" },
+        { "name": "UnitTo",   "description": "Target unit abbreviation" }
+      ],
+      "result": { "dimensionality": "scalar" }
+    },
+    {
+      "id": "P365.PIPE.WEYMOUTH.FLOW",
+      "name": "P365.Pipe.Weymouth.Flow",
+      "description": "Natural gas flow rate using Weymouth equation (SCFH).",
+      "parameters": [
+        { "name": "P1_psia",  "description": "Inlet pressure (psia)" },
+        { "name": "P2_psia",  "description": "Outlet pressure (psia)" },
+        { "name": "L_ft",     "description": "Pipe length (feet)" },
+        { "name": "D_in",     "description": "Inside diameter (inches)" },
+        { "name": "SG",       "description": "Gas specific gravity" },
+        { "name": "T_avg_F",  "description": "Average gas temperature (°F)" }
+      ],
+      "result": { "dimensionality": "scalar" }
+    },
+    {
+      "id": "P365.PIPE.WEYMOUTH.OUTLETPRESSURE",
+      "name": "P365.Pipe.Weymouth.OutletPressure",
+      "description": "Outlet pressure using Weymouth equation (psia).",
+      "parameters": [
+        { "name": "P1_psia",  "description": "Inlet pressure (psia)" },
+        { "name": "Q_SCFH",   "description": "Flow rate (SCFH)" },
+        { "name": "L_ft",     "description": "Length (feet)" },
+        { "name": "D_in",     "description": "Inside diameter (inches)" },
+        { "name": "SG",       "description": "Gas specific gravity" },
+        { "name": "T_avg_F",  "description": "Average gas temperature (°F)" }
+      ],
+      "result": { "dimensionality": "scalar" }
+    },
+    {
+      "id": "P365.PVT.UG",
+      "name": "P365.PVT.Ug",
+      "description": "Gas viscosity by Lee-Gonzalez-Eakin correlation (cp).",
+      "parameters": [
+        { "name": "T_F",    "description": "Temperature (°F)" },
+        { "name": "P_psia", "description": "Pressure (psia)" },
+        { "name": "sg",     "description": "Gas specific gravity (air = 1.0)" }
+      ],
+      "result": { "dimensionality": "scalar" }
+    },
+    {
+      "id": "P365.PVT.BG",
+      "name": "P365.PVT.Bg",
+      "description": "Gas formation volume factor (res bbl/scf).",
+      "parameters": [
+        { "name": "T_F",    "description": "Temperature (°F)" },
+        { "name": "P_psia", "description": "Pressure (psia)" },
+        { "name": "Z",      "description": "Z-factor" }
+      ],
+      "result": { "dimensionality": "scalar" }
+    }
+  ]
+}
