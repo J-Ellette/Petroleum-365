@@ -30,6 +30,10 @@ import * as ESPExports    from "./functions/esp";
 import * as GLExports     from "./functions/gl";
 import * as RPExports     from "./functions/rp";
 import * as CNGLNGExports from "./functions/cnglng";
+import * as HVExports     from "./functions/hv";
+import * as AGA8Exports   from "./functions/aga8";
+import * as NodalExports  from "./functions/nodal";
+import * as WHTExports    from "./functions/wht";
 
 // ─── Re-export raw modules ────────────────────────────────────────────────────
 export * as P365_PVT_Gas   from "./functions/pvt/gas";
@@ -51,6 +55,10 @@ export * as P365_ESP       from "./functions/esp";
 export * as P365_GL        from "./functions/gl";
 export * as P365_RP        from "./functions/rp";
 export * as P365_CNGLNG    from "./functions/cnglng";
+export * as P365_HV        from "./functions/hv";
+export * as P365_AGA8      from "./functions/aga8";
+export * as P365_Nodal     from "./functions/nodal";
+export * as P365_WHT       from "./functions/wht";
 export { unitConverter, getUnitsForCategory, getCategories, listUnits } from "./functions/utilities/unitConverter";
 
 // ─── P365 Namespace Object ────────────────────────────────────────────────────
@@ -529,5 +537,43 @@ export const P365 = {
       PriceToHenryHub:      CNGLNGExports.lngPriceToHenryHub,
       TonneToMMBtu:         CNGLNGExports.lngTonneToMMBtu,
     },
+  },
+
+  // ─── HV — Heating Value ────────────────────────────────────────────────────
+  HV: {
+    MolecularWeight: HVExports.hvMolecularWeight,
+    SpecificGravity: HVExports.hvSpecificGravity,
+    HHV:             HVExports.hvHHV,
+    LHV:             HVExports.hvLHV,
+    WobbeIndex:      HVExports.hvWobbeIndex,
+    HHV_MJNm3:      HVExports.hvHHV_MJNm3,
+    LHV_MJNm3:      HVExports.hvLHV_MJNm3,
+    Analysis:        HVExports.hvAnalysis,
+  },
+
+  // ─── AGA8 — Compressibility Factor ────────────────────────────────────────
+  AGA8: {
+    CharProps:              AGA8Exports.aga8CharProps,
+    MixProps:               AGA8Exports.aga8MixProps,
+    Z:                      AGA8Exports.aga8Z,
+    Density:                AGA8Exports.aga8Density,
+    CompressibilityFactor:  AGA8Exports.aga8CompressibilityFactor,
+  },
+
+  // ─── Nodal — Nodal Analysis ────────────────────────────────────────────────
+  Nodal: {
+    Sweep:          NodalExports.nodalSweep,
+    OperatingPoint: NodalExports.nodalOperatingPoint,
+    IPRVogel:       NodalExports.nodalIPRVogel,
+    GasWell:        NodalExports.nodalGasWell,
+  },
+
+  // ─── WHT — Wellbore Heat Transfer ─────────────────────────────────────────
+  WHT: {
+    GeothermalTemp:       WHTExports.whtGeothermalTemp,
+    OHTC:                 WHTExports.whtOHTC,
+    FluidTemp:            WHTExports.whtFluidTemp,
+    InsulationThickness:  WHTExports.whtInsulationThickness,
+    HeatLoss:             WHTExports.whtHeatLoss,
   },
 } as const;
