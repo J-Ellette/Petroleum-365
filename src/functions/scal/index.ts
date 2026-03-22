@@ -12,6 +12,8 @@
  *   Buckley-Leverett fractional flow + Welge construction
  *   Newman (1973) rock compressibility
  *   Ibrahim-Koederitz wettability Kr
+ *   IFT-dependent capillary pressure (Stegemeier 1977 / EOR scaling)
+ *   Amott wettability index
  *
  * Units: md, psi, dyn/cm, dimensionless.
  */
@@ -491,4 +493,184 @@ export function newmanRockCompressibility(phi: number, rock_type: "sandstone" | 
     default:
       throw new Error(`Unknown rock type: ${rock_type}`);
   }
+}
+
+// ─── IFT-Dependent Capillary Pressure (EOR / Miscible Flooding) ───────────────
+
+/**
+ * Stegemeier (1977) IFT-scaled capillary pressure.
+ *
+ * During EOR (surfactant flooding, miscible flooding) the interfacial tension
+ * (IFT) is reduced, lowering capillary pressure and increasing displacement
+ * efficiency.  The Stegemeier relationship is:
+ *
+ *   Pc_new = Pc_base × (IFT_new / IFT_base)
+ *
+ * This scales the entire capillary pressure curve proportionally to the IFT
+ * reduction ratio.
+ *
+ * @param pc_base_psi   Baseline capillary pressure at reservoir IFT (psi)
+ * @param ift_base_mNm  Baseline IFT (mN/m = dyn/cm); typical oil-brine ≈ 30–50
+ * @param ift_new_mNm   Reduced IFT after surfactant/EOR treatment (mN/m)
+ * @returns             Scaled capillary pressure (psi)
+ */
+export function scalIFTScaledPc(
+  pc_base_psi: number,
+  ift_base_mNm: number,
+  ift_new_mNm: number,
+): number {
+  if (ift_base_mNm <= 0) throw new Error("ift_base_mNm must be > 0");
+  return pc_base_psi * (ift_new_mNm / ift_base_mNm);
+}
+
+/**
+ * Capillary number Nc — ratio of viscous to capillary forces.
+ *
+ *   Nc = (u × μ) / σ
+ *
+ * where u is Darcy velocity (m/s or cm/s), μ is viscosity (Pa·s or cp),
+ * and σ is IFT (N/m or dyn/cm).
+ *
+ * In field units (q in bbl/d, A in ft², μ in cp, σ in dyn/cm):
+ *   Nc = (5.615 × q × μ) / (86400 × A × σ × 6.72e-4)
+ *
+ * For consistency this function works in SI-compatible dimensionless form:
+ *   Nc = u_cms × mu_cp / (sigma_dynpercm × 100)   (approximate)
+ *
+ * @param u_cms         Darcy velocity (cm/s = reservoir flux / pore area)
+ * @param mu_cp         Displacing fluid viscosity (cp)
+ * @param sigma_dynpercm Interfacial tension (dyn/cm = mN/m)
+ * @returns             Capillary number Nc (dimensionless)
+ */
+export function scalCapillaryNumber(
+  u_cms: number,
+  mu_cp: number,
+  sigma_dynpercm: number,
+): number {
+  if (sigma_dynpercm <= 0) throw new Error("sigma_dynpercm must be > 0");
+  // Convert: 1 cp = 1e-2 dyn·s/cm²; factor to get dimensionless
+  const mu_CGS = mu_cp * 1e-2; // poise
+  return (u_cms * mu_CGS) / sigma_dynpercm;
+}
+
+/**
+ * Residual oil saturation as a function of capillary number (Nc).
+ *
+ * Taber (1969) / Lake (1989) trapping correlation:
+ *   Sor(Nc) = Sor0 / (1 + T × Nc)
+ *
+ * where T is the trapping number coefficient (typically 1000–100,000).
+ *
+ * @param Sor0       Residual oil saturation at low Nc (water flooding baseline)
+ * @param Nc         Capillary number (from scalCapillaryNumber)
+ * @param T          Trapping coefficient (default 5000 — typical sandstone)
+ * @returns          Residual oil saturation at Nc (fraction)
+ */
+export function scalResidualOilSaturation(Sor0: number, Nc: number, T = 5000): number {
+  return Sor0 / (1 + T * Nc);
+}
+
+/**
+ * IFT-adjusted endpoint relative permeabilities (Stegemeier / Lake 1989).
+ *
+ * At ultra-low IFT (miscible limit) Kr endpoints approach 1.0 and Sor → 0.
+ * This function interpolates between immiscible and miscible endpoints using
+ * the capillary number ratio.
+ *
+ *   krw_end(Nc) = krw_end_immis + (1 − krw_end_immis) × f(Nc)
+ *   kro_end(Nc) = kro_end_immis + (1 − kro_end_immis) × f(Nc)
+ *
+ * where f(Nc) = Nc / (Nc + Nc_crit)  (sigmoidal approach to miscibility)
+ *
+ * @param krwEnd_immis    Endpoint krw at low Nc (immiscible flood)
+ * @param kroEnd_immis    Endpoint kro at Swc (immiscible flood)
+ * @param Nc              Capillary number
+ * @param Nc_crit         Critical capillary number where 50% miscibility reached
+ *                        (default 2e-5)
+ * @returns               { krwEnd, kroEnd } at the given Nc
+ */
+export function scalIFTEndpoints(
+  krwEnd_immis: number,
+  kroEnd_immis: number,
+  Nc: number,
+  Nc_crit = 2e-5,
+): { krwEnd: number; kroEnd: number } {
+  const f = Nc / (Nc + Nc_crit);
+  return {
+    krwEnd: krwEnd_immis + (1 - krwEnd_immis) * f,
+    kroEnd: kroEnd_immis + (1 - kroEnd_immis) * f,
+  };
+}
+
+// ─── Amott Wettability Index ──────────────────────────────────────────────────
+
+/**
+ * Amott wettability index toward water (Iw) and toward oil (Io).
+ *
+ * Amott (1959) and Amott-Harvey modification:
+ *   Iw = ΔSw_sp / ΔSw_total   (spontaneous water imbibition fraction)
+ *   Io = ΔSo_sp / ΔSo_total   (spontaneous oil imbibition fraction)
+ *   WI_AH = Iw − Io           (Amott-Harvey index, −1 to +1)
+ *
+ * Interpretation:
+ *   WI_AH > 0.3  → water-wet
+ *   −0.3 < WI_AH < 0.3 → mixed-wet / intermediate
+ *   WI_AH < −0.3 → oil-wet
+ *
+ * @param Swi         Initial (connate) water saturation (fraction)
+ * @param Sw_afterSpontWater  Sw after spontaneous water imbibition
+ * @param Sw_afterForcedWater Sw after forced water displacement (= 1 − Sor)
+ * @param So_afterSpontOil   So after spontaneous oil imbibition (= 1 − Sw after drainage)
+ * @param So_afterForcedOil  So after forced oil displacement
+ * @returns           { Iw, Io, WI_AmottHarvey, wettability_class }
+ */
+export function scalAmottWettability(
+  Swi: number,
+  Sw_afterSpontWater: number,
+  Sw_afterForcedWater: number,
+  So_afterSpontOil: number,
+  So_afterForcedOil: number,
+): {
+  Iw: number;
+  Io: number;
+  WI_AmottHarvey: number;
+  wettability_class: "water-wet" | "mixed-wet" | "oil-wet";
+} {
+  const deltaSw_sp    = Sw_afterSpontWater - Swi;
+  const deltaSw_total = Sw_afterForcedWater - Swi;
+  const deltaSo_sp    = So_afterSpontOil - (1 - Sw_afterForcedWater);
+  const deltaSo_total = So_afterForcedOil - (1 - Sw_afterForcedWater);
+
+  const Iw = deltaSw_total > 0 ? Math.max(0, deltaSw_sp / deltaSw_total) : 0;
+  const Io = deltaSo_total > 0 ? Math.max(0, deltaSo_sp / deltaSo_total) : 0;
+  const WI = Iw - Io;
+
+  let wettability_class: "water-wet" | "mixed-wet" | "oil-wet";
+  if (WI > 0.3)       wettability_class = "water-wet";
+  else if (WI < -0.3) wettability_class = "oil-wet";
+  else                wettability_class = "mixed-wet";
+
+  return { Iw, Io, WI_AmottHarvey: WI, wettability_class };
+}
+
+/**
+ * USBM wettability index (Donaldson et al. 1969).
+ *
+ * Based on the ratio of areas under drainage and imbibition capillary pressure
+ * curves.
+ *
+ *   W_USBM = log(A1 / A2)
+ *
+ * where A1 = area under water-drive Pc curve (drainage from So=1-Swi to Sor)
+ *       A2 = area under oil-drive Pc curve (imbibition from Sor to Swi).
+ *
+ * Both areas should be positive (absolute value of the respective integral).
+ *
+ * @param A1  Area under drainage Pc curve (positive, psi units)
+ * @param A2  Area under imbibition Pc curve (positive, psi units)
+ * @returns   USBM wettability index W (positive = water-wet, negative = oil-wet)
+ */
+export function scalUSBMWettability(A1: number, A2: number): number {
+  if (A1 <= 0 || A2 <= 0) throw new Error("Both areas must be positive");
+  return Math.log10(A1 / A2);
 }

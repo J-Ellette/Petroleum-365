@@ -277,3 +277,152 @@ describe("Newman Rock Compressibility", () => {
     expect(() => newmanRockCompressibility(1.1, "sandstone")).toThrow();
   });
 });
+
+// ─── IFT-Dependent Capillary Pressure ────────────────────────────────────────
+import {
+  scalIFTScaledPc,
+  scalCapillaryNumber,
+  scalResidualOilSaturation,
+  scalIFTEndpoints,
+  scalAmottWettability,
+  scalUSBMWettability,
+} from "../../src/functions/scal";
+
+describe("SCAL — IFT-Scaled Capillary Pressure (Stegemeier)", () => {
+  test("Same IFT: Pc unchanged", () => {
+    expect(scalIFTScaledPc(10, 30, 30)).toBeCloseTo(10, 6);
+  });
+
+  test("IFT reduced by 50%: Pc halved", () => {
+    expect(scalIFTScaledPc(10, 30, 15)).toBeCloseTo(5, 6);
+  });
+
+  test("Ultra-low IFT (≈0.001 mN/m): Pc ≈ 0", () => {
+    const pc = scalIFTScaledPc(10, 30, 0.001);
+    expect(pc).toBeLessThan(0.001);
+  });
+
+  test("Throws for zero base IFT", () => {
+    expect(() => scalIFTScaledPc(10, 0, 15)).toThrow();
+  });
+});
+
+describe("SCAL — Capillary Number", () => {
+  test("Typical waterflood: Nc ≈ 1e-6", () => {
+    // u = 1e-4 cm/s, mu = 1 cp = 0.01 poise, sigma = 30 dyn/cm
+    const Nc = scalCapillaryNumber(1e-4, 1.0, 30);
+    expect(Nc).toBeCloseTo((1e-4 * 0.01) / 30, 8);
+  });
+
+  test("Higher velocity → higher Nc", () => {
+    const Nc_low  = scalCapillaryNumber(1e-5, 1.0, 30);
+    const Nc_high = scalCapillaryNumber(1e-3, 1.0, 30);
+    expect(Nc_high).toBeGreaterThan(Nc_low);
+  });
+
+  test("Lower IFT → higher Nc (more favorable for EOR)", () => {
+    const Nc_normal = scalCapillaryNumber(1e-4, 1.0, 30);
+    const Nc_eor    = scalCapillaryNumber(1e-4, 1.0, 0.1);
+    expect(Nc_eor).toBeGreaterThan(Nc_normal);
+  });
+
+  test("Throws for zero IFT", () => {
+    expect(() => scalCapillaryNumber(1e-4, 1.0, 0)).toThrow();
+  });
+});
+
+describe("SCAL — Residual Oil Saturation vs Nc", () => {
+  test("Low Nc: Sor ≈ Sor0", () => {
+    expect(scalResidualOilSaturation(0.25, 1e-9)).toBeCloseTo(0.25, 2);
+  });
+
+  test("High Nc: Sor → 0 (near miscible)", () => {
+    expect(scalResidualOilSaturation(0.25, 1e10)).toBeCloseTo(0, 2);
+  });
+
+  test("Sor decreases monotonically with Nc", () => {
+    const sor1 = scalResidualOilSaturation(0.25, 1e-6);
+    const sor2 = scalResidualOilSaturation(0.25, 1e-4);
+    const sor3 = scalResidualOilSaturation(0.25, 1e-2);
+    expect(sor1).toBeGreaterThan(sor2);
+    expect(sor2).toBeGreaterThan(sor3);
+  });
+});
+
+describe("SCAL — IFT Endpoint Kr", () => {
+  test("Low Nc: endpoints ≈ immiscible values", () => {
+    const { krwEnd, kroEnd } = scalIFTEndpoints(0.3, 0.8, 1e-10);
+    expect(krwEnd).toBeCloseTo(0.3, 2);
+    expect(kroEnd).toBeCloseTo(0.8, 2);
+  });
+
+  test("High Nc: endpoints approach 1.0 (miscible limit)", () => {
+    const { krwEnd, kroEnd } = scalIFTEndpoints(0.3, 0.8, 1e10);
+    expect(krwEnd).toBeCloseTo(1.0, 2);
+    expect(kroEnd).toBeCloseTo(1.0, 2);
+  });
+
+  test("Endpoints increase monotonically with Nc", () => {
+    const e1 = scalIFTEndpoints(0.3, 0.8, 1e-6);
+    const e2 = scalIFTEndpoints(0.3, 0.8, 1e-4);
+    expect(e2.krwEnd).toBeGreaterThan(e1.krwEnd);
+    expect(e2.kroEnd).toBeGreaterThan(e1.kroEnd);
+  });
+});
+
+describe("SCAL — Amott Wettability Index", () => {
+  test("Strongly water-wet reservoir", () => {
+    // High spontaneous water imbibition, no spontaneous oil imbibition
+    const result = scalAmottWettability(0.20, 0.60, 0.75, 0.25, 0.25);
+    expect(result.Iw).toBeGreaterThan(0.5);
+    expect(result.Io).toBeCloseTo(0, 2);
+    expect(result.WI_AmottHarvey).toBeGreaterThan(0.3);
+    expect(result.wettability_class).toBe("water-wet");
+  });
+
+  test("Strongly oil-wet reservoir", () => {
+    // No spontaneous water imbibition (Sw stays at Swi = 0.20)
+    // Good spontaneous oil imbibition: So goes from Sor=0.25 to 0.55
+    // Forced oil displacement: So goes to 1 - Swi = 0.80
+    const result = scalAmottWettability(0.20, 0.20, 0.75, 0.55, 0.80);
+    expect(result.Iw).toBeCloseTo(0, 2);
+    expect(result.Io).toBeGreaterThan(0.3);
+    expect(result.WI_AmottHarvey).toBeLessThan(-0.3);
+    expect(result.wettability_class).toBe("oil-wet");
+  });
+
+  test("Mixed-wet reservoir (Iw ≈ Io)", () => {
+    // Equal spontaneous water and oil imbibition → WI ≈ 0
+    const result = scalAmottWettability(0.20, 0.40, 0.75, 0.45, 0.80);
+    expect(result.WI_AmottHarvey).toBeGreaterThan(-0.3);
+    expect(result.WI_AmottHarvey).toBeLessThan(0.3);
+    expect(result.wettability_class).toBe("mixed-wet");
+  });
+
+  test("Returns all four keys", () => {
+    const result = scalAmottWettability(0.20, 0.50, 0.75, 0.25, 0.25);
+    expect(result).toHaveProperty("Iw");
+    expect(result).toHaveProperty("Io");
+    expect(result).toHaveProperty("WI_AmottHarvey");
+    expect(result).toHaveProperty("wettability_class");
+  });
+});
+
+describe("SCAL — USBM Wettability Index", () => {
+  test("Water-wet: A1 > A2 → W > 0", () => {
+    expect(scalUSBMWettability(100, 10)).toBeGreaterThan(0);
+  });
+
+  test("Oil-wet: A1 < A2 → W < 0", () => {
+    expect(scalUSBMWettability(10, 100)).toBeLessThan(0);
+  });
+
+  test("Neutral wet: A1 = A2 → W = 0", () => {
+    expect(scalUSBMWettability(50, 50)).toBeCloseTo(0, 6);
+  });
+
+  test("Throws for non-positive area", () => {
+    expect(() => scalUSBMWettability(0, 50)).toThrow();
+    expect(() => scalUSBMWettability(50, 0)).toThrow();
+  });
+});
