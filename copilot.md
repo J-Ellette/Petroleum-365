@@ -82,25 +82,75 @@ webpack.config.js   ← Build config
 - [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
 - [x] CodeQL scan: 0 alerts
 
-#### Stopping Point — Session 1
-Good stopping point after PVT + Pipe Sizing + DCA + Unit Converter + tests.
+### Session 2 — IPR + MBE + PTA Function Libraries
+**Status:** Complete
 
-#### Next Session — Session 2 (Planned)
-- [ ] IPR functions (Vogel, Fetkovich, Darcy, composite)
-- [ ] VFP / multiphase flow (Beggs-Brill, Gray, Hagedorn-Brown)
-- [ ] MBE functions (p/z, Havlena-Odeh, aquifer models)
-- [ ] PTA functions (wellbore pressure, Horner)
+#### Completed
+- [x] Implemented IPR — Inflow Performance Relationship (src/functions/ipr/index.ts):
+  - [x] Productivity Index (PI = q/(Pr-Pwf)), Darcy rate
+  - [x] PSS PI: kh/[141.2·μ·Bo·(ln(re/rw)−0.75+S)]
+  - [x] SS PI: kh/[141.2·μ·Bo·(ln(re/rw)+S)]
+  - [x] Transient PI (time-dependent, Ei-function based)
+  - [x] Vogel (1968) IPR: rate, Qmax back-calculation, AOF
+  - [x] Composite IPR (Darcy above Pb, Vogel below Pb)
+  - [x] Fetkovich empirical backpressure IPR: rate, AOF
+  - [x] Klins-Clark (1993) modified Vogel with d-exponent
+  - [x] Gas well Darcy deliverability (PSS, field units)
+  - [x] Gas well non-Darcy deliverability (turbulence, iterative)
+  - [x] Horizontal well PI: Joshi (1988) and Renard-Dupuy (1991) correlations
+  - [x] Skin impact: PI ratio (J_damaged/J_ideal), skin pressure drop (ΔPs)
+- [x] Implemented MBE — Material Balance Equation (src/functions/mbe/index.ts):
+  - [x] Gas p/Z ratio, OGIP from two-point method, OGIP from linear regression
+  - [x] Gas reservoir pressure forecast at Gp
+  - [x] Oil expansion term Eo, gas-cap expansion Eg, formation/water expansion Efw
+  - [x] Underground withdrawal F (reservoir voidage)
+  - [x] Havlena-Odeh straight-line method (OOIP, mN, R²)
+  - [x] Drive mechanism indices: solution gas, gas cap, water, compressibility
+  - [x] Effective reservoir compressibility (ct)
+  - [x] Fetkovich aquifer model: Wei, J, stepwise water influx
+  - [x] Geopressured (modified) p/Z and OGIP correction
+- [x] Implemented PTA — Pressure Transient Analysis (src/functions/pta/index.ts):
+  - [x] Ei function (exponential integral, series expansion, accurate for all u > 0)
+  - [x] Dimensionless time tD (at wellbore and at radius r)
+  - [x] Dimensionless pressure PD (line-source solution via Ei)
+  - [x] PD → actual pressure drop conversion
+  - [x] Drawdown Pwf: semilog approximation (MDH) and exact Ei solution
+  - [x] Horner time ratio, buildup pressure, permeability, skin, P* extrapolation
+  - [x] MDH drawdown slope → permeability and skin
+  - [x] Superposition (van Wijnen/multi-rate) for arbitrary rate history
+  - [x] Fault buildup (image well method, sealing fault, includes tp)
+  - [x] Bourdet pressure derivative (smoothed numerical)
+  - [x] Wellbore storage coefficient C and CD
+- [x] Updated src/index.ts to export IPR, MBE, PTA namespaces
+- [x] Written 105 new Jest unit tests (214 total, all passing)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+
+#### Stopping Point — Session 2
+Good stopping point after IPR + MBE + PTA with 214 tests passing.
+
+#### Next Session — Session 3 (Planned)
+- [ ] VFP / Vertical Flow Performance (Beggs-Brill, Gray, Hagedorn-Brown)
+- [ ] Surface Facilities (choke, compressor)
+- [ ] Flow Assurance (hydrate prediction, MEG/methanol dosing, corrosion)
+- [ ] Hydraulic Fracturing functions (PKN geometry, proppant settling)
+- [ ] Field Production Profile templates (buildup-plateau-decline)
+- [ ] Gas Flow equations (Panhandle A&B, AGA)
+- [ ] CNG/LNG functions (density, BOG, storage)
 - [ ] Office.js taskpane UI — Blueprint Manager, Function Browser
 - [ ] Ribbon implementation (6 groups + Library + Unit Conversion)
-- [ ] Surface Facilities (choke, gas pipeline)
-- [ ] Flow Assurance (hydrate, corrosion, erosion)
 
 #### Session 3 (Planned)
-- [ ] ESP, Gas Lift, Rod Pump functions
-- [ ] SCAL (relative permeability, capillary pressure)
+- [ ] VFP / multiphase vertical flow (Beggs-Brill, Gray, Hagedorn-Brown)
+- [ ] Surface Facilities (choke sizing, compressor power)
+- [ ] Flow Assurance (hydrate prediction/inhibitor, corrosion, erosion)
+- [ ] Gas Flow (Panhandle A&B, AGA, non-Darcy)
+- [ ] CNG/LNG thermodynamics (density, BOG, storage, regasification)
+- [ ] Hydraulic Fracturing (PKN geometry, proppant settling, CfD, skin)
+- [ ] Field Production Profile (buildup-plateau-decline model)
 - [ ] EoS (Peng-Robinson flash, phase envelope)
-- [ ] Fracturing (PKN geometry, proppant settling)
 - [ ] Blueprint templates (actual Excel sheet XML)
+- [ ] Office.js taskpane UI — Blueprint Manager, Function Browser
+- [ ] Ribbon implementation (6 groups + Library + Unit Conversion)
 - [ ] Web deployment / Netlify/Azure manifest hosting
 
 ## Function Naming Convention
