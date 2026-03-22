@@ -16,6 +16,9 @@ import * as WaterExports from "./functions/pvt/water";
 import * as DCAExports   from "./functions/dca";
 import { unitConverter, getUnitsForCategory, getCategories, listUnits } from "./functions/utilities/unitConverter";
 import * as PipeExports  from "./functions/pipe";
+import * as IPRExports   from "./functions/ipr";
+import * as MBEExports   from "./functions/mbe";
+import * as PTAExports   from "./functions/pta";
 
 // ─── Re-export raw modules ────────────────────────────────────────────────────
 export * as P365_PVT_Gas   from "./functions/pvt/gas";
@@ -23,6 +26,9 @@ export * as P365_PVT_Oil   from "./functions/pvt/oil";
 export * as P365_PVT_Water from "./functions/pvt/water";
 export * as P365_DCA       from "./functions/dca";
 export * as P365_Pipe      from "./functions/pipe";
+export * as P365_IPR       from "./functions/ipr";
+export * as P365_MBE       from "./functions/mbe";
+export * as P365_PTA       from "./functions/pta";
 export { unitConverter, getUnitsForCategory, getCategories, listUnits } from "./functions/utilities/unitConverter";
 
 // ─── P365 Namespace Object ────────────────────────────────────────────────────
@@ -152,6 +158,101 @@ export const P365 = {
       Flow:           PipeExports.weymouthFlowSCFH,
       OutletPressure: PipeExports.weymouthOutletPressure,
       MaxLength:      PipeExports.weymouthMaxLength,
+    },
+  },
+  // ─── IPR — Inflow Performance Relationship ────────────────────────────────
+  IPR: {
+    PI:          IPRExports.productivityIndex,
+    DarcyRate:   IPRExports.darcyRate,
+    PSS:         IPRExports.pssProductivityIndex,
+    SS:          IPRExports.ssProductivityIndex,
+    Transient:   IPRExports.transientProductivityIndex,
+    Vogel: {
+      Rate:   IPRExports.vogelRate,
+      Qmax:   IPRExports.vogelQmax,
+      AOF:    IPRExports.vogelAOF,
+    },
+    Composite:    IPRExports.compositeIPRRate,
+    Fetkovich: {
+      Rate:   IPRExports.fetkovichIPRRate,
+      AOF:    IPRExports.fetkovichAOF,
+    },
+    KlinsClarke:  IPRExports.klinsClarkeRate,
+    Gas: {
+      Darcy:    IPRExports.gasWellDarcyRate,
+      NonDarcy: IPRExports.gasWellNonDarcyRate,
+    },
+    Horizontal: {
+      PI_Joshi:  IPRExports.horizontalWellPI_Joshi,
+      PI_Renard: IPRExports.horizontalWellPI_Renard,
+    },
+    Skin: {
+      PIRatio:      IPRExports.skinPIRatio,
+      PressureDrop: IPRExports.skinPressureDrop,
+    },
+  },
+
+  // ─── MBE — Material Balance Equation ──────────────────────────────────────
+  MBE: {
+    Gas: {
+      PZ:                 MBEExports.gasPZ,
+      OGIPFromTwoPoints:  MBEExports.ogipFromTwoPoints,
+      OGIPFromRegression: MBEExports.ogipFromRegression,
+      PressureAtGp:       MBEExports.gasPressureAtGp,
+      GeopressuredPZ:     MBEExports.geopressuredModifiedPZ,
+      GeopressuredOGIP:   MBEExports.geopressuredOGIP,
+    },
+    Oil: {
+      Eo:                    MBEExports.oilExpansionEo,
+      Eg:                    MBEExports.gasCapExpansionEg,
+      Efw:                   MBEExports.fwExpansionEfw,
+      F:                     MBEExports.undergroundWithdrawal,
+      HavlenaOdeh:           MBEExports.havlenaOdeh,
+    },
+    Drive: {
+      SolutionGasIndex:      MBEExports.solutionGasDriveIndex,
+      GasCapIndex:           MBEExports.gasCapDriveIndex,
+      WaterIndex:            MBEExports.waterDriveIndex,
+      CompressibilityIndex:  MBEExports.compressibilityDriveIndex,
+    },
+    EffectiveCompressibility: MBEExports.effectiveCompressibility,
+    Aquifer: {
+      FetkovichWei:        MBEExports.fetkovichWei,
+      FetkovichJ:          MBEExports.fetkovichAquiferJ,
+      FetkovichInfluxStep: MBEExports.fetkovichWaterInfluxStep,
+    },
+  },
+
+  // ─── PTA — Pressure Transient Analysis ────────────────────────────────────
+  PTA: {
+    Ei:           PTAExports.ei,
+    Dimensionless: {
+      TD:           PTAExports.dimensionlessTimeTD,
+      TDr:          PTAExports.dimensionlessTimeAtRadius,
+      PD:           PTAExports.dimensionlessPressurePD,
+      PDtoDeltaP:   PTAExports.pdToPressureDrop,
+    },
+    Drawdown: {
+      Pwf:    PTAExports.drawdownPwf,
+      PwfEi:  PTAExports.drawdownPwfEi,
+    },
+    Horner: {
+      TimeRatio:    PTAExports.hornerTimeRatio,
+      Permeability: PTAExports.hornerPermeability,
+      Skin:         PTAExports.hornerSkin,
+      Pstar:        PTAExports.hornerPstar,
+      Pws:          PTAExports.hornerBuildupPressure,
+    },
+    MDH: {
+      Permeability: PTAExports.mdhPermeability,
+      Skin:         PTAExports.mdhSkin,
+    },
+    Superpose:        PTAExports.superposeWellborePressure,
+    FaultBuildup:     PTAExports.faultBuildupPressure,
+    BourdetDerivative: PTAExports.bourdetDerivative,
+    WellboreStorage: {
+      C:   PTAExports.wellboreStorageCoefficient,
+      CD:  PTAExports.wellboreStorageCoefficientCD,
     },
   },
 } as const;
