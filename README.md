@@ -2,7 +2,7 @@
 
 > **A comprehensive petroleum engineering function library and Excel add-in for natural gas, oil, CNG, and LNG calculations.**
 
-[![Tests](https://img.shields.io/badge/tests-1004%20passing-brightgreen)](./test)
+[![Tests](https://img.shields.io/badge/tests-1116%20passing-brightgreen)](./test)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -28,7 +28,7 @@
 
 ## What Is P365?
 
-**Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **700+ engineering calculations** organized into 24 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design, nodal analysis, LNG thermodynamics, wellbore heat transfer, geomechanics, and composite skin factor analysis.
+**Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **750+ engineering calculations** organized into 25 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design, nodal analysis, LNG thermodynamics, wellbore heat transfer, geomechanics, composite skin factor analysis, and wellbore integrity (casing design, cement jobs, shoe tests).
 
 P365 is designed to work **inside Microsoft Excel** as a custom function library (UDFs), letting engineers use familiar spreadsheet workflows backed by rigorous, well-tested engineering correlations. It is also available as a standalone TypeScript/Node.js library for integration into web applications, pipelines, or custom tooling. The full **Office 365 add-in suite** — Word, Outlook, Teams, PowerPoint, OneNote, and Access — extends P365 calculations into reports, emails, collaboration cards, presentations, field notes, and job databases.
 
@@ -53,7 +53,7 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 ## Features
 
 - ✅ **723 passing unit tests** — every correlation is independently verified
-- ✅ **24 engineering modules** covering the full production lifecycle
+- ✅ **25 engineering modules** covering the full production lifecycle
 - ✅ **Field units throughout** — psi, °F, STB, scf, ft, cp, md
 - ✅ **Named after correlation authors** — `P365.PVT.Z.ByDAK` is the Dranchuk-Abou-Kassem method
 - ✅ **Pure functions** — no side effects, no global state, fully testable
@@ -68,7 +68,7 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 | # | Module | Category | Key Capabilities |
 |---|--------|----------|-----------------|
 | 1 | **PVT** | Gas / Oil / Water | Z-factor, viscosity, FVF, density, bubble point, solution GOR |
-| 2 | **DCA** | Decline Curve Analysis | Arps, Duong, PLE, SEPD, LGM; EUR; curve fitting |
+| 2 | **DCA** | Decline Curve Analysis | Arps, Modified Hyperbolic, Duong, PLE, SEPD, LGM, Transient Hyperbolic, EE, AKB; diagnostics; EUR; data QC |
 | 3 | **IPR** | Inflow Performance | Vogel, Fetkovich, composite, gas deliverability, horizontal PI, skin |
 | 4 | **VFP** | Vertical Flow | Beggs-Brill, Gray, Hagedorn-Brown, Turner critical velocity, VLP curves |
 | 5 | **MBE** | Material Balance | p/Z, OGIP, Havlena-Odeh, aquifer models (Fetkovich, Van Everdingen-Hurst) |
@@ -88,7 +88,10 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 | 19 | **AGA-8** | Custody Transfer | AGA-8 Z-factor by Hall-Yarborough on mixture pseudo-criticals |
 | 20 | **Nodal** | Nodal Analysis | IPR + VLP intersection, oil well (Vogel+B&B), gas well operating point |
 | 21 | **WHT** | Wellbore Heat Transfer | Ramey model, OHTC, geothermal profile, insulation sizing, heat loss |
-| 22 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions |
+| 22 | **GEO** | Geomechanics | Eaton pore pressure, fracture gradient (3 methods), mud window, wellbore stability |
+| 23 | **SKIN** | Composite Skin Factor | Hawkins, Karakas-Tariq, non-Darcy, partial penetration, gravel pack |
+| 24 | **WBI** | Wellbore Integrity | Casing burst/collapse, buoyancy, cement volume/density, FIT/LOT/XLOT, mud window |
+| 25 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions |
 
 ---
 
@@ -571,6 +574,107 @@ Supported components: `C1, C2, C3, iC4, nC4, iC5, nC5, C6, C7, N2, CO2, H2S, H2,
 | `P365.SCAL.IFT.Endpoints` | IFT-adjusted Kr endpoints (miscible flooding) |
 | `P365.SCAL.Wettability.Amott` | Amott wettability index (Iw, Io, WI_AH) |
 | `P365.SCAL.Wettability.USBM` | USBM wettability index (Donaldson et al. 1969) |
+
+---
+
+### DCA — Extended Decline Models (Session 8)
+
+**Transient Hyperbolic (TH)**
+| Function | Description |
+|----------|-------------|
+| `P365.DCA.TransientHyperbolic.Rate` | Rate at time t (b > 1 allowed; switches to exponential at Dterm) |
+| `P365.DCA.TransientHyperbolic.Cumulative` | Cumulative production from 0 to t |
+| `P365.DCA.TransientHyperbolic.SwitchTime` | Time at which D(t) reaches terminal decline Dterm |
+| `P365.DCA.TransientHyperbolic.EUR` | EUR to economic limit |
+
+**Extended Exponential (EE — Biexponential)**
+| Function | Description |
+|----------|-------------|
+| `P365.DCA.ExtendedExponential.Rate` | q = qi·[f·exp(−Dfast·t) + (1−f)·exp(−Dslow·t)] |
+| `P365.DCA.ExtendedExponential.Cumulative` | Cumulative biexponential production |
+| `P365.DCA.ExtendedExponential.EUR` | EUR to economic limit (bisection) |
+
+**Ansah-Knowles-Buba (AKB)**
+| Function | Description |
+|----------|-------------|
+| `P365.DCA.AKB.Rate` | q = qi·[1+(K−1)·Di·t]^(−1/(K−1)); K=1→exp, K=2→harmonic |
+| `P365.DCA.AKB.Cumulative` | AKB cumulative production |
+| `P365.DCA.AKB.EUR` | AKB EUR to economic limit |
+
+**DCA Diagnostics**
+| Function | Description |
+|----------|-------------|
+| `P365.DCA.Diagnostics.DeclineRate` | D(t) pairs from rate data (log-diff method) |
+| `P365.DCA.Diagnostics.BFactor` | Instantaneous b-factor from rate data |
+| `P365.DCA.Diagnostics.LogLogDerivative` | d(log q)/d(log t) — flow regime slope |
+| `P365.DCA.Diagnostics.FlowRegimeFromB` | Classify flow regime from b-factor estimate |
+
+**DCA Data QC**
+| Function | Description |
+|----------|-------------|
+| `P365.DCA.DataQC.RollingZScore` | Leave-one-out rolling Z-score (outlier detection) |
+| `P365.DCA.DataQC.CleanProduction` | Remove outliers above Z-score threshold |
+| `P365.DCA.DataQC.RateNormalize` | Normalize rates by pressure drawdown |
+
+**DCA Rate Conversions**
+| Function | Description |
+|----------|-------------|
+| `P365.DCA.Conversions.ConvertNominalDecline` | Convert D between year/month/day |
+| `P365.DCA.Conversions.AnnualToMonthlyEffective` | De_annual → De_monthly |
+| `P365.DCA.Conversions.MonthlyToAnnualEffective` | De_monthly → De_annual |
+
+---
+
+### WBI — Wellbore Integrity
+
+**Casing Burst**
+| Function | Description |
+|----------|-------------|
+| `P365.WBI.Burst.Rating` | API Barlow internal-yield pressure = 0.875 × 2 × Yp × t / OD (psi) |
+| `P365.WBI.Burst.DesignFactor` | DF = P_rating / P_applied |
+| `P365.WBI.Burst.RequiredRating` | Minimum burst rating from operating pressure × DF |
+
+**Casing Collapse**
+| Function | Description |
+|----------|-------------|
+| `P365.WBI.Collapse.DtRatio` | D/t ratio (OD / wall thickness) |
+| `P365.WBI.Collapse.ElasticP` | Elastic collapse pressure (thin-wall, Lamé) |
+| `P365.WBI.Collapse.YieldP` | Yield collapse pressure (thick-wall) |
+| `P365.WBI.Collapse.Rating` | Conservative collapse rating (min of elastic, yield) |
+| `P365.WBI.Collapse.Regime` | Collapse regime classification (Yield/Plastic/Transition/Elastic) |
+
+**Tensile and Buoyancy**
+| Function | Description |
+|----------|-------------|
+| `P365.WBI.Tensile.AirWeight` | Air weight of casing section (lbf) |
+| `P365.WBI.Tensile.BuoyancyFactor` | BF = 1 − ρ_fluid / ρ_steel |
+| `P365.WBI.Tensile.EffectiveWeight` | In-fluid weight = air_weight × BF |
+| `P365.WBI.Tensile.Rating` | Pipe body tensile capacity (lbf) |
+| `P365.WBI.Tensile.Check` | Tensile design factor check (df, pass) |
+
+**Cement Job**
+| Function | Description |
+|----------|-------------|
+| `P365.WBI.Cement.Volume` | Annular cement volume (bbl) with excess factor |
+| `P365.WBI.Cement.MinTop` | Minimum top-of-cement depth from pressure balance |
+| `P365.WBI.Cement.SlurryDensity` | Class G neat cement slurry density (ppg) |
+| `P365.WBI.Cement.ReturnHeight` | Cement column height from placed volume |
+
+**Shoe Test / FIT / LOT / XLOT**
+| Function | Description |
+|----------|-------------|
+| `P365.WBI.ShoeTest.FITEquivalentMW` | EMW = MW + P_surface/(0.052 × TVD) |
+| `P365.WBI.ShoeTest.FITSurfacePressure` | Surface pressure to reach target FIT EMW |
+| `P365.WBI.ShoeTest.Evaluate` | Pass/fail + assessment against required EMW |
+| `P365.WBI.ShoeTest.XLOTClosureStress` | Min horizontal stress from ISIP |
+| `P365.WBI.ShoeTest.LOTBreakdownEMW` | Breakdown EMW from peak LOT pressure |
+
+**Mud Weight Window and Hydrostatics**
+| Function | Description |
+|----------|-------------|
+| `P365.WBI.MudWindow` | Drilling mud weight window (MW_min, MW_max, window_ppg, adequate) |
+| `P365.WBI.HydrostaticPressure` | P = 0.052 × MW × TVD (psia) |
+| `P365.WBI.PressureToEMW` | EMW = P / (0.052 × TVD) (ppg) |
 
 ---
 

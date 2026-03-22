@@ -36,6 +36,7 @@ import * as NodalExports  from "./functions/nodal";
 import * as WHTExports    from "./functions/wht";
 import * as GEOExports    from "./functions/geo";
 import * as SKINExports   from "./functions/skin";
+import * as WBIExports    from "./functions/wbi";
 
 // ─── Re-export raw modules ────────────────────────────────────────────────────
 export * as P365_PVT_Gas   from "./functions/pvt/gas";
@@ -63,6 +64,7 @@ export * as P365_Nodal     from "./functions/nodal";
 export * as P365_WHT       from "./functions/wht";
 export * as P365_GEO       from "./functions/geo";
 export * as P365_SKIN      from "./functions/skin";
+export * as P365_WBI       from "./functions/wbi";
 export { unitConverter, getUnitsForCategory, getCategories, listUnits } from "./functions/utilities/unitConverter";
 
 // ─── P365 Namespace Object ────────────────────────────────────────────────────
@@ -181,6 +183,38 @@ export const P365 = {
       Rate:       DCAExports.lgmRate,
       Cumulative: DCAExports.lgmCumulative,
       EUR:        DCAExports.lgmEUR,
+    },
+    TransientHyperbolic: {
+      Rate:        DCAExports.thRate,
+      Cumulative:  DCAExports.thCumulative,
+      SwitchTime:  DCAExports.thSwitchTime,
+      EUR:         DCAExports.thEUR,
+    },
+    ExtendedExponential: {
+      Rate:        DCAExports.eeRate,
+      Cumulative:  DCAExports.eeCumulative,
+      EUR:         DCAExports.eeEUR,
+    },
+    AKB: {
+      Rate:        DCAExports.akbRate,
+      Cumulative:  DCAExports.akbCumulative,
+      EUR:         DCAExports.akbEUR,
+    },
+    Diagnostics: {
+      DeclineRate:       DCAExports.dcaDeclineRate,
+      BFactor:           DCAExports.dcaBFactor,
+      LogLogDerivative:  DCAExports.dcaLogLogDerivative,
+      FlowRegimeFromB:   DCAExports.dcaFlowRegimeFromB,
+    },
+    DataQC: {
+      RollingZScore:    DCAExports.dcaRollingZScore,
+      CleanProduction:  DCAExports.dcaCleanProduction,
+      RateNormalize:    DCAExports.dcaRateNormalize,
+    },
+    Conversions: {
+      ConvertNominalDecline:     DCAExports.dcaConvertNominalDecline,
+      AnnualToMonthlyEffective:  DCAExports.dcaAnnualToMonthlyEffective,
+      MonthlyToAnnualEffective:  DCAExports.dcaMonthlyToAnnualEffective,
     },
   },
 
@@ -674,6 +708,52 @@ export const P365 = {
     PressureDrop:          SKINExports.skinPressureDrop,
     ProductivityRatio:     SKINExports.skinProductivityRatio,
     StimulationRatio:      SKINExports.skinStimulationRatio,
+  },
+
+  // ─── WBI — Wellbore Integrity ──────────────────────────────────────────────
+  WBI: {
+    // Casing burst
+    Burst: {
+      Rating:         WBIExports.wbiCasingBurstRating,
+      DesignFactor:   WBIExports.wbiDesignFactor,
+      RequiredRating: WBIExports.wbiRequiredBurstRating,
+    },
+    // Casing collapse
+    Collapse: {
+      DtRatio:        WBIExports.wbiDtRatio,
+      ElasticP:       WBIExports.wbiElasticCollapseP,
+      YieldP:         WBIExports.wbiYieldCollapseP,
+      Rating:         WBIExports.wbiCollapseRating,
+      Regime:         WBIExports.wbiCollapseRegime,
+    },
+    // Tensile and buoyancy
+    Tensile: {
+      AirWeight:      WBIExports.wbiCasingAirWeight,
+      BuoyancyFactor: WBIExports.wbiBuoyancyFactor,
+      EffectiveWeight: WBIExports.wbiEffectiveWeight,
+      Rating:         WBIExports.wbiTensileRating,
+      Check:          WBIExports.wbiTensileCheck,
+    },
+    // Cement job
+    Cement: {
+      Volume:         WBIExports.wbiCementVolume,
+      MinTop:         WBIExports.wbiMinCementTop,
+      SlurryDensity:  WBIExports.wbiSlurryDensity,
+      ReturnHeight:   WBIExports.wbiCementReturnHeight,
+    },
+    // Shoe test / FIT / LOT / XLOT
+    ShoeTest: {
+      FITEquivalentMW:   WBIExports.wbiFITEquivalentMW,
+      FITSurfacePressure: WBIExports.wbiFITSurfacePressure,
+      Evaluate:          WBIExports.wbiShoeTestEvaluation,
+      XLOTClosureStress: WBIExports.wbiXLOTClosureStress,
+      LOTBreakdownEMW:   WBIExports.wbiLOTBreakdownEMW,
+    },
+    // Mud weight window
+    MudWindow:             WBIExports.wbiMudWeightWindow,
+    // Hydrostatic helpers
+    HydrostaticPressure:   WBIExports.wbiHydrostaticPressure,
+    PressureToEMW:         WBIExports.wbiPressureToEMW,
   },
 
 } as const;

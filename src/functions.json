@@ -3,187 +3,1124 @@
     {
       "id": "P365.PVT.Z.BYDAK",
       "name": "P365.PVT.Z.ByDAK",
-      "description": "Gas Z-factor by Dranchuk-Abou-Kassem (DAK) correlation. Valid 1.0 ≤ Tpr ≤ 3.0; 0.2 ≤ Ppr ≤ 30.",
+      "description": "Gas Z-factor by Dranchuk-Abou-Kassem (DAK) correlation. Valid 1.0 \u2264 Tpr \u2264 3.0; 0.2 \u2264 Ppr \u2264 30.",
       "parameters": [
-        { "name": "T_F",   "description": "Temperature (°F)" },
-        { "name": "P_psia","description": "Pressure (psia)" },
-        { "name": "Tpc",   "description": "Pseudo-critical temperature (°R)" },
-        { "name": "Ppc",   "description": "Pseudo-critical pressure (psia)" }
+        {
+          "name": "T_F",
+          "description": "Temperature (\u00b0F)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "Tpc",
+          "description": "Pseudo-critical temperature (\u00b0R)"
+        },
+        {
+          "name": "Ppc",
+          "description": "Pseudo-critical pressure (psia)"
+        }
       ],
-      "result": { "dimensionality": "scalar" }
+      "result": {
+        "dimensionality": "scalar"
+      }
     },
     {
       "id": "P365.PVT.Z.BYBRILLBEGGS",
       "name": "P365.PVT.Z.ByBrillBeggs",
-      "description": "Gas Z-factor by Brill-Beggs explicit correlation (no iteration). Good for 1.15 ≤ Tpr ≤ 2.4; Ppr ≤ 15.",
+      "description": "Gas Z-factor by Brill-Beggs explicit correlation (no iteration). Good for 1.15 \u2264 Tpr \u2264 2.4; Ppr \u2264 15.",
       "parameters": [
-        { "name": "T_F",   "description": "Temperature (°F)" },
-        { "name": "P_psia","description": "Pressure (psia)" },
-        { "name": "Tpc",   "description": "Pseudo-critical temperature (°R)" },
-        { "name": "Ppc",   "description": "Pseudo-critical pressure (psia)" }
+        {
+          "name": "T_F",
+          "description": "Temperature (\u00b0F)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "Tpc",
+          "description": "Pseudo-critical temperature (\u00b0R)"
+        },
+        {
+          "name": "Ppc",
+          "description": "Pseudo-critical pressure (psia)"
+        }
       ],
-      "result": { "dimensionality": "scalar" }
+      "result": {
+        "dimensionality": "scalar"
+      }
     },
     {
       "id": "P365.PVT.Z.BYHALL_YARBOROUGH",
       "name": "P365.PVT.Z.ByHallYarborough",
       "description": "Gas Z-factor by Hall-Yarborough iterative method (highly accurate).",
       "parameters": [
-        { "name": "T_F",   "description": "Temperature (°F)" },
-        { "name": "P_psia","description": "Pressure (psia)" },
-        { "name": "Tpc",   "description": "Pseudo-critical temperature (°R)" },
-        { "name": "Ppc",   "description": "Pseudo-critical pressure (psia)" }
+        {
+          "name": "T_F",
+          "description": "Temperature (\u00b0F)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "Tpc",
+          "description": "Pseudo-critical temperature (\u00b0R)"
+        },
+        {
+          "name": "Ppc",
+          "description": "Pseudo-critical pressure (psia)"
+        }
       ],
-      "result": { "dimensionality": "scalar" }
+      "result": {
+        "dimensionality": "scalar"
+      }
     },
     {
       "id": "P365.PVT.PSEUDOCRITICAL.BYLEEKESLER",
       "name": "P365.PVT.PseudoCritical.ByLeeKesler",
-      "description": "Gas pseudo-critical temperature (°R) and pressure (psia) from specific gravity using Lee-Kesler correlation. Returns [Tpc, Ppc].",
+      "description": "Gas pseudo-critical temperature (\u00b0R) and pressure (psia) from specific gravity using Lee-Kesler correlation. Returns [Tpc, Ppc].",
       "parameters": [
-        { "name": "sg", "description": "Gas specific gravity (air = 1.0)" }
+        {
+          "name": "sg",
+          "description": "Gas specific gravity (air = 1.0)"
+        }
       ],
-      "result": { "dimensionality": "matrix" }
+      "result": {
+        "dimensionality": "matrix"
+      }
     },
     {
       "id": "P365.PVT.PB.BYSTANDING",
       "name": "P365.PVT.Pb.ByStanding",
       "description": "Oil bubble point pressure by Standing correlation (1947).",
       "parameters": [
-        { "name": "sg_gas",      "description": "Gas specific gravity (air = 1.0)" },
-        { "name": "API",         "description": "Oil API gravity (°API)" },
-        { "name": "Rs_scfSTB",   "description": "Solution GOR (scf/STB)" },
-        { "name": "T_F",         "description": "Reservoir temperature (°F)" }
+        {
+          "name": "sg_gas",
+          "description": "Gas specific gravity (air = 1.0)"
+        },
+        {
+          "name": "API",
+          "description": "Oil API gravity (\u00b0API)"
+        },
+        {
+          "name": "Rs_scfSTB",
+          "description": "Solution GOR (scf/STB)"
+        },
+        {
+          "name": "T_F",
+          "description": "Reservoir temperature (\u00b0F)"
+        }
       ],
-      "result": { "dimensionality": "scalar" }
+      "result": {
+        "dimensionality": "scalar"
+      }
     },
     {
       "id": "P365.PVT.PB.BYVASQUEZBEGGS",
       "name": "P365.PVT.Pb.ByVasquezBeggs",
       "description": "Oil bubble point pressure by Vasquez-Beggs correlation (1980).",
       "parameters": [
-        { "name": "sg_gas",    "description": "Gas specific gravity" },
-        { "name": "API",       "description": "Oil API gravity" },
-        { "name": "Rs_scfSTB", "description": "Solution GOR (scf/STB)" },
-        { "name": "T_F",       "description": "Temperature (°F)" }
+        {
+          "name": "sg_gas",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "API",
+          "description": "Oil API gravity"
+        },
+        {
+          "name": "Rs_scfSTB",
+          "description": "Solution GOR (scf/STB)"
+        },
+        {
+          "name": "T_F",
+          "description": "Temperature (\u00b0F)"
+        }
       ],
-      "result": { "dimensionality": "scalar" }
+      "result": {
+        "dimensionality": "scalar"
+      }
     },
     {
       "id": "P365.PVT.SG.OIL.FROMAPI",
       "name": "P365.PVT.SG.Oil.FromAPI",
       "description": "Convert API gravity to oil specific gravity.",
       "parameters": [
-        { "name": "API", "description": "Oil API gravity (°API)" }
+        {
+          "name": "API",
+          "description": "Oil API gravity (\u00b0API)"
+        }
       ],
-      "result": { "dimensionality": "scalar" }
+      "result": {
+        "dimensionality": "scalar"
+      }
     },
     {
       "id": "P365.DCA.ARPS.RATE",
       "name": "P365.DCA.Arps.Rate",
-      "description": "Arps hyperbolic decline rate at time t. b=0 → exponential; b=1 → harmonic.",
+      "description": "Arps hyperbolic decline rate at time t. b=0 \u2192 exponential; b=1 \u2192 harmonic.",
       "parameters": [
-        { "name": "Qi", "description": "Initial rate at t=0" },
-        { "name": "Di", "description": "Initial nominal decline rate (1/time)" },
-        { "name": "b",  "description": "Hyperbolic exponent (0 ≤ b ≤ 2)" },
-        { "name": "t",  "description": "Time (same unit as Di)" }
+        {
+          "name": "Qi",
+          "description": "Initial rate at t=0"
+        },
+        {
+          "name": "Di",
+          "description": "Initial nominal decline rate (1/time)"
+        },
+        {
+          "name": "b",
+          "description": "Hyperbolic exponent (0 \u2264 b \u2264 2)"
+        },
+        {
+          "name": "t",
+          "description": "Time (same unit as Di)"
+        }
       ],
-      "result": { "dimensionality": "scalar" }
+      "result": {
+        "dimensionality": "scalar"
+      }
     },
     {
       "id": "P365.DCA.ARPS.CUMULATIVE",
       "name": "P365.DCA.Arps.Cumulative",
       "description": "Arps hyperbolic cumulative production from t=0 to t.",
       "parameters": [
-        { "name": "Qi", "description": "Initial rate" },
-        { "name": "Di", "description": "Initial nominal decline rate" },
-        { "name": "b",  "description": "Hyperbolic exponent" },
-        { "name": "t",  "description": "Time" }
+        {
+          "name": "Qi",
+          "description": "Initial rate"
+        },
+        {
+          "name": "Di",
+          "description": "Initial nominal decline rate"
+        },
+        {
+          "name": "b",
+          "description": "Hyperbolic exponent"
+        },
+        {
+          "name": "t",
+          "description": "Time"
+        }
       ],
-      "result": { "dimensionality": "scalar" }
+      "result": {
+        "dimensionality": "scalar"
+      }
     },
     {
       "id": "P365.DCA.ARPS.FIT",
       "name": "P365.DCA.Arps.Fit",
       "description": "Fit Arps decline parameters [Qi, Di, b] to production history. Returns spill array [Qi, Di, b].",
       "parameters": [
-        { "name": "times", "description": "Array of time values", "dimensionality": "matrix" },
-        { "name": "rates", "description": "Array of rate values", "dimensionality": "matrix" }
+        {
+          "name": "times",
+          "description": "Array of time values",
+          "dimensionality": "matrix"
+        },
+        {
+          "name": "rates",
+          "description": "Array of rate values",
+          "dimensionality": "matrix"
+        }
       ],
-      "result": { "dimensionality": "matrix" }
+      "result": {
+        "dimensionality": "matrix"
+      }
     },
     {
       "id": "P365.DCA.DUONG.RATE",
       "name": "P365.DCA.Duong.Rate",
       "description": "Duong decline rate for unconventional reservoirs (transient linear flow).",
       "parameters": [
-        { "name": "q1", "description": "Rate coefficient (rate at t=1)" },
-        { "name": "a",  "description": "Exponential coefficient" },
-        { "name": "m",  "description": "Power-law exponent (typically 1.0–1.2)" },
-        { "name": "t",  "description": "Time (must be > 0)" }
+        {
+          "name": "q1",
+          "description": "Rate coefficient (rate at t=1)"
+        },
+        {
+          "name": "a",
+          "description": "Exponential coefficient"
+        },
+        {
+          "name": "m",
+          "description": "Power-law exponent (typically 1.0\u20131.2)"
+        },
+        {
+          "name": "t",
+          "description": "Time (must be > 0)"
+        }
       ],
-      "result": { "dimensionality": "scalar" }
+      "result": {
+        "dimensionality": "scalar"
+      }
     },
     {
       "id": "P365.UNITCONVERTER",
       "name": "P365.UnitConverter",
       "description": "Convert a value between any two petroleum engineering units. Supports 1500+ units, scaled units (e.g. '640 acre'), and unit expressions (e.g. 'bbl*psi/day').",
       "parameters": [
-        { "name": "Value",    "description": "Numeric value to convert" },
-        { "name": "UnitFrom", "description": "Source unit abbreviation (e.g. 'psia', 'bar', 'ft3')" },
-        { "name": "UnitTo",   "description": "Target unit abbreviation" }
+        {
+          "name": "Value",
+          "description": "Numeric value to convert"
+        },
+        {
+          "name": "UnitFrom",
+          "description": "Source unit abbreviation (e.g. 'psia', 'bar', 'ft3')"
+        },
+        {
+          "name": "UnitTo",
+          "description": "Target unit abbreviation"
+        }
       ],
-      "result": { "dimensionality": "scalar" }
+      "result": {
+        "dimensionality": "scalar"
+      }
     },
     {
       "id": "P365.PIPE.WEYMOUTH.FLOW",
       "name": "P365.Pipe.Weymouth.Flow",
       "description": "Natural gas flow rate using Weymouth equation (SCFH).",
       "parameters": [
-        { "name": "P1_psia",  "description": "Inlet pressure (psia)" },
-        { "name": "P2_psia",  "description": "Outlet pressure (psia)" },
-        { "name": "L_ft",     "description": "Pipe length (feet)" },
-        { "name": "D_in",     "description": "Inside diameter (inches)" },
-        { "name": "SG",       "description": "Gas specific gravity" },
-        { "name": "T_avg_F",  "description": "Average gas temperature (°F)" }
+        {
+          "name": "P1_psia",
+          "description": "Inlet pressure (psia)"
+        },
+        {
+          "name": "P2_psia",
+          "description": "Outlet pressure (psia)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Pipe length (feet)"
+        },
+        {
+          "name": "D_in",
+          "description": "Inside diameter (inches)"
+        },
+        {
+          "name": "SG",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "T_avg_F",
+          "description": "Average gas temperature (\u00b0F)"
+        }
       ],
-      "result": { "dimensionality": "scalar" }
+      "result": {
+        "dimensionality": "scalar"
+      }
     },
     {
       "id": "P365.PIPE.WEYMOUTH.OUTLETPRESSURE",
       "name": "P365.Pipe.Weymouth.OutletPressure",
       "description": "Outlet pressure using Weymouth equation (psia).",
       "parameters": [
-        { "name": "P1_psia",  "description": "Inlet pressure (psia)" },
-        { "name": "Q_SCFH",   "description": "Flow rate (SCFH)" },
-        { "name": "L_ft",     "description": "Length (feet)" },
-        { "name": "D_in",     "description": "Inside diameter (inches)" },
-        { "name": "SG",       "description": "Gas specific gravity" },
-        { "name": "T_avg_F",  "description": "Average gas temperature (°F)" }
+        {
+          "name": "P1_psia",
+          "description": "Inlet pressure (psia)"
+        },
+        {
+          "name": "Q_SCFH",
+          "description": "Flow rate (SCFH)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Length (feet)"
+        },
+        {
+          "name": "D_in",
+          "description": "Inside diameter (inches)"
+        },
+        {
+          "name": "SG",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "T_avg_F",
+          "description": "Average gas temperature (\u00b0F)"
+        }
       ],
-      "result": { "dimensionality": "scalar" }
+      "result": {
+        "dimensionality": "scalar"
+      }
     },
     {
       "id": "P365.PVT.UG",
       "name": "P365.PVT.Ug",
       "description": "Gas viscosity by Lee-Gonzalez-Eakin correlation (cp).",
       "parameters": [
-        { "name": "T_F",    "description": "Temperature (°F)" },
-        { "name": "P_psia", "description": "Pressure (psia)" },
-        { "name": "sg",     "description": "Gas specific gravity (air = 1.0)" }
+        {
+          "name": "T_F",
+          "description": "Temperature (\u00b0F)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "sg",
+          "description": "Gas specific gravity (air = 1.0)"
+        }
       ],
-      "result": { "dimensionality": "scalar" }
+      "result": {
+        "dimensionality": "scalar"
+      }
     },
     {
       "id": "P365.PVT.BG",
       "name": "P365.PVT.Bg",
       "description": "Gas formation volume factor (res bbl/scf).",
       "parameters": [
-        { "name": "T_F",    "description": "Temperature (°F)" },
-        { "name": "P_psia", "description": "Pressure (psia)" },
-        { "name": "Z",      "description": "Z-factor" }
+        {
+          "name": "T_F",
+          "description": "Temperature (\u00b0F)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "Z",
+          "description": "Z-factor"
+        }
       ],
-      "result": { "dimensionality": "scalar" }
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.TRANSIENTHYPERBOLIC.RATE",
+      "name": "P365.DCA.TransientHyperbolic.Rate",
+      "description": "Transient Hyperbolic decline rate at time t. Uses Arps hyperbolic (b > 1 allowed for transient flow) transitioning to exponential at terminal decline Dterm.",
+      "parameters": [
+        {
+          "name": "t",
+          "description": "Time (same unit as Di)"
+        },
+        {
+          "name": "qi",
+          "description": "Initial rate at t = 0"
+        },
+        {
+          "name": "Di",
+          "description": "Initial nominal decline rate (1/time)"
+        },
+        {
+          "name": "b",
+          "description": "Hyperbolic exponent (1.5\u20132.0 for transient linear flow)"
+        },
+        {
+          "name": "Dterm",
+          "description": "Terminal exponential decline rate (1/time)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.TRANSIENTHYPERBOLIC.CUMULATIVE",
+      "name": "P365.DCA.TransientHyperbolic.Cumulative",
+      "description": "Transient Hyperbolic cumulative production from t = 0 to t.",
+      "parameters": [
+        {
+          "name": "t",
+          "description": "Time"
+        },
+        {
+          "name": "qi",
+          "description": "Initial rate"
+        },
+        {
+          "name": "Di",
+          "description": "Initial nominal decline rate (1/time)"
+        },
+        {
+          "name": "b",
+          "description": "Hyperbolic exponent"
+        },
+        {
+          "name": "Dterm",
+          "description": "Terminal exponential decline rate (1/time)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.TRANSIENTHYPERBOLIC.SWITCHTIME",
+      "name": "P365.DCA.TransientHyperbolic.SwitchTime",
+      "description": "Time at which Transient Hyperbolic switches from hyperbolic to exponential decline.",
+      "parameters": [
+        {
+          "name": "Di",
+          "description": "Initial nominal decline rate"
+        },
+        {
+          "name": "b",
+          "description": "Hyperbolic exponent"
+        },
+        {
+          "name": "Dterm",
+          "description": "Terminal exponential decline rate"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.TRANSIENTHYPERBOLIC.EUR",
+      "name": "P365.DCA.TransientHyperbolic.EUR",
+      "description": "Estimated Ultimate Recovery for Transient Hyperbolic decline to economic limit.",
+      "parameters": [
+        {
+          "name": "qi",
+          "description": "Initial rate"
+        },
+        {
+          "name": "Di",
+          "description": "Initial nominal decline rate"
+        },
+        {
+          "name": "b",
+          "description": "Hyperbolic exponent"
+        },
+        {
+          "name": "Dterm",
+          "description": "Terminal decline rate"
+        },
+        {
+          "name": "qLim",
+          "description": "Economic limit rate"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.EXTENDEDEXPONENTIAL.RATE",
+      "name": "P365.DCA.ExtendedExponential.Rate",
+      "description": "Extended Exponential (biexponential) decline rate. q(t) = qi*[f*exp(-Dfast*t) + (1-f)*exp(-Dslow*t)].",
+      "parameters": [
+        {
+          "name": "t",
+          "description": "Time"
+        },
+        {
+          "name": "qi",
+          "description": "Initial rate at t = 0"
+        },
+        {
+          "name": "f",
+          "description": "Fast-component fraction (0 < f < 1)"
+        },
+        {
+          "name": "D_fast",
+          "description": "Fast decline rate (1/time)"
+        },
+        {
+          "name": "D_slow",
+          "description": "Slow decline rate (1/time); D_slow < D_fast"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.EXTENDEDEXPONENTIAL.CUMULATIVE",
+      "name": "P365.DCA.ExtendedExponential.Cumulative",
+      "description": "Extended Exponential cumulative production from t = 0 to t.",
+      "parameters": [
+        {
+          "name": "t",
+          "description": "Time"
+        },
+        {
+          "name": "qi",
+          "description": "Initial rate"
+        },
+        {
+          "name": "f",
+          "description": "Fast-component fraction"
+        },
+        {
+          "name": "D_fast",
+          "description": "Fast decline rate"
+        },
+        {
+          "name": "D_slow",
+          "description": "Slow decline rate"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.EXTENDEDEXPONENTIAL.EUR",
+      "name": "P365.DCA.ExtendedExponential.EUR",
+      "description": "Extended Exponential EUR to economic limit (bisection solve).",
+      "parameters": [
+        {
+          "name": "qi",
+          "description": "Initial rate"
+        },
+        {
+          "name": "f",
+          "description": "Fast-component fraction"
+        },
+        {
+          "name": "D_fast",
+          "description": "Fast decline rate"
+        },
+        {
+          "name": "D_slow",
+          "description": "Slow decline rate"
+        },
+        {
+          "name": "qLim",
+          "description": "Economic limit rate"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.AKB.RATE",
+      "name": "P365.DCA.AKB.Rate",
+      "description": "Ansah-Knowles-Buba (AKB) generalized decline rate. q(t) = qi*[1+(K-1)*Di*t]^(-1/(K-1)). K=1\u2192exponential; K=2\u2192harmonic.",
+      "parameters": [
+        {
+          "name": "t",
+          "description": "Time (same unit as Di)"
+        },
+        {
+          "name": "qi",
+          "description": "Initial rate at t = 0"
+        },
+        {
+          "name": "Di",
+          "description": "Initial nominal decline rate (1/time)"
+        },
+        {
+          "name": "K",
+          "description": "Generalized decline exponent (K \u2265 1)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.AKB.CUMULATIVE",
+      "name": "P365.DCA.AKB.Cumulative",
+      "description": "Ansah-Knowles-Buba (AKB) cumulative production from t = 0 to t.",
+      "parameters": [
+        {
+          "name": "t",
+          "description": "Time"
+        },
+        {
+          "name": "qi",
+          "description": "Initial rate"
+        },
+        {
+          "name": "Di",
+          "description": "Initial nominal decline rate"
+        },
+        {
+          "name": "K",
+          "description": "Generalized decline exponent"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.AKB.EUR",
+      "name": "P365.DCA.AKB.EUR",
+      "description": "Ansah-Knowles-Buba EUR to economic limit.",
+      "parameters": [
+        {
+          "name": "qi",
+          "description": "Initial rate"
+        },
+        {
+          "name": "Di",
+          "description": "Initial nominal decline rate"
+        },
+        {
+          "name": "K",
+          "description": "Generalized decline exponent"
+        },
+        {
+          "name": "qLim",
+          "description": "Economic limit rate"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.CONVERSIONS.CONVERTNOMINALDECLINE",
+      "name": "P365.DCA.Conversions.ConvertNominalDecline",
+      "description": "Convert nominal decline rate between time bases (year/month/day).",
+      "parameters": [
+        {
+          "name": "D",
+          "description": "Nominal decline rate"
+        },
+        {
+          "name": "fromUnit",
+          "description": "Source time unit: year | month | day"
+        },
+        {
+          "name": "toUnit",
+          "description": "Target time unit: year | month | day"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.CONVERSIONS.ANNUALTOMONTHLYEFFECTIVE",
+      "name": "P365.DCA.Conversions.AnnualToMonthlyEffective",
+      "description": "Convert effective annual decline rate to effective monthly rate. De_monthly = 1 - (1 - De_annual)^(1/12).",
+      "parameters": [
+        {
+          "name": "De_annual",
+          "description": "Effective annual decline rate (fraction, e.g. 0.30)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.CONVERSIONS.MONTHLYTOANNUALEFFECTIVE",
+      "name": "P365.DCA.Conversions.MonthlyToAnnualEffective",
+      "description": "Convert effective monthly decline rate to effective annual rate. De_annual = 1 - (1 - De_monthly)^12.",
+      "parameters": [
+        {
+          "name": "De_monthly",
+          "description": "Effective monthly decline rate (fraction/month)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.BURST.RATING",
+      "name": "P365.WBI.Burst.Rating",
+      "description": "API Barlow internal-yield (burst) pressure rating. P_burst = 0.875 * 2 * Yp * t / OD.",
+      "parameters": [
+        {
+          "name": "OD",
+          "description": "Casing outer diameter (in)"
+        },
+        {
+          "name": "t",
+          "description": "Nominal wall thickness (in)"
+        },
+        {
+          "name": "yield_strength",
+          "description": "Minimum yield strength (psi)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.BURST.DESIGNFACTOR",
+      "name": "P365.WBI.Burst.DesignFactor",
+      "description": "Casing burst or collapse design factor: DF = P_rating / P_applied.",
+      "parameters": [
+        {
+          "name": "P_rating",
+          "description": "Casing rating (psi)"
+        },
+        {
+          "name": "P_applied",
+          "description": "Applied pressure (psi)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.BURST.REQUIREDRATING",
+      "name": "P365.WBI.Burst.RequiredRating",
+      "description": "Minimum required casing burst rating given operating pressure and design factor.",
+      "parameters": [
+        {
+          "name": "P_applied",
+          "description": "Operating burst pressure (psi)"
+        },
+        {
+          "name": "DF_required",
+          "description": "Required design factor (e.g. 1.1)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.COLLAPSE.DTRATIO",
+      "name": "P365.WBI.Collapse.DtRatio",
+      "description": "D/t ratio (OD / wall thickness) \u2014 key parameter for collapse regime.",
+      "parameters": [
+        {
+          "name": "OD",
+          "description": "Outer diameter (in)"
+        },
+        {
+          "name": "t",
+          "description": "Wall thickness (in)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.COLLAPSE.ELASTICP",
+      "name": "P365.WBI.Collapse.ElasticP",
+      "description": "Elastic collapse pressure for thin-wall casing. P_el = 2E/(1-nu\u00b2)*(t/OD)\u00b3.",
+      "parameters": [
+        {
+          "name": "OD",
+          "description": "Outer diameter (in)"
+        },
+        {
+          "name": "t",
+          "description": "Wall thickness (in)"
+        },
+        {
+          "name": "E",
+          "description": "Young's modulus (psi), default 30e6"
+        },
+        {
+          "name": "nu",
+          "description": "Poisson's ratio, default 0.3"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.COLLAPSE.YIELDP",
+      "name": "P365.WBI.Collapse.YieldP",
+      "description": "Yield collapse pressure for thick-wall casing. P_yp = 2*Yp*(D/t-1)/(D/t)\u00b2.",
+      "parameters": [
+        {
+          "name": "OD",
+          "description": "Outer diameter (in)"
+        },
+        {
+          "name": "t",
+          "description": "Wall thickness (in)"
+        },
+        {
+          "name": "yield_strength",
+          "description": "Minimum yield strength (psi)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.COLLAPSE.RATING",
+      "name": "P365.WBI.Collapse.Rating",
+      "description": "Conservative API-style collapse rating (minimum of elastic and yield values).",
+      "parameters": [
+        {
+          "name": "OD",
+          "description": "Outer diameter (in)"
+        },
+        {
+          "name": "t",
+          "description": "Wall thickness (in)"
+        },
+        {
+          "name": "yield_strength",
+          "description": "Minimum yield strength (psi)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.TENSILE.BUOYANCYFACTOR",
+      "name": "P365.WBI.Tensile.BuoyancyFactor",
+      "description": "Buoyancy factor for tubular in drilling fluid. BF = 1 - rho_fluid / rho_steel.",
+      "parameters": [
+        {
+          "name": "mud_weight",
+          "description": "Fluid density (ppg)"
+        },
+        {
+          "name": "steel_ppg",
+          "description": "Steel density (ppg), default 65.5"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.TENSILE.EFFECTIVEWEIGHT",
+      "name": "P365.WBI.Tensile.EffectiveWeight",
+      "description": "Effective (in-fluid) weight of a casing string. W_eff = W_air * BF.",
+      "parameters": [
+        {
+          "name": "air_weight",
+          "description": "Air weight (lbf)"
+        },
+        {
+          "name": "mud_weight",
+          "description": "Fluid density (ppg)"
+        },
+        {
+          "name": "steel_ppg",
+          "description": "Steel density (ppg), default 65.5"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.TENSILE.RATING",
+      "name": "P365.WBI.Tensile.Rating",
+      "description": "Pipe body tensile capacity. F = pi/4 * (OD\u00b2 - ID\u00b2) * Yp.",
+      "parameters": [
+        {
+          "name": "OD",
+          "description": "Outer diameter (in)"
+        },
+        {
+          "name": "t",
+          "description": "Wall thickness (in)"
+        },
+        {
+          "name": "yield_strength",
+          "description": "Minimum yield strength (psi)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.CEMENT.VOLUME",
+      "name": "P365.WBI.Cement.Volume",
+      "description": "Annular cement slurry volume (bbl) between two concentric tubulars.",
+      "parameters": [
+        {
+          "name": "ID_outer",
+          "description": "Inner diameter of outer casing (in)"
+        },
+        {
+          "name": "OD_inner",
+          "description": "Outer diameter of inner casing (in)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Interval height (ft)"
+        },
+        {
+          "name": "excess_fraction",
+          "description": "Excess factor for washouts (e.g. 0.25)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.CEMENT.MINTOP",
+      "name": "P365.WBI.Cement.MinTop",
+      "description": "Minimum top of cement depth (ft TVD) from pressure balance with pore gradient.",
+      "parameters": [
+        {
+          "name": "shoe_depth",
+          "description": "Casing shoe depth (ft TVD)"
+        },
+        {
+          "name": "pore_grad_ppg",
+          "description": "Pore pressure gradient (ppg EMW)"
+        },
+        {
+          "name": "cement_grad_ppg",
+          "description": "Cement slurry density (ppg), default 15.8"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.CEMENT.SLURRYDENSITY",
+      "name": "P365.WBI.Cement.SlurryDensity",
+      "description": "Class G neat cement slurry density (ppg) from water content (gal per 94-lb sack).",
+      "parameters": [
+        {
+          "name": "gal_water_per_sack",
+          "description": "Water per sack (gal/sack); Class G neat = 4.3"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.CEMENT.RETURNHEIGHT",
+      "name": "P365.WBI.Cement.ReturnHeight",
+      "description": "Cement column height (ft) from placed slurry volume.",
+      "parameters": [
+        {
+          "name": "V_slurry_bbl",
+          "description": "Cement slurry volume (bbl)"
+        },
+        {
+          "name": "ID_outer_in",
+          "description": "ID of outer casing (in)"
+        },
+        {
+          "name": "OD_inner_in",
+          "description": "OD of inner string (in)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.SHOETEST.FITEQUIVALENTMW",
+      "name": "P365.WBI.ShoeTest.FITEquivalentMW",
+      "description": "Equivalent mud weight (ppg) from surface pressure during FIT/LOT. EMW = MW + P_surf / (0.052 * TVD).",
+      "parameters": [
+        {
+          "name": "P_surface",
+          "description": "Surface pressure reached during test (psi)"
+        },
+        {
+          "name": "TVD_ft",
+          "description": "True vertical depth of shoe (ft)"
+        },
+        {
+          "name": "MW_ppg",
+          "description": "Current mud weight (ppg)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.SHOETEST.FITSURFACEPRESSURE",
+      "name": "P365.WBI.ShoeTest.FITSurfacePressure",
+      "description": "Surface pressure required to reach a target FIT/LOT equivalent density.",
+      "parameters": [
+        {
+          "name": "FIT_EMW_ppg",
+          "description": "Target FIT equivalent density (ppg)"
+        },
+        {
+          "name": "TVD_ft",
+          "description": "Shoe depth (ft TVD)"
+        },
+        {
+          "name": "MW_ppg",
+          "description": "Current mud weight (ppg)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.MUDWINDOW",
+      "name": "P365.WBI.MudWindow",
+      "description": "Drilling mud weight window (MW_min, MW_max, window_ppg, adequate). Returns 4-element array.",
+      "parameters": [
+        {
+          "name": "pore_ppg",
+          "description": "Pore pressure EMW (ppg)"
+        },
+        {
+          "name": "collapse_ppg",
+          "description": "Wellbore collapse pressure EMW (ppg)"
+        },
+        {
+          "name": "frac_ppg",
+          "description": "Fracture gradient EMW (ppg)"
+        },
+        {
+          "name": "frac_safety",
+          "description": "Safety below fracture gradient (ppg), default 0.5"
+        },
+        {
+          "name": "col_safety",
+          "description": "Safety above collapse (ppg), default 0.3"
+        }
+      ],
+      "result": {
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "id": "P365.WBI.HYDROSTATICPRESSURE",
+      "name": "P365.WBI.HydrostaticPressure",
+      "description": "Hydrostatic pressure at depth from fluid column. P = 0.052 * MW * TVD (psia).",
+      "parameters": [
+        {
+          "name": "MW_ppg",
+          "description": "Fluid density (ppg)"
+        },
+        {
+          "name": "TVD_ft",
+          "description": "True vertical depth (ft)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WBI.PRESSURETOEMW",
+      "name": "P365.WBI.PressureToEMW",
+      "description": "Equivalent mud weight from pressure at depth. EMW = P / (0.052 * TVD) (ppg).",
+      "parameters": [
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "TVD_ft",
+          "description": "True vertical depth (ft)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
     }
   ]
 }
