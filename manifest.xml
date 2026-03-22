@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+  xsi:type="TaskPaneApp">
+
+  <!-- Basic metadata -->
+  <Id>a3b4c5d6-e7f8-9012-abcd-ef0123456789</Id>
+  <Version>0.1.0</Version>
+  <ProviderName>Petroleum 365</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Petroleum 365" />
+  <Description DefaultValue="Professional petroleum engineering functions for Excel — PVT, DCA, IPR, VFP, MBE, PTA and more." />
+  <SupportUrl DefaultValue="https://github.com/J-Ellette/Petroleum-365" />
+
+  <!-- Icon resources -->
+  <IconUrl DefaultValue="https://petroleum365.app/assets/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://petroleum365.app/assets/icon-80.png" />
+
+  <!-- Permissions -->
+  <Permissions>ReadWriteDocument</Permissions>
+
+  <!-- Supported host applications -->
+  <Hosts>
+    <Host Name="Workbook" />
+  </Hosts>
+
+  <!-- Default settings -->
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://petroleum365.app/taskpane.html" />
+  </DefaultSettings>
+
+  <!-- Version overrides for ribbon customization -->
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Workbook">
+        <AllFormFactors>
+          <!-- Custom functions namespace -->
+          <ExtensionPoint xsi:type="CustomFunctions">
+            <Script>
+              <bt:Url resid="Functions.Script.Url" />
+            </Script>
+            <Page>
+              <bt:Url resid="Taskpane.Url" />
+            </Page>
+            <Metadata>
+              <bt:Url resid="Functions.Metadata.Url" />
+            </Metadata>
+            <Namespace resid="Functions.Namespace" />
+          </ExtensionPoint>
+        </AllFormFactors>
+
+        <DesktopFormFactor>
+          <!-- Custom ribbon tab: Petroleum 365 -->
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="P365.Group.Production">
+                <Label resid="Group.Production.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16" />
+                  <bt:Image size="32" resid="Icon.32x32" />
+                  <bt:Image size="80" resid="Icon.80x80" />
+                </Icon>
+                <Control xsi:type="Menu" id="P365.Menu.DCA">
+                  <Label resid="Menu.DCA.Label" />
+                  <Supertip>
+                    <Title resid="Menu.DCA.Label" />
+                    <Description resid="Menu.DCA.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Items>
+                    <Item id="P365.Menu.DCA.Arps">
+                      <Label resid="Menu.DCA.Arps.Label" />
+                      <Supertip>
+                        <Title resid="Menu.DCA.Arps.Label" />
+                        <Description resid="Menu.DCA.Arps.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertArpsDecline</FunctionName>
+                      </Action>
+                    </Item>
+                    <Item id="P365.Menu.DCA.Duong">
+                      <Label resid="Menu.DCA.Duong.Label" />
+                      <Supertip>
+                        <Title resid="Menu.DCA.Duong.Label" />
+                        <Description resid="Menu.DCA.Duong.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertDuongDecline</FunctionName>
+                      </Action>
+                    </Item>
+                  </Items>
+                </Control>
+              </Group>
+
+              <Group id="P365.Group.Library">
+                <Label resid="Group.Library.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16" />
+                  <bt:Image size="32" resid="Icon.32x32" />
+                  <bt:Image size="80" resid="Icon.80x80" />
+                </Icon>
+                <!-- Function Browser Button -->
+                <Control xsi:type="Button" id="P365.Button.Functions">
+                  <Label resid="Button.Functions.Label" />
+                  <Supertip>
+                    <Title resid="Button.Functions.Label" />
+                    <Description resid="Button.Functions.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>FunctionBrowser</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url" />
+                  </Action>
+                </Control>
+                <!-- Blueprint Manager Button -->
+                <Control xsi:type="Button" id="P365.Button.Blueprints">
+                  <Label resid="Button.Blueprints.Label" />
+                  <Supertip>
+                    <Title resid="Button.Blueprints.Label" />
+                    <Description resid="Button.Blueprints.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>BlueprintManager</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url" />
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+
+          <!-- Task Pane -->
+          <ExtensionPoint xsi:type="CustomPane">
+            <DisplayApp />
+            <RequestedWidth>300</RequestedWidth>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+
+    <!-- Resource strings -->
+    <Resources>
+      <bt:Urls>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://petroleum365.app/taskpane.html" />
+        <bt:Url id="Functions.Script.Url" DefaultValue="https://petroleum365.app/functions.js" />
+        <bt:Url id="Functions.Metadata.Url" DefaultValue="https://petroleum365.app/functions.json" />
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="Functions.Namespace" DefaultValue="P365" />
+        <bt:String id="Group.Production.Label" DefaultValue="Production" />
+        <bt:String id="Group.Library.Label" DefaultValue="Library" />
+        <bt:String id="Menu.DCA.Label" DefaultValue="DCA" />
+        <bt:String id="Menu.DCA.Arps.Label" DefaultValue="Arps Decline" />
+        <bt:String id="Menu.DCA.Duong.Label" DefaultValue="Duong Decline" />
+        <bt:String id="Button.Functions.Label" DefaultValue="Functions" />
+        <bt:String id="Button.Blueprints.Label" DefaultValue="Blueprints" />
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="Menu.DCA.Desc" DefaultValue="Decline Curve Analysis functions for production forecasting" />
+        <bt:String id="Menu.DCA.Arps.Desc" DefaultValue="Insert Arps hyperbolic decline curve functions (Rate, Cumulative, EUR)" />
+        <bt:String id="Menu.DCA.Duong.Desc" DefaultValue="Insert Duong decline model for unconventional reservoirs" />
+        <bt:String id="Button.Functions.Desc" DefaultValue="Open the Function Browser to search and insert engineering functions" />
+        <bt:String id="Button.Blueprints.Desc" DefaultValue="Open the Blueprint Manager to browse and insert calculation templates" />
+      </bt:LongStrings>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="https://petroleum365.app/assets/icon-16.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="https://petroleum365.app/assets/icon-32.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="https://petroleum365.app/assets/icon-80.png" />
+      </bt:Images>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>
