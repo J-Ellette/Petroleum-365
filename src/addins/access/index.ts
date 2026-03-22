@@ -215,3 +215,151 @@ export const INTEGRATION_OPTIONS = [
     cons:        ["Requires Azure subscription", "Development effort"],
   },
 ] as const;
+
+// ─── Validation & SQL Helpers ─────────────────────────────────────────────────
+
+const VALID_STATUSES = ["Active", "Completed", "On Hold", "Cancelled"] as const;
+const JOB_NUMBER_PATTERN = /^J-\d{4}-\d{3}$/;
+
+/**
+ * Validate a job record before insert.
+ */
+export function validateJobRecord(job: {
+  JobNumber?: unknown;
+  ProjectName?: unknown;
+  Engineer?: unknown;
+  Status?: unknown;
+}): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  if (typeof job.JobNumber !== "string" || job.JobNumber.trim() === "") {
+    errors.push("JobNumber must be a non-empty string");
+  } else if (!JOB_NUMBER_PATTERN.test(job.JobNumber.trim())) {
+    errors.push("JobNumber must match pattern J-YYYY-NNN (e.g., J-2025-001)");
+  }
+
+  if (typeof job.ProjectName !== "string") {
+    errors.push("ProjectName must be a string");
+  }
+
+  if (typeof job.Engineer !== "string") {
+    errors.push("Engineer must be a string");
+  }
+
+  if (job.Status !== undefined && !(VALID_STATUSES as readonly string[]).includes(job.Status as string)) {
+    errors.push(`Status must be one of: ${VALID_STATUSES.join(", ")}`);
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+/** Escape a string value for SQL single-quote literals. */
+function sqlStr(val: string): string {
+  return `'${val.replace(/'/g, "''")}'`;
+}
+
+/**
+ * Returns a parameterized INSERT SQL string for tblJobs.
+ */
+export function formatJobForInsert(job: {
+  JobNumber: string;
+  ProjectName: string;
+  ClientID: number;
+  Engineer: string;
+  DateCreated: string;
+  DateDue?: string;
+  Status?: string;
+  Notes?: string;
+}): string {
+  const status = job.Status ?? "Active";
+  const dateDue = job.DateDue ? sqlStr(job.DateDue) : "NULL";
+  const notes = job.Notes ? sqlStr(job.Notes) : "NULL";
+
+  return (
+    `INSERT INTO tblJobs (JobNumber, ProjectName, ClientID, Engineer, DateCreated, DateDue, Status, Notes) VALUES (` +
+    `${sqlStr(job.JobNumber)}, ${sqlStr(job.ProjectName)}, ${job.ClientID}, ${sqlStr(job.Engineer)}, ` +
+    `${sqlStr(job.DateCreated)}, ${dateDue}, ${sqlStr(status)}, ${notes});`
+  );
+}
+
+/**
+ * Returns an INSERT SQL string for tblCalcSnapshots.
+ */
+export function formatCalcSnapshotForInsert(snapshot: {
+  JobID?: number;
+  CalcType: string;
+  Name: string;
+  Engineer?: string;
+  InputsJSON: string;
+  ResultsJSON: string;
+  Notes?: string;
+}): string {
+  const jobId = snapshot.JobID !== undefined ? String(snapshot.JobID) : "NULL";
+  const engineer = snapshot.Engineer ? sqlStr(snapshot.Engineer) : "NULL";
+  const notes = snapshot.Notes ? sqlStr(snapshot.Notes) : "NULL";
+
+  return (
+    `INSERT INTO tblCalcSnapshots (JobID, CalcType, Name, Engineer, DateSaved, InputsJSON, ResultsJSON, Notes) VALUES (` +
+    `${jobId}, ${sqlStr(snapshot.CalcType)}, ${sqlStr(snapshot.Name)}, ${engineer}, ` +
+    `Now(), ${sqlStr(snapshot.InputsJSON)}, ${sqlStr(snapshot.ResultsJSON)}, ${notes});`
+  );
+}
+
+/**
+ * Build a dynamic SELECT query for tblJobs with optional WHERE filters.
+ */
+export function buildJobFilterQuery(filters: {
+  status?: string;
+  engineer?: string;
+  clientId?: number;
+  dateFrom?: string;
+  dateTo?: string;
+}): string {
+  const conditions: string[] = [];
+
+  if (filters.status !== undefined) conditions.push(`J.Status = ${sqlStr(filters.status)}`);
+  if (filters.engineer !== undefined) conditions.push(`J.Engineer = ${sqlStr(filters.engineer)}`);
+  if (filters.clientId !== undefined) conditions.push(`J.ClientID = ${filters.clientId}`);
+  if (filters.dateFrom !== undefined) conditions.push(`J.DateCreated >= ${sqlStr(filters.dateFrom)}`);
+  if (filters.dateTo !== undefined) conditions.push(`J.DateCreated <= ${sqlStr(filters.dateTo)}`);
+
+  const where = conditions.length > 0 ? `\nWHERE ${conditions.join(" AND ")}` : "";
+
+  return (
+    `SELECT J.JobID, J.JobNumber, J.ProjectName, C.CompanyName, J.Engineer, J.DateCreated, J.DateDue, J.Status` +
+    `\nFROM tblJobs J` +
+    `\nLEFT JOIN tblClients C ON J.ClientID = C.ClientID` +
+    where +
+    `\nORDER BY J.DateCreated DESC;`
+  );
+}
+
+// ─── Form Definitions ─────────────────────────────────────────────────────────
+
+/** Describes Access form layouts for P365 data entry. */
+export const FORM_DEFINITIONS = [
+  {
+    name:        "frmJobEntry",
+    table:       "tblJobs",
+    description: "Job entry form",
+    fields:      ["JobNumber", "ProjectName", "ClientID", "Engineer", "DateDue", "Status", "Notes"],
+  },
+  {
+    name:        "frmPipeInventory",
+    table:       "tblPipeInventory",
+    description: "Pipe inventory entry",
+    fields:      ["NPS_in", "Material", "Schedule", "StockFt", "Supplier", "CostPerFt"],
+  },
+  {
+    name:        "frmWellEntry",
+    table:       "tblWells",
+    description: "Well data entry",
+    fields:      ["WellName", "UWI", "OperatorID", "Formation", "TVD_ft", "Status"],
+  },
+  {
+    name:        "frmCalcSnapshot",
+    table:       "tblCalcSnapshots",
+    description: "Save calculation snapshot",
+    fields:      ["JobID", "CalcType", "Name", "Engineer", "InputsJSON", "ResultsJSON", "Notes"],
+  },
+] as const;

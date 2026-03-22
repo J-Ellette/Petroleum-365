@@ -2,7 +2,7 @@
 
 > **A comprehensive petroleum engineering function library and Excel add-in for natural gas, oil, CNG, and LNG calculations.**
 
-[![Tests](https://img.shields.io/badge/tests-723%20passing-brightgreen)](./test)
+[![Tests](https://img.shields.io/badge/tests-1004%20passing-brightgreen)](./test)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -30,7 +30,7 @@
 
 **Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **700+ engineering calculations** organized into 24 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design, nodal analysis, LNG thermodynamics, wellbore heat transfer, geomechanics, and composite skin factor analysis.
 
-P365 is designed to work **inside Microsoft Excel** as a custom function library (UDFs), letting engineers use familiar spreadsheet workflows backed by rigorous, well-tested engineering correlations. It is also available as a standalone TypeScript/Node.js library for integration into web applications, pipelines, or custom tooling.
+P365 is designed to work **inside Microsoft Excel** as a custom function library (UDFs), letting engineers use familiar spreadsheet workflows backed by rigorous, well-tested engineering correlations. It is also available as a standalone TypeScript/Node.js library for integration into web applications, pipelines, or custom tooling. The full **Office 365 add-in suite** — Word, Outlook, Teams, PowerPoint, OneNote, and Access — extends P365 calculations into reports, emails, collaboration cards, presentations, field notes, and job databases.
 
 ---
 
@@ -581,14 +581,86 @@ P365 is designed to span the full Microsoft 365 application suite. Each add-in u
 | App | Status | What It Does |
 |-----|--------|--------------|
 | **Excel** | ✅ Core (Sessions 1–6) | UDF functions, ribbon tab, blueprints — the full product |
-| **Word** | 🗺️ Planned | Report templates, auto-fill calculation values, pipe sizing summary tables |
-| **Outlook** | 🗺️ Planned | Auto-generate pipe sizing summary emails, calculation result cards |
-| **Teams** | 🗺️ Planned | Embedded web calculator tab, bot Q&A, adaptive card results |
-| **PowerPoint** | 🗺️ Planned | Auto-generate slide decks from calculation results |
-| **OneNote** | 🗺️ Planned | Insert P365 calculation blocks into field notes and job logs |
-| **Access** | 🗺️ Planned | Jobs database, pipe inventory, well data, calculation snapshots |
+| **Word** | ✅ Implemented (Session 7) | Report templates for PVT, well test, DCA, nodal, MBE, gas composition; Markdown table builder; full document skeleton generator |
+| **Outlook** | ✅ Implemented (Session 7) | Email builders for pipe sizing, well performance, gas composition, RFI response, DCA forecast; smart unit system detection (field/metric); unit conversion helpers |
+| **Teams** | ✅ Implemented (Session 7) | Adaptive Cards for pipe sizing (with velocity warning), well performance, gas composition; FAQ bot (7 topics); calculator result cards |
+| **PowerPoint** | ✅ Implemented (Session 7) | `PptxSlide` interface; slide builders for results, pipe schedule, DCA forecast, p/z plot, MBE summary, gas composition; full deck assemblers |
+| **OneNote** | ✅ Implemented (Session 7) | HTML note block builders for PVT, gas composition, well test, well performance, DCA forecast; full job summary page assembler |
+| **Access** | ✅ Implemented (Session 7) | Job/snapshot record validation; SQL INSERT formatters; dynamic query builder; form layout definitions |
 
-See `src/addins/` for planning documents and API interfaces for each add-in.
+See `src/addins/` for the full implementation of each add-in.
+
+### Word Add-in Functions
+
+| Function | Description |
+|----------|-------------|
+| `buildPvtReportData` | PVT report key-value dict (Z, Bg, Rs, Bo, viscosity) |
+| `buildWellTestReportData` | PTA interpretation report (k, S, P*, WBS, ROI) |
+| `buildDcaReportData` | Decline curve report (model, qi, Di, b, EUR) |
+| `buildNodalReportData` | Nodal analysis report (operating point, PI, Qmax) |
+| `buildMbeReportData` | Material balance report (OGIP/OOIP, drive indices) |
+| `buildGasCompositionReportData` | Gas composition report (MW, SG, HHV, LHV, Wobbe) |
+| `buildWordTable` | Markdown pipe-delimited table builder |
+| `buildWordDocumentContent` | Full document skeleton for any template |
+
+### Outlook Add-in Functions
+
+| Function | Description |
+|----------|-------------|
+| `buildPipeSizingEmailBody` | Pipe sizing result email (HTML table body) |
+| `buildWellPerformanceEmailBody` | Well performance email |
+| `buildGasCompositionEmailBody` | Gas analysis report email |
+| `buildRfiResponseEmailBody` | RFI response with embedded calculation table |
+| `buildDcaForecastEmailBody` | DCA forecast summary email |
+| `detectUnitSystem` | Auto-detect field vs metric from email domain |
+| `convertValueForEmail` | Unit conversion (psia→kPa, ft→m, STBd→m³/d) |
+
+### Teams Add-in Functions
+
+| Function | Description |
+|----------|-------------|
+| `buildPipeSizingCard` | Adaptive Card with velocity warning |
+| `buildWellPerformanceCard` | Well performance Adaptive Card |
+| `buildGasCompositionCard` | Gas composition Adaptive Card |
+| `buildBotFaqResponse` | FAQ bot (Weymouth, Z-factor, Vogel, Arps, skin, OGIP, HHV) |
+| `buildCalculatorCard` | Generic inputs + results Adaptive Card |
+| `buildTeamsAdaptiveCard` | Generic key-value Adaptive Card |
+
+### PowerPoint Add-in Functions
+
+| Function | Description |
+|----------|-------------|
+| `buildPipeSizingTitleSlide` | Title slide data |
+| `buildPipeSizingResultsSlide` | Results table slide |
+| `buildPipeSizingScheduleSlide` | Pipe schedule table slide |
+| `buildDcaForecastSlide` | DCA forecast chart slide |
+| `buildMbeSummarySlide` | Two-column MBE summary slide |
+| `buildGasCompositionSlide` | Gas composition table slide |
+| `assemblePipeSizingDeck` | 3-slide pipe sizing deck |
+| `assembleDcaDeck` | 2-slide DCA deck |
+
+### OneNote Add-in Functions
+
+| Function | Description |
+|----------|-------------|
+| `buildOneNoteBlock` | Generic HTML note block |
+| `buildFieldMeasurementLog` | Timestamped field measurement log |
+| `buildPvtDataBlock` | PVT data note (Z, Bg, Bo, HHV) |
+| `buildGasCompositionBlock` | Gas composition note |
+| `buildWellTestBlock` | PTA interpretation note |
+| `buildWellPerformanceBlock` | Well performance note |
+| `buildDcaForecastBlock` | DCA forecast note |
+| `buildJobSummaryPage` | Full job summary page |
+
+### Access Add-in Functions
+
+| Function | Description |
+|----------|-------------|
+| `validateJobRecord` | Validate job number, fields, status enum |
+| `formatJobForInsert` | SQL INSERT for tblJobs |
+| `formatCalcSnapshotForInsert` | SQL INSERT for tblCalcSnapshots |
+| `buildJobFilterQuery` | Dynamic job query with WHERE clauses |
+| `FORM_DEFINITIONS` | Access form layout definitions |
 
 
 

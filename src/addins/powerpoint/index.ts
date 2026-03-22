@@ -80,6 +80,20 @@ export const PPTX_TEMPLATES = [
 
 export type PptxTemplateId = typeof PPTX_TEMPLATES[number]["id"];
 
+// ─── Slide Types ─────────────────────────────────────────────────────────────
+
+/** Represents a generic slide object for PowerPoint insertion */
+export interface PptxSlide {
+  title: string;
+  layout: "title" | "content" | "twoColumn" | "chart" | "blank";
+  body?: string;
+  bullets?: string[];
+  table?: { headers: string[]; rows: string[][] };
+  chartData?: { series: Array<{ name: string; data: number[] }>; xAxis: number[]; xLabel: string; yLabel: string };
+  footer?: string;
+  backgroundColor?: string;
+}
+
 // ─── Slide Data Builders ──────────────────────────────────────────────────────
 
 /** P365 brand palette for PowerPoint slides. */
@@ -159,4 +173,227 @@ export function buildNodalChartData(
       },
     ],
   };
+}
+
+// ─── Additional Slide Builders ────────────────────────────────────────────────
+
+/**
+ * Build a pipe sizing results slide with a 2-column Parameter/Value table.
+ */
+export function buildPipeSizingResultsSlide(results: Record<string, string>): PptxSlide {
+  return {
+    title: "Pipe Sizing Results",
+    layout: "content",
+    table: {
+      headers: ["Parameter", "Value"],
+      rows: Object.entries(results).map(([k, v]) => [k, v]),
+    },
+    footer: "Calculated using Petroleum 365 (P365)",
+  };
+}
+
+/**
+ * Build a pipe schedule slide with a table of pipe schedule rows.
+ */
+export function buildPipeSizingScheduleSlide(
+  scheduleRows: Array<{ nps: string; od_in: number; id_in: number; wall_in: number; material: string }>,
+): PptxSlide {
+  return {
+    title: "Recommended Pipe Schedule",
+    layout: "chart",
+    table: {
+      headers: ["NPS (in)", "OD (in)", "ID (in)", "Wall (in)", "Material"],
+      rows: scheduleRows.map(r => [r.nps, r.od_in.toFixed(3), r.id_in.toFixed(3), r.wall_in.toFixed(3), r.material]),
+    },
+    footer: "Calculated using Petroleum 365 (P365)",
+  };
+}
+
+/**
+ * Build chart data for a DCA decline curve (rate vs time, with cumulative).
+ */
+export function buildDcaChartData(
+  times_yr: number[],
+  rates_STBd: number[],
+  cumulative_MBbl: number[],
+  modelName: string,
+): { series: Array<{ name: string; data: number[] }>; xAxis: number[]; xLabel: string; yLabel: string } {
+  return {
+    series: [
+      { name: `Rate — ${modelName}`, data: rates_STBd },
+      { name: `Cumulative — ${modelName}`, data: cumulative_MBbl },
+    ],
+    xAxis: times_yr,
+    xLabel: "Time (yr)",
+    yLabel: "Rate (STB/d) / Cumulative (MBbl)",
+  };
+}
+
+/**
+ * Build a DCA forecast slide with chart data and model parameter bullets.
+ */
+export function buildDcaForecastSlide(params: {
+  wellName: string;
+  model: string;
+  qi_STBd: number;
+  di_pct: number;
+  b_factor: number;
+  eur_MBbl: number;
+  times_yr: number[];
+  rates_STBd: number[];
+  cumulative_MBbl: number[];
+}): PptxSlide {
+  return {
+    title: `DCA Forecast — ${params.wellName}`,
+    layout: "chart",
+    chartData: buildDcaChartData(params.times_yr, params.rates_STBd, params.cumulative_MBbl, params.model),
+    bullets: [
+      `Model: ${params.model}`,
+      `Initial Rate (qi): ${params.qi_STBd.toFixed(0)} STB/d`,
+      `Decline Rate (Di): ${params.di_pct.toFixed(2)}%/yr`,
+      `b-factor: ${params.b_factor.toFixed(3)}`,
+      `EUR: ${params.eur_MBbl.toFixed(1)} MBbl`,
+    ],
+    footer: "Calculated using Petroleum 365 (P365)",
+  };
+}
+
+/**
+ * Build p/z plot data with a Trend series and OGIP annotation.
+ */
+export function buildPzPlotData(
+  gp_Bscf: number[],
+  pz_ratios: number[],
+  ogip_Bscf: number,
+): {
+  series: Array<{ name: string; data: number[] }>;
+  xAxis: number[];
+  xLabel: string;
+  yLabel: string;
+  annotations: Array<{ x: number; y: number; label: string }>;
+} {
+  return {
+    series: [{ name: "Trend", data: pz_ratios }],
+    xAxis: gp_Bscf,
+    xLabel: "Cumulative Production, Gp (Bscf)",
+    yLabel: "p/z (psia)",
+    annotations: [
+      {
+        x: ogip_Bscf,
+        y: 0,
+        label: `OGIP = ${ogip_Bscf.toFixed(2)} Bscf`,
+      },
+    ],
+  };
+}
+
+/**
+ * Build an MBE summary slide with key results bullets and drive indices table.
+ */
+export function buildMbeSummarySlide(params: {
+  fieldName: string;
+  ogip_Bscf?: number;
+  ooip_MMStb?: number;
+  currentPressure_psia: number;
+  initialPressure_psia: number;
+  driveIndices: Record<string, number>;
+}): PptxSlide {
+  const bullets: string[] = [
+    `Field: ${params.fieldName}`,
+    `Initial Pressure: ${params.initialPressure_psia.toFixed(0)} psia`,
+    `Current Pressure: ${params.currentPressure_psia.toFixed(0)} psia`,
+  ];
+  if (params.ogip_Bscf !== undefined) bullets.push(`OGIP: ${params.ogip_Bscf.toFixed(2)} Bscf`);
+  if (params.ooip_MMStb !== undefined) bullets.push(`OOIP: ${params.ooip_MMStb.toFixed(2)} MMStb`);
+
+  return {
+    title: `MBE Summary — ${params.fieldName}`,
+    layout: "twoColumn",
+    bullets,
+    table: {
+      headers: ["Drive Mechanism", "Index"],
+      rows: Object.entries(params.driveIndices).map(([name, idx]) => [name, `${(idx * 100).toFixed(1)}%`]),
+    },
+    footer: "Calculated using Petroleum 365 (P365)",
+  };
+}
+
+/**
+ * Build a gas composition properties slide with a properties table.
+ */
+export function buildGasCompositionSlide(params: {
+  sampleId: string;
+  molarMass_lbMol: number;
+  specificGravity: number;
+  hhv_BTUscf: number;
+  lhv_BTUscf: number;
+  wobbeIndex: number;
+}): PptxSlide {
+  return {
+    title: `Gas Composition — ${params.sampleId}`,
+    layout: "content",
+    table: {
+      headers: ["Property", "Value"],
+      rows: [
+        ["Sample ID", params.sampleId],
+        ["Molar Mass", `${params.molarMass_lbMol.toFixed(3)} lb/mol`],
+        ["Specific Gravity", params.specificGravity.toFixed(4)],
+        ["HHV", `${params.hhv_BTUscf.toFixed(2)} BTU/scf`],
+        ["LHV", `${params.lhv_BTUscf.toFixed(2)} BTU/scf`],
+        ["Wobbe Index", `${params.wobbeIndex.toFixed(2)} BTU/scf`],
+      ],
+    },
+    footer: "Calculated using Petroleum 365 (P365)",
+  };
+}
+
+/**
+ * Assemble a 3-slide pipe sizing deck: title, results, schedule.
+ */
+export function assemblePipeSizingDeck(params: {
+  jobName: string;
+  preparedBy: string;
+  date: string;
+  results: Record<string, string>;
+  scheduleRows: Array<{ nps: string; od_in: number; id_in: number; wall_in: number; material: string }>;
+}): PptxSlide[] {
+  const titleRaw = buildPipeSizingTitleSlide(params.jobName, params.preparedBy, params.date);
+  const titleSlide: PptxSlide = {
+    title: titleRaw.title,
+    layout: "title",
+    body: `${titleRaw.subtitle}\n${titleRaw.body}`,
+  };
+  return [
+    titleSlide,
+    buildPipeSizingResultsSlide(params.results),
+    buildPipeSizingScheduleSlide(params.scheduleRows),
+  ];
+}
+
+/**
+ * Assemble a 2-slide DCA deck: title slide + DCA forecast slide.
+ */
+export function assembleDcaDeck(params: {
+  wellName: string;
+  preparedBy: string;
+  date: string;
+  model: string;
+  qi_STBd: number;
+  di_pct: number;
+  b_factor: number;
+  eur_MBbl: number;
+  times_yr: number[];
+  rates_STBd: number[];
+  cumulative_MBbl: number[];
+}): PptxSlide[] {
+  const titleRaw = buildPipeSizingTitleSlide(params.wellName, params.preparedBy, params.date);
+  const titleSlide: PptxSlide = {
+    title: titleRaw.title,
+    layout: "title",
+    body: `DCA Forecast Report\nPrepared by: ${params.preparedBy}\nDate: ${params.date}`,
+  };
+  return [
+    titleSlide,
+    buildDcaForecastSlide(params),
+  ];
 }

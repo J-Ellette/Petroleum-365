@@ -372,7 +372,63 @@ Good stopping point after HV + AGA-8 + Nodal + WHT + README with 628 tests passi
 #### Stopping Point — Session 6
 Good stopping point after GEO + SKIN + SCAL IFT/Wettability extensions + Office add-in planning with 723 tests passing.
 
-#### Next Session — Session 7 (Planned)
+### Session 7 — Office Add-in Full Implementation (Word/Outlook/Teams/PPT/OneNote/Access)
+**Status:** Complete
+
+#### Completed
+- [x] Expanded Word add-in (src/addins/word/index.ts) — 8 new exported functions:
+  - [x] `buildPvtReportData` — PVT fluid properties key-value dict (Z, Bg, Rs, Bo, viscosity)
+  - [x] `buildWellTestReportData` — PTA interpretation report (k, S, P*, WBS, radius of investigation)
+  - [x] `buildDcaReportData` — Decline curve report (model, qi, Di, b, EUR, economic limit)
+  - [x] `buildNodalReportData` — Nodal analysis report (IPR/VLP, operating point, PI, Qmax)
+  - [x] `buildMbeReportData` — Material balance report (OGIP/OOIP, pressures, drive indices)
+  - [x] `buildGasCompositionReportData` — Gas composition report (MW, SG, HHV, LHV, Wobbe, sour gas)
+  - [x] `buildWordTable` — Markdown pipe-delimited table builder (aligned column widths)
+  - [x] `buildWordDocumentContent` — Full Word document skeleton (title, metadata, results table, footer)
+- [x] Expanded Outlook add-in (src/addins/outlook/index.ts) — 6 new exported functions:
+  - [x] `buildWellPerformanceEmailBody` — Well performance email with Vogel IPR note
+  - [x] `buildGasCompositionEmailBody` — Gas analysis report email (HHV/LHV/Wobbe/SG)
+  - [x] `buildRfiResponseEmailBody` — RFI response with embedded calculation table
+  - [x] `buildDcaForecastEmailBody` — DCA forecast summary email
+  - [x] `detectUnitSystem` — TLD heuristic for field vs metric unit auto-detection
+  - [x] `convertValueForEmail` — Unit conversion for email (psia→kPa, ft→m, STBd→m³/d, etc.)
+- [x] Expanded Teams add-in (src/addins/teams/index.ts) — 5 new exported functions:
+  - [x] `buildPipeSizingCard` — Adaptive Card with velocity warning indicator (≥ 40 ft/s)
+  - [x] `buildWellPerformanceCard` — Well performance Adaptive Card
+  - [x] `buildGasCompositionCard` — Gas composition Adaptive Card
+  - [x] `buildBotFaqResponse` — FAQ bot (7 topics: Weymouth, Z-factor, Vogel, Arps, skin, OGIP, HHV)
+  - [x] `buildCalculatorCard` — Generic card with two FactSets (inputs / results)
+- [x] Expanded PowerPoint add-in (src/addins/powerpoint/index.ts) — `PptxSlide` interface + 9 new functions:
+  - [x] `buildPipeSizingResultsSlide` — Results table slide (content layout)
+  - [x] `buildPipeSizingScheduleSlide` — Pipe schedule table slide
+  - [x] `buildDcaChartData` — DCA rate + cumulative chart data builder
+  - [x] `buildDcaForecastSlide` — DCA forecast chart slide with model parameter bullets
+  - [x] `buildPzPlotData` — p/z plot data with Trend series and OGIP annotation
+  - [x] `buildMbeSummarySlide` — Two-column MBE slide (bullets + drive indices table)
+  - [x] `buildGasCompositionSlide` — Gas properties table slide
+  - [x] `assemblePipeSizingDeck` — 3-slide deck assembler [title, results, schedule]
+  - [x] `assembleDcaDeck` — 2-slide deck assembler [title, DCA forecast]
+- [x] Expanded OneNote add-in (src/addins/onenote/index.ts) — 6 new exported functions:
+  - [x] `buildPvtDataBlock` — PVT data note (Z, Bg, Bo, HHV)
+  - [x] `buildGasCompositionBlock` — Gas composition note (MW, SG, HHV, LHV, Wobbe, optional sour gas)
+  - [x] `buildWellTestBlock` — PTA interpretation note (k, S, P*, tp)
+  - [x] `buildWellPerformanceBlock` — Well performance note (IPR operating point, PI)
+  - [x] `buildDcaForecastBlock` — DCA forecast note (model, parameters, EUR)
+  - [x] `buildJobSummaryPage` — Full OneNote page with job metadata + assembled note blocks
+- [x] Expanded Access add-in (src/addins/access/index.ts) — 4 new functions + constant:
+  - [x] `validateJobRecord` — validates job number (J-YYYY-NNN regex), required fields, status enum
+  - [x] `formatJobForInsert` — SQL INSERT string for tblJobs (apostrophe-safe)
+  - [x] `formatCalcSnapshotForInsert` — SQL INSERT string for tblCalcSnapshots
+  - [x] `buildJobFilterQuery` — dynamic WHERE clause builder for job queries
+  - [x] `FORM_DEFINITIONS` — Access form layout definitions (frmJobEntry, frmPipeInventory, frmWellEntry, frmCalcSnapshot)
+- [x] Written 281 new Jest unit tests (1004 total, all passing — up from 723)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+- [x] Updated copilot.md and README.md for Session 7
+
+#### Stopping Point — Session 7
+Good stopping point after full Office add-in implementation (Word/Outlook/Teams/PPT/OneNote/Access) with 1004 tests passing.
+
+#### Next Session — Session 8 (Planned)
 - [ ] Office.js taskpane UI — Blueprint Manager, Function Browser (React)
 - [ ] Ribbon implementation (6 groups: PVT, IPR/VLP, MBE, PTA, FRAC, Lift)
 - [ ] Custom Functions metadata (functions.json) — map all functions to Excel UDFs
