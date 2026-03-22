@@ -1,8 +1,9 @@
 /**
  * P365 — Decline Curve Analysis (DCA)
  *
- * Classic Arps models (exponential, hyperbolic, modified hyperbolic) and
- * Duong model for unconventional reservoirs.
+ * Classic Arps models (exponential, hyperbolic, modified hyperbolic),
+ * Duong, PLE, SEPD, LGM, Transient Hyperbolic, Extended Exponential,
+ * Ansah-Knowles-Buba (AKB), and diagnostic / data-QC utilities.
  *
  * Time units: consistent (months or years — user's choice, must be consistent).
  * Rate units: any volumetric rate (Mcf/d, bbl/d, MMcf/d — user's choice).
@@ -488,4 +489,499 @@ export function lgmCumulative(t: number, K: number, a: number, n: number): numbe
  */
 export function lgmEUR(K: number): number {
   return K;
+}
+
+// ─── Transient Hyperbolic Decline ─────────────────────────────────────────────
+// Physically motivated for unconventional wells: during transient linear flow
+// b ≈ 2.0; transitions to exponential at terminal decline rate Dterm.
+// Identical math to modified hyperbolic but explicitly allows b > 1.
+
+/**
+ * Transient Hyperbolic rate at time t.
+ *
+ * Uses Arps hyperbolic (b may be > 1 for transient flow) transitioning to
+ * exponential at terminal decline rate Dterm.
+ *
+ * @param t      Time (same unit as Di)
+ * @param qi     Initial rate at t = 0
+ * @param Di     Initial nominal decline rate (1/time)
+ * @param b      Hyperbolic exponent (typically 1.5–2.0 during transient)
+ * @param Dterm  Terminal exponential decline rate (1/time; D switches here)
+ * @returns      Rate at time t
+ */
+export function thRate(
+  t: number,
+  qi: number,
+  Di: number,
+  b: number,
+  Dterm: number
+): number {
+  const tSwitch = b > 0 ? (Di / Dterm - 1) / (b * Di) : Infinity;
+  if (t <= tSwitch) {
+    return qi / Math.pow(1 + b * Di * t, 1 / b);
+  }
+  const qSwitch = qi / Math.pow(1 + b * Di * tSwitch, 1 / b);
+  return qSwitch * Math.exp(-Dterm * (t - tSwitch));
+}
+
+/**
+ * Transient Hyperbolic cumulative production from t = 0 to t.
+ *
+ * @param t      Time
+ * @param qi     Initial rate
+ * @param Di     Initial nominal decline rate
+ * @param b      Hyperbolic exponent
+ * @param Dterm  Terminal exponential decline rate
+ * @returns      Cumulative production
+ */
+export function thCumulative(
+  t: number,
+  qi: number,
+  Di: number,
+  b: number,
+  Dterm: number
+): number {
+  if (t <= 0) return 0;
+  const tSwitch = b > 0 ? (Di / Dterm - 1) / (b * Di) : Infinity;
+  if (t <= tSwitch) {
+    // Pure hyperbolic phase
+    if (b === 1) return (qi / Di) * Math.log(1 + Di * t);
+    return (qi / ((1 - b) * Di)) * (1 - Math.pow(1 + b * Di * t, (b - 1) / b));
+  }
+  // Cumulative through switch point + exponential tail
+  const cumSwitch = b === 1
+    ? (qi / Di) * Math.log(1 + Di * tSwitch)
+    : (qi / ((1 - b) * Di)) * (1 - Math.pow(1 + b * Di * tSwitch, (b - 1) / b));
+  const qSwitch = qi / Math.pow(1 + b * Di * tSwitch, 1 / b);
+  return cumSwitch + (qSwitch / Dterm) * (1 - Math.exp(-Dterm * (t - tSwitch)));
+}
+
+/**
+ * Time at which the Transient Hyperbolic switches to exponential.
+ *
+ * @param Di     Initial nominal decline rate
+ * @param b      Hyperbolic exponent
+ * @param Dterm  Terminal exponential decline rate
+ * @returns      Switch time (same units as Di)
+ */
+export function thSwitchTime(Di: number, b: number, Dterm: number): number {
+  if (b <= 0) return Infinity;
+  return (Di / Dterm - 1) / (b * Di);
+}
+
+/**
+ * EUR for Transient Hyperbolic model to an economic limit.
+ *
+ * @param qi     Initial rate
+ * @param Di     Initial nominal decline rate
+ * @param b      Hyperbolic exponent
+ * @param Dterm  Terminal decline rate
+ * @param qLim   Economic limit rate
+ * @returns      EUR
+ */
+export function thEUR(
+  qi: number,
+  Di: number,
+  b: number,
+  Dterm: number,
+  qLim: number
+): number {
+  const tSwitch = thSwitchTime(Di, b, Dterm);
+  const qSwitch = thRate(tSwitch, qi, Di, b, Dterm);
+  if (qLim >= qSwitch) {
+    // Economic limit in hyperbolic phase
+    const tLim = (Math.pow(qi / qLim, b) - 1) / (b * Di);
+    return thCumulative(tLim, qi, Di, b, Dterm);
+  }
+  // Economic limit in exponential tail
+  const tLim = tSwitch + Math.log(qSwitch / qLim) / Dterm;
+  return thCumulative(tLim, qi, Di, b, Dterm);
+}
+
+// ─── Extended Exponential (Biexponential) Decline ────────────────────────────
+// Captures two flow speeds: fast early decline (D_fast) + slow late decline
+// (D_slow). f = fraction of initial rate on the fast component.
+
+/**
+ * Extended Exponential (biexponential) rate at time t.
+ *
+ * q(t) = qi · [ f·exp(−D_fast·t) + (1−f)·exp(−D_slow·t) ]
+ *
+ * @param t       Time
+ * @param qi      Initial rate at t = 0
+ * @param f       Fast-component fraction (0 < f < 1)
+ * @param D_fast  Fast initial decline rate (1/time)
+ * @param D_slow  Slow terminal decline rate (1/time); D_slow < D_fast
+ * @returns       Rate at time t
+ */
+export function eeRate(
+  t: number,
+  qi: number,
+  f: number,
+  D_fast: number,
+  D_slow: number
+): number {
+  return qi * (f * Math.exp(-D_fast * t) + (1 - f) * Math.exp(-D_slow * t));
+}
+
+/**
+ * Extended Exponential cumulative production from t = 0 to t.
+ *
+ * N(t) = qi · [ f/D_fast·(1−exp(−D_fast·t)) + (1−f)/D_slow·(1−exp(−D_slow·t)) ]
+ *
+ * @param t       Time
+ * @param qi      Initial rate
+ * @param f       Fast-component fraction
+ * @param D_fast  Fast decline rate
+ * @param D_slow  Slow decline rate
+ * @returns       Cumulative production
+ */
+export function eeCumulative(
+  t: number,
+  qi: number,
+  f: number,
+  D_fast: number,
+  D_slow: number
+): number {
+  if (t <= 0) return 0;
+  const fast = D_fast > 0 ? (f / D_fast) * (1 - Math.exp(-D_fast * t)) : f * t;
+  const slow = D_slow > 0 ? ((1 - f) / D_slow) * (1 - Math.exp(-D_slow * t)) : (1 - f) * t;
+  return qi * (fast + slow);
+}
+
+/**
+ * Extended Exponential EUR to economic limit.
+ *
+ * Solved by bisection on the rate equation to find time at economic limit.
+ *
+ * @param qi      Initial rate
+ * @param f       Fast-component fraction
+ * @param D_fast  Fast decline rate
+ * @param D_slow  Slow decline rate
+ * @param qLim    Economic limit rate
+ * @returns       EUR
+ */
+export function eeEUR(
+  qi: number,
+  f: number,
+  D_fast: number,
+  D_slow: number,
+  qLim: number
+): number {
+  // Find tLimit by bisection
+  let lo = 0;
+  let hi = 1e6;
+  for (let i = 0; i < 100; i++) {
+    const mid = (lo + hi) / 2;
+    if (eeRate(mid, qi, f, D_fast, D_slow) > qLim) lo = mid;
+    else hi = mid;
+    if (hi - lo < 1e-6) break;
+  }
+  return eeCumulative((lo + hi) / 2, qi, f, D_fast, D_slow);
+}
+
+// ─── Ansah-Knowles-Buba (AKB) Decline ────────────────────────────────────────
+// Generalized power-law decline model (Ansah, Knowles & Buba 1996).
+// AKB rate: q(t) = qi · [1 + (K−1)·Di·t]^(−1/(K−1))
+// K = 1 → exponential; K = 2 → harmonic (Arps b=1); K > 2 → hyperbolic b > 1.
+
+/**
+ * Ansah-Knowles-Buba (AKB) decline rate at time t.
+ *
+ * q(t) = qi · [1 + (K−1)·Di·t]^(−1/(K−1))
+ *
+ * @param t   Time (same unit as Di)
+ * @param qi  Initial rate at t = 0
+ * @param Di  Initial nominal decline rate (1/time)
+ * @param K   Generalized decline exponent (K ≥ 1; K=1 → exponential)
+ * @returns   Rate at time t
+ */
+export function akbRate(t: number, qi: number, Di: number, K: number): number {
+  if (Math.abs(K - 1) < 1e-10) {
+    // Exponential limit
+    return qi * Math.exp(-Di * t);
+  }
+  const base = 1 + (K - 1) * Di * t;
+  return base > 0 ? qi * Math.pow(base, -1 / (K - 1)) : 0;
+}
+
+/**
+ * Ansah-Knowles-Buba (AKB) cumulative production from t = 0 to t.
+ *
+ * N(t) = qi / [(2−K)·Di] · { 1 − [1 + (K−1)·Di·t]^((K−2)/(K−1)) }
+ * Special cases: K=1 → exponential; K=2 → harmonic.
+ *
+ * @param t   Time
+ * @param qi  Initial rate
+ * @param Di  Initial nominal decline rate
+ * @param K   Generalized decline exponent
+ * @returns   Cumulative production
+ */
+export function akbCumulative(t: number, qi: number, Di: number, K: number): number {
+  if (t <= 0) return 0;
+  if (Math.abs(K - 1) < 1e-10) {
+    // Exponential
+    return (qi / Di) * (1 - Math.exp(-Di * t));
+  }
+  if (Math.abs(K - 2) < 1e-10) {
+    // Harmonic (K=2)
+    return (qi / Di) * Math.log(1 + Di * t);
+  }
+  const base = 1 + (K - 1) * Di * t;
+  return (qi / ((2 - K) * Di)) * (1 - Math.pow(base, (K - 2) / (K - 1)));
+}
+
+/**
+ * Ansah-Knowles-Buba (AKB) EUR to economic limit.
+ *
+ * @param qi    Initial rate
+ * @param Di    Initial nominal decline rate
+ * @param K     Generalized decline exponent
+ * @param qLim  Economic limit rate
+ * @returns     EUR
+ */
+export function akbEUR(qi: number, Di: number, K: number, qLim: number): number {
+  let tLim: number;
+  if (Math.abs(K - 1) < 1e-10) {
+    tLim = Math.log(qi / qLim) / Di;
+  } else {
+    // Invert: [1 + (K-1)*Di*t]^(1/(K-1)) = qi/qLim
+    const ratio = Math.pow(qi / qLim, K - 1);
+    tLim = (ratio - 1) / ((K - 1) * Di);
+  }
+  return akbCumulative(tLim, qi, Di, K);
+}
+
+// ─── DCA Diagnostic Utilities ─────────────────────────────────────────────────
+
+/**
+ * Instantaneous nominal decline rate D(t) estimated from rate-time data.
+ *
+ * D_i ≈ −Δln(q) / Δt at each interior point.
+ * Returns an array of [time, D] pairs (length = data.length − 1).
+ *
+ * @param t_arr  Array of times (must be ascending, same length as q_arr)
+ * @param q_arr  Array of rates
+ * @returns      Array of [time_midpoint, D] pairs
+ */
+export function dcaDeclineRate(
+  t_arr: number[],
+  q_arr: number[]
+): Array<[number, number]> {
+  const result: Array<[number, number]> = [];
+  const n = Math.min(t_arr.length, q_arr.length);
+  for (let i = 1; i < n; i++) {
+    const dt = t_arr[i] - t_arr[i - 1];
+    if (dt <= 0 || q_arr[i] <= 0 || q_arr[i - 1] <= 0) continue;
+    const D = -Math.log(q_arr[i] / q_arr[i - 1]) / dt;
+    result.push([(t_arr[i] + t_arr[i - 1]) / 2, D]);
+  }
+  return result;
+}
+
+/**
+ * Instantaneous Arps b-factor estimated from rate-time data.
+ *
+ * b(t) = −d(1/D) / dt = (D_i−1 − D_i) / (D_i · D_i−1 · Δt)
+ * Returns an array of [time, b] pairs (length = data.length − 2).
+ *
+ * @param t_arr  Array of times (ascending)
+ * @param q_arr  Array of rates
+ * @returns      Array of [time_midpoint, b] pairs
+ */
+export function dcaBFactor(
+  t_arr: number[],
+  q_arr: number[]
+): Array<[number, number]> {
+  const D_pairs = dcaDeclineRate(t_arr, q_arr);
+  const result: Array<[number, number]> = [];
+  for (let i = 1; i < D_pairs.length; i++) {
+    const [t1, D1] = D_pairs[i - 1];
+    const [t2, D2] = D_pairs[i];
+    const dt = t2 - t1;
+    if (dt <= 0 || D1 <= 0 || D2 <= 0) continue;
+    // b = -d(1/D)/dt ≈ (1/D2 - 1/D1) / dt  ... nope, b = -dD/dt / D^2
+    // Accurate formula: b ≈ -(D2 - D1) / (D_avg^2 * dt)
+    const D_avg = (D1 + D2) / 2;
+    const b = -(D2 - D1) / (D_avg * D_avg * dt);
+    result.push([(t1 + t2) / 2, b]);
+  }
+  return result;
+}
+
+/**
+ * Log-log derivative of rate w.r.t. time: d(log q) / d(log t).
+ *
+ * Used for flow-regime identification: slope = −0.5 → transient linear flow;
+ * slope → 0 → BDF (boundary-dominated flow).
+ *
+ * Returns an array of [time_midpoint, slope] pairs.
+ *
+ * @param t_arr  Array of times (> 0, ascending)
+ * @param q_arr  Array of rates (> 0)
+ * @returns      Array of [time_mid, d(log q)/d(log t)] pairs
+ */
+export function dcaLogLogDerivative(
+  t_arr: number[],
+  q_arr: number[]
+): Array<[number, number]> {
+  const result: Array<[number, number]> = [];
+  const n = Math.min(t_arr.length, q_arr.length);
+  for (let i = 1; i < n; i++) {
+    const t1 = t_arr[i - 1], t2 = t_arr[i];
+    const q1 = q_arr[i - 1], q2 = q_arr[i];
+    if (t1 <= 0 || t2 <= t1 || q1 <= 0 || q2 <= 0) continue;
+    const slope = Math.log(q2 / q1) / Math.log(t2 / t1);
+    result.push([Math.sqrt(t1 * t2), slope]);
+  }
+  return result;
+}
+
+/**
+ * Classify flow regime from an estimated b-factor.
+ *
+ * @param b_estimated  Observed Arps b-factor
+ * @returns            Flow regime description string
+ */
+export function dcaFlowRegimeFromB(b_estimated: number): string {
+  if (b_estimated < 0.05)         return "Exponential (BDF gas/liquid)";
+  if (b_estimated < 0.5)          return "Hyperbolic BDF (conventional)";
+  if (b_estimated < 1.05)         return "Harmonic / pseudo-steady-state";
+  if (b_estimated < 1.55)         return "Bilinear transient flow";
+  if (b_estimated < 2.1)          return "Transient linear flow (unconventional)";
+  return "Transient spherical/radial (b > 2 — check data quality)";
+}
+
+// ─── DCA Data Quality Control ─────────────────────────────────────────────────
+
+/**
+ * Rolling Z-score for outlier detection in production rate data.
+ *
+ * Uses a leave-one-out approach: for each point, the local mean and std are
+ * computed from the ±half_window neighbours (excluding the point itself) to
+ * prevent contamination of the window statistics by the outlier.
+ * Returns the absolute Z-score at each point.
+ *
+ * @param q_arr       Array of production rates
+ * @param half_window Number of points on each side of centre (default 3)
+ * @returns           Array of absolute Z-scores (same length as q_arr)
+ */
+export function dcaRollingZScore(
+  q_arr: number[],
+  half_window = 3
+): number[] {
+  const n = q_arr.length;
+  const z: number[] = new Array(n).fill(0);
+  for (let i = 0; i < n; i++) {
+    const lo = Math.max(0, i - half_window);
+    const hi = Math.min(n - 1, i + half_window);
+    // Exclude the current point (leave-one-out) to avoid contamination
+    const others = [...q_arr.slice(lo, i), ...q_arr.slice(i + 1, hi + 1)];
+    if (others.length === 0) continue;
+    const mean = others.reduce((s, v) => s + v, 0) / others.length;
+    const variance = others.reduce((s, v) => s + (v - mean) ** 2, 0) / others.length;
+    const std = Math.sqrt(variance);
+    z[i] = std > 0 ? Math.abs(q_arr[i] - mean) / std : 0;
+  }
+  return z;
+}
+
+/**
+ * Remove production outliers using rolling Z-score.
+ *
+ * Points with |Z| > threshold are filtered out.
+ *
+ * @param t_arr     Array of times
+ * @param q_arr     Array of production rates
+ * @param threshold Z-score threshold (default 2.5)
+ * @param window    Half-window for rolling Z-score (default 3)
+ * @returns         Object with cleaned { t, q } arrays
+ */
+export function dcaCleanProduction(
+  t_arr: number[],
+  q_arr: number[],
+  threshold = 2.5,
+  window = 3
+): { t: number[]; q: number[] } {
+  const z = dcaRollingZScore(q_arr, window);
+  const t_clean: number[] = [];
+  const q_clean: number[] = [];
+  const n = Math.min(t_arr.length, q_arr.length);
+  for (let i = 0; i < n; i++) {
+    if (z[i] <= threshold) {
+      t_clean.push(t_arr[i]);
+      q_clean.push(q_arr[i]);
+    }
+  }
+  return { t: t_clean, q: q_clean };
+}
+
+/**
+ * Normalize production rates by flowing bottomhole pressure drawdown.
+ *
+ * q_norm(t) = q(t) / (BHP_i − BHP(t))
+ * Removes pressure transient effects for better DCA fitting.
+ *
+ * @param q_arr    Array of production rates
+ * @param bhp_arr  Array of FBHP at each time step
+ * @param bhp_i    Initial / reference BHP (psia); typically BHP at t = 0
+ * @returns        Array of normalized rates (rate / drawdown)
+ */
+export function dcaRateNormalize(
+  q_arr: number[],
+  bhp_arr: number[],
+  bhp_i: number
+): number[] {
+  const n = Math.min(q_arr.length, bhp_arr.length);
+  const result: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const drawdown = bhp_i - bhp_arr[i];
+    result.push(drawdown > 0 ? q_arr[i] / drawdown : 0);
+  }
+  return result;
+}
+
+// ─── DCA Decline Rate Conversions ─────────────────────────────────────────────
+
+/**
+ * Convert nominal decline rate between time bases.
+ *
+ * Nominal decline is additive: D_annual = 12 × D_monthly = 365 × D_daily.
+ *
+ * @param D         Nominal decline rate
+ * @param fromUnit  Source time unit: "year" | "month" | "day"
+ * @param toUnit    Target time unit: "year" | "month" | "day"
+ * @returns         Converted nominal decline rate
+ */
+export function dcaConvertNominalDecline(
+  D: number,
+  fromUnit: "year" | "month" | "day",
+  toUnit: "year" | "month" | "day"
+): number {
+  const toPerYear: Record<string, number> = { year: 1, month: 12, day: 365 };
+  return D * toPerYear[fromUnit] / toPerYear[toUnit];
+}
+
+/**
+ * Convert effective annual decline rate to monthly effective decline.
+ *
+ * De_monthly = 1 − (1 − De_annual)^(1/12)
+ *
+ * @param De_annual  Effective annual decline rate (fraction, e.g. 0.30 = 30%/yr)
+ * @returns          Effective monthly decline rate (fraction/month)
+ */
+export function dcaAnnualToMonthlyEffective(De_annual: number): number {
+  return 1 - Math.pow(1 - De_annual, 1 / 12);
+}
+
+/**
+ * Convert effective monthly decline rate to effective annual decline.
+ *
+ * De_annual = 1 − (1 − De_monthly)^12
+ *
+ * @param De_monthly  Effective monthly decline rate (fraction/month)
+ * @returns           Effective annual decline rate (fraction/year)
+ */
+export function dcaMonthlyToAnnualEffective(De_monthly: number): number {
+  return 1 - Math.pow(1 - De_monthly, 12);
 }

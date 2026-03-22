@@ -428,14 +428,51 @@ Good stopping point after GEO + SKIN + SCAL IFT/Wettability extensions + Office 
 #### Stopping Point — Session 7
 Good stopping point after full Office add-in implementation (Word/Outlook/Teams/PPT/OneNote/Access) with 1004 tests passing.
 
-#### Next Session — Session 8 (Planned)
+### Session 8 — DCA Extended Models + Wellbore Integrity + functions.json Expansion
+**Status:** Complete
+
+#### Completed
+- [x] Extended DCA module (src/functions/dca/index.ts) with 3 new decline models:
+  - [x] **Transient Hyperbolic (TH)**: thRate, thCumulative, thSwitchTime, thEUR — Arps with b > 1 (transient linear flow b ≈ 2.0), switches to exponential at terminal decline Dterm
+  - [x] **Extended Exponential (EE)**: eeRate, eeCumulative, eeEUR — biexponential model q = qi*[f*exp(-Dfast*t) + (1-f)*exp(-Dslow*t)], captures two-speed decline
+  - [x] **Ansah-Knowles-Buba (AKB)**: akbRate, akbCumulative, akbEUR — generalized power-law q = qi*[1+(K-1)*Di*t]^(-1/(K-1)); K=1→exp, K=2→harmonic
+- [x] Added DCA diagnostic utilities:
+  - [x] `dcaDeclineRate(t, q)`: instantaneous D(t) from rate-time data (log-diff method)
+  - [x] `dcaBFactor(t, q)`: instantaneous Arps b-factor from rate data
+  - [x] `dcaLogLogDerivative(t, q)`: d(log q)/d(log t) for flow regime identification
+  - [x] `dcaFlowRegimeFromB(b)`: classify flow regime (exponential/hyperbolic/harmonic/transient linear)
+- [x] Added DCA data QC utilities:
+  - [x] `dcaRollingZScore(q, half_window)`: leave-one-out rolling Z-score for outlier detection
+  - [x] `dcaCleanProduction(t, q, threshold)`: remove outliers using rolling Z-score
+  - [x] `dcaRateNormalize(q, bhp, bhp_i)`: normalize rates by pressure drawdown
+- [x] Added DCA rate conversion utilities:
+  - [x] `dcaConvertNominalDecline(D, from, to)`: convert nominal D between year/month/day
+  - [x] `dcaAnnualToMonthlyEffective(De_annual)`: De_monthly = 1-(1-De_annual)^(1/12)
+  - [x] `dcaMonthlyToAnnualEffective(De_monthly)`: De_annual = 1-(1-De_monthly)^12
+- [x] Implemented WBI — Wellbore Integrity module (src/functions/wbi/index.ts):
+  - [x] Casing burst: `wbiCasingBurstRating` (API Barlow), `wbiDesignFactor`, `wbiRequiredBurstRating`
+  - [x] Casing collapse: `wbiDtRatio`, `wbiElasticCollapseP`, `wbiYieldCollapseP`, `wbiCollapseRating`, `wbiCollapseRegime`
+  - [x] Tensile/buoyancy: `wbiCasingAirWeight`, `wbiBuoyancyFactor`, `wbiEffectiveWeight`, `wbiTensileRating`, `wbiTensileCheck`
+  - [x] Cement job: `wbiCementVolume`, `wbiMinCementTop`, `wbiSlurryDensity`, `wbiCementReturnHeight`
+  - [x] Shoe test/FIT/LOT/XLOT: `wbiFITEquivalentMW`, `wbiFITSurfacePressure`, `wbiShoeTestEvaluation`, `wbiXLOTClosureStress`, `wbiLOTBreakdownEMW`
+  - [x] Mud weight window: `wbiMudWeightWindow`
+  - [x] Hydrostatic helpers: `wbiHydrostaticPressure`, `wbiPressureToEMW`
+- [x] Updated src/index.ts with DCA extended models (TH/EE/AKB/Diagnostics/DataQC/Conversions) and WBI namespace
+- [x] Expanded functions.json from 15 → 48 UDF registrations (added DCA extended + WBI)
+- [x] Written 112 new Jest unit tests (1116 total, all passing — up from 1004)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+- [x] Updated copilot.md and README.md for Session 8
+
+#### Stopping Point — Session 8
+Good stopping point after DCA extended models + Wellbore Integrity + functions.json expansion with 1116 tests passing.
+
+#### Next Session — Session 9 (Planned)
 - [ ] Office.js taskpane UI — Blueprint Manager, Function Browser (React)
 - [ ] Ribbon implementation (6 groups: PVT, IPR/VLP, MBE, PTA, FRAC, Lift)
-- [ ] Custom Functions metadata (functions.json) — map all functions to Excel UDFs
-- [ ] DCA extended models: Transient Hyperbolic, Extended Exponential, Ansah-Knowles-Buba
+- [ ] Expand functions.json to full coverage of all 800+ UDFs
 - [ ] FRAC extended: Uniaxial strain poroelastic closure stress model
-- [ ] Wellbore integrity: production casing burst/collapse, cement top, shoe test
 - [ ] Web deployment / Netlify/Azure manifest hosting for web calculator
+- [ ] Reservoir simulation tie-in: Eclipse/CMG INCLUDE file generator for kr curves
 
 ## Function Naming Convention
 `P365.[Category].[Property].[Qualifier].By[Author]`
@@ -464,6 +501,7 @@ Good stopping point after full Office add-in implementation (Word/Outlook/Teams/
 | WHT | Wellbore Heat Transfer |
 | GEO | Geomechanics (pore pressure, fracture gradient, wellbore stability) |
 | SKIN | Composite Skin Factor (Hawkins, perforations, non-Darcy, partial penetration) |
+| WBI | Wellbore Integrity (casing burst/collapse, cement, FIT/LOT/XLOT, mud window) |
 
 ## Key Engineering Details (from P365.md)
 - Pipe material roughness: Bare Steel 0.000150 ft · Coated Steel 0.000100 ft · PE 0.000005 ft
