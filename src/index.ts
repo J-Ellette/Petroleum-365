@@ -42,8 +42,10 @@ import * as EclipseExports from "./functions/eclipse";
 import * as SplineExports  from "./functions/spline";
 import * as ECOExports     from "./functions/eco";
 import * as WPAExports     from "./functions/wpa";
-import * as IFTExports     from "./functions/pvt/ift";
-import * as RTAExports     from "./functions/rta";
+import * as IFTExports        from "./functions/pvt/ift";
+import * as RTAExports         from "./functions/rta";
+import * as CondensateExports  from "./functions/pvt/condensate";
+import * as SRKExports         from "./functions/eos/srk";
 
 // ─── Re-export raw modules ────────────────────────────────────────────────────
 export * as P365_PVT_Gas   from "./functions/pvt/gas";
@@ -178,6 +180,14 @@ export const P365 = {
       PenelouxShift:       IFTExports.pvtPenelouxShift,
       VolumeShiftRegress:  IFTExports.pvtEoSVolumeShiftRegress,
       BinaryInteraction:   IFTExports.pvtBinaryInteractionParam,
+    },
+    Condensate: {
+      WellstreamGravity:    CondensateExports.wellstreamGravity,
+      WetGasCorrectedGravity: CondensateExports.wetGasCorrectedGravity,
+      FVF:                  CondensateExports.condensateFVF,
+      Density:              CondensateExports.condensateDensity,
+      Viscosity:            CondensateExports.condensateViscosity,
+      WhitsonC7PlusSplit:   CondensateExports.whitsonC7PlusSplit,
     },
   },
 
@@ -424,6 +434,18 @@ export const P365 = {
       Gradient: VFPExports.hasanKabirGradient,
       BHP:      VFPExports.hasanKabirBHP,
     },
+    PoettmannCarpenter: {
+      Gradient: VFPExports.poettmannCarpenterGradient,
+      BHP:      VFPExports.poettmannCarpenterBHP,
+    },
+    DunsRos: {
+      Gradient: VFPExports.dunsRosGradient,
+      BHP:      VFPExports.dunsRosBHP,
+    },
+    Orkiszewski: {
+      Gradient: VFPExports.orkiszewskiGradient,
+      BHP:      VFPExports.orkiszewskiBHP,
+    },
   },
 
   // ─── SF — Surface Facilities ───────────────────────────────────────────────
@@ -598,6 +620,16 @@ export const P365 = {
       Flash:              EoSExports.prFlash,
       WilsonK:            EoSExports.prWilsonK,
       StabilityTest:      EoSExports.prStabilityTest,
+    },
+    SRK: {
+      AB:                  SRKExports.srkAB,
+      ZFactor:             SRKExports.srkZFactor,
+      FugacityCoefficient: SRKExports.srkFugacityCoefficient,
+      MixAB:               SRKExports.srkMixAB,
+      BubblePoint:         SRKExports.srkBubblePoint,
+      DewPoint:            SRKExports.srkDewPoint,
+      Flash:               SRKExports.srkFlash,
+      PenelouxShift:       SRKExports.srkPenelouxShift,
     },
   },
 

@@ -739,3 +739,6 @@ export function prStabilityTest(
 
   return { stable, sumW_L, sumW_V, tpdL, tpdV, iterations: iter };
 }
+
+// ─── SRK Equation of State ──────────────────────────────────────────────────
+export * from './srk';

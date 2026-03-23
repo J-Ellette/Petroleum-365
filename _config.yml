@@ -1,0 +1,25 @@
+theme: jekyll-theme-minimal
+title: Petroleum 365
+description: >-
+  Professional petroleum engineering functions for Microsoft Excel.
+  220+ UDFs covering PVT, DCA, VFP, EoS, FRAC, PTA, RTA, SCAL, ECO, and more.
+
+# Site configuration
+baseurl: "/Petroleum-365"
+url: "https://j-ellette.github.io"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+
+# Navigation
+header_pages:
+  - README.md
+
+# Plugins
+plugins:
+  - jekyll-relative-links
+  - jekyll-optional-front-matter
+
+# Excel Add-in CORS headers for Office.js
+# These are also configured in netlify.toml for Netlify deployments
