@@ -39,6 +39,9 @@ import * as SKINExports   from "./functions/skin";
 import * as WBIExports    from "./functions/wbi";
 import * as SIMExports     from "./functions/sim";
 import * as EclipseExports from "./functions/eclipse";
+import * as SplineExports  from "./functions/spline";
+import * as ECOExports     from "./functions/eco";
+import * as WPAExports     from "./functions/wpa";
 
 // ─── Re-export raw modules ────────────────────────────────────────────────────
 export * as P365_PVT_Gas   from "./functions/pvt/gas";
@@ -69,6 +72,9 @@ export * as P365_SKIN      from "./functions/skin";
 export * as P365_WBI       from "./functions/wbi";
 export * as P365_SIM       from "./functions/sim";
 export * as P365_Eclipse   from "./functions/eclipse";
+export * as P365_Spline    from "./functions/spline";
+export * as P365_ECO       from "./functions/eco";
+export * as P365_WPA       from "./functions/wpa";
 export { unitConverter, getUnitsForCategory, getCategories, listUnits } from "./functions/utilities/unitConverter";
 
 // ─── P365 Namespace Object ────────────────────────────────────────────────────
@@ -818,6 +824,74 @@ export const P365 = {
     ListWellNames:        EclipseExports.listWellNames,
     FilterByTime:         EclipseExports.filterByTime,
     ExtractTimeSeries:    EclipseExports.extractTimeSeries,
+  },
+
+  // ─── Spline — Interpolation & Table Lookup ──────────────────────────────────
+  Spline: {
+    // Linear
+    Linear:              SplineExports.splineLinear,
+    LinearArray:         SplineExports.splineLinearArray,
+    // Natural cubic spline
+    CubicCoefficients:   SplineExports.splineCubicCoefficients,
+    Cubic:               SplineExports.splineCubic,
+    CubicArray:          SplineExports.splineCubicArray,
+    CubicDeriv:          SplineExports.splineCubicDeriv,
+    CubicIntegral:       SplineExports.splineCubicIntegral,
+    // Monotone PCHIP
+    PchipSlopes:         SplineExports.splinePchipSlopes,
+    Pchip:               SplineExports.splinePchip,
+    PchipArray:          SplineExports.splinePchipArray,
+    PchipInverse:        SplineExports.splinePchipInverse,
+    // Table helpers
+    Lookup:              SplineExports.splineLookup,
+    Bilinear:            SplineExports.splineBilinear,
+  },
+
+  // ─── ECO — Economic Analysis ────────────────────────────────────────────────
+  ECO: {
+    // NPV / discounted cash flow
+    NPV:                 ECOExports.ecoNPV,
+    NPVContinuous:       ECOExports.ecoNPVContinuous,
+    PV:                  ECOExports.ecoPV,
+    FV:                  ECOExports.ecoFV,
+    // Rate of return
+    IRR:                 ECOExports.ecoIRR,
+    MIRR:                ECOExports.ecoMIRR,
+    // Payout
+    PayoutSimple:        ECOExports.ecoPayoutSimple,
+    PayoutDiscounted:    ECOExports.ecoPayoutDiscounted,
+    // Economic limit
+    OilEconomicLimit:    ECOExports.ecoOilEconomicLimit,
+    GasEconomicLimit:    ECOExports.ecoGasEconomicLimit,
+    ArpsEURAtLimit:      ECOExports.ecoArpsEURAtLimit,
+    TimeToEconomicLimit: ECOExports.ecoTimeToEconomicLimit,
+    // Profitability
+    ProfitabilityIndex:  ECOExports.ecoProfitabilityIndex,
+    BreakEvenPrice:      ECOExports.ecoBreakEvenPrice,
+    // Depletion
+    UOPDepletion:        ECOExports.ecoUOPDepletion,
+    // Builders
+    BuildCashFlows:      ECOExports.ecoBuildCashFlows,
+    TornadoSensitivity:  ECOExports.ecoTornadoSensitivity,
+  },
+
+  // ─── WPA — Well Production Allocation ──────────────────────────────────────
+  WPA: {
+    // Proration methods
+    Proportional:           WPAExports.wpaProportional,
+    EqualShare:             WPAExports.wpaEqualShare,
+    PIWeighted:             WPAExports.wpaPIWeighted,
+    AOFWeighted:            WPAExports.wpaAOFWeighted,
+    CapacityCurtailment:    WPAExports.wpaCapacityCurtailment,
+    Reconcile:              WPAExports.wpaReconcile,
+    InjectorsProportional:  WPAExports.wpaInjectorsProportional,
+    // Voidage
+    VoidageRate:            WPAExports.wpaVoidageRate,
+    RequiredInjectionRate:  WPAExports.wpaRequiredInjectionRate,
+    ActualVRR:              WPAExports.wpaActualVRR,
+    // Field summary
+    FieldSummary:           WPAExports.wpaFieldSummary,
+    FieldPI:                WPAExports.wpaFieldPI,
   },
 
 } as const;
