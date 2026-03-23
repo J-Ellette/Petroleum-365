@@ -1465,6 +1465,2078 @@
       "result": {
         "dimensionality": "scalar"
       }
+    },
+    {
+      "id": "P365.PVT.PSEUDOCRITICAL.BYKAYS",
+      "name": "P365.PVT.PseudoCritical.ByKays",
+      "description": "Gas pseudo-critical properties from composition using Kay's mixing rule. Returns [Tpc (degrees R), Ppc (psia)].",
+      "parameters": [
+        {
+          "name": "yi",
+          "description": "Mole fractions array"
+        },
+        {
+          "name": "Tci",
+          "description": "Component critical temperatures (degrees R) array"
+        },
+        {
+          "name": "Pci",
+          "description": "Component critical pressures (psia) array"
+        }
+      ],
+      "result": {
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "id": "P365.PVT.SOURGAS.WICHERTAZIZ",
+      "name": "P365.PVT.SourGas.WichertAziz",
+      "description": "Wichert-Aziz (1972) sour gas correction to pseudo-critical properties. Returns [Tpc_corrected (degrees R), Ppc_corrected (psia)].",
+      "parameters": [
+        {
+          "name": "Tpc",
+          "description": "Uncorrected pseudo-critical temperature (degrees R)"
+        },
+        {
+          "name": "Ppc",
+          "description": "Uncorrected pseudo-critical pressure (psia)"
+        },
+        {
+          "name": "H2S_frac",
+          "description": "H2S mole fraction (0-1)"
+        },
+        {
+          "name": "CO2_frac",
+          "description": "CO2 mole fraction (0-1)"
+        }
+      ],
+      "result": {
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "id": "P365.PVT.UG.BYLEE",
+      "name": "P365.PVT.Ug.ByLee",
+      "description": "Gas viscosity by Lee-Gonzalez-Eakin (1966) correlation (cp).",
+      "parameters": [
+        {
+          "name": "T_F",
+          "description": "Temperature (degrees F)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "MW",
+          "description": "Gas molecular weight (lb/lb-mol)"
+        },
+        {
+          "name": "Z",
+          "description": "Gas Z-factor (dimensionless)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PVT.DENSITY.GAS",
+      "name": "P365.PVT.Density.Gas",
+      "description": "Gas density (lb/ft3) from Z-factor, pressure, temperature, and molecular weight.",
+      "parameters": [
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "T_F",
+          "description": "Temperature (degrees F)"
+        },
+        {
+          "name": "MW",
+          "description": "Gas molecular weight (lb/lb-mol)"
+        },
+        {
+          "name": "Z",
+          "description": "Gas Z-factor"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PVT.CG.GAS",
+      "name": "P365.PVT.Cg.Gas",
+      "description": "Gas compressibility (1/psi) at given conditions using numerical dZ/dP method.",
+      "parameters": [
+        {
+          "name": "T_F",
+          "description": "Temperature (degrees F)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "Tpc",
+          "description": "Pseudo-critical temperature (degrees R)"
+        },
+        {
+          "name": "Ppc",
+          "description": "Pseudo-critical pressure (psia)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PVT.SG.OIL.TOAPI",
+      "name": "P365.PVT.SG.Oil.ToAPI",
+      "description": "Convert oil specific gravity to API gravity.",
+      "parameters": [
+        {
+          "name": "sg",
+          "description": "Oil specific gravity (water=1.0)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PVT.RS.BYSTANDING",
+      "name": "P365.PVT.Rs.ByStanding",
+      "description": "Solution GOR (scf/STB) by Standing (1947) correlation at given pressure.",
+      "parameters": [
+        {
+          "name": "sg_g",
+          "description": "Gas specific gravity (air=1.0)"
+        },
+        {
+          "name": "API",
+          "description": "Oil API gravity (degrees API)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "T_F",
+          "description": "Temperature (degrees F)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PVT.RS.BYVASQUEZBEGGS",
+      "name": "P365.PVT.Rs.ByVasquezBeggs",
+      "description": "Solution GOR (scf/STB) by Vasquez-Beggs (1980) correlation.",
+      "parameters": [
+        {
+          "name": "sg_g",
+          "description": "Gas specific gravity (air=1.0)"
+        },
+        {
+          "name": "API",
+          "description": "Oil API gravity (degrees API)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "T_F",
+          "description": "Temperature (degrees F)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PVT.BO.SAT.BYSTANDING",
+      "name": "P365.PVT.Bo.Sat.ByStanding",
+      "description": "Saturated oil FVF (bbl/STB) at or below bubble point by Standing (1947).",
+      "parameters": [
+        {
+          "name": "sg_g",
+          "description": "Gas specific gravity (air=1.0)"
+        },
+        {
+          "name": "API",
+          "description": "Oil API gravity (degrees API)"
+        },
+        {
+          "name": "Rs",
+          "description": "Solution GOR (scf/STB)"
+        },
+        {
+          "name": "T_F",
+          "description": "Temperature (degrees F)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PVT.BO.SAT.BYVASQUEZBEGGS",
+      "name": "P365.PVT.Bo.Sat.ByVasquezBeggs",
+      "description": "Saturated oil FVF (bbl/STB) at or below bubble point by Vasquez-Beggs (1980).",
+      "parameters": [
+        {
+          "name": "sg_g",
+          "description": "Gas specific gravity (air=1.0)"
+        },
+        {
+          "name": "API",
+          "description": "Oil API gravity (degrees API)"
+        },
+        {
+          "name": "Rs",
+          "description": "Solution GOR (scf/STB)"
+        },
+        {
+          "name": "T_F",
+          "description": "Temperature (degrees F)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PVT.BO.UNDERSAT",
+      "name": "P365.PVT.Bo.Undersat",
+      "description": "Undersaturated oil FVF (bbl/STB) above bubble point using compressibility correction.",
+      "parameters": [
+        {
+          "name": "Bo_pb",
+          "description": "FVF at bubble point (bbl/STB)"
+        },
+        {
+          "name": "Co",
+          "description": "Oil compressibility (1/psi)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Current pressure (psia)"
+        },
+        {
+          "name": "Pb_psia",
+          "description": "Bubble point pressure (psia)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PVT.CO.BYVASQUEZBEGGS",
+      "name": "P365.PVT.Co.ByVasquezBeggs",
+      "description": "Oil compressibility (1/psi) above bubble point by Vasquez-Beggs (1980).",
+      "parameters": [
+        {
+          "name": "sg_g",
+          "description": "Gas specific gravity (air=1.0)"
+        },
+        {
+          "name": "API",
+          "description": "Oil API gravity (degrees API)"
+        },
+        {
+          "name": "Rs_pb",
+          "description": "Solution GOR at bubble point (scf/STB)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "T_F",
+          "description": "Temperature (degrees F)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PVT.UO.DEAD.BYBEAL",
+      "name": "P365.PVT.Uo.Dead.ByBeal",
+      "description": "Dead oil viscosity (cp) at reservoir temperature by Beal (1946) correlation.",
+      "parameters": [
+        {
+          "name": "API",
+          "description": "Oil API gravity (degrees API)"
+        },
+        {
+          "name": "T_F",
+          "description": "Temperature (degrees F)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PVT.UO.SAT.BYBEGGSROBINSON",
+      "name": "P365.PVT.Uo.Sat.ByBeggsRobinson",
+      "description": "Saturated oil viscosity (cp) by Beggs-Robinson (1975) correlation.",
+      "parameters": [
+        {
+          "name": "Uod",
+          "description": "Dead oil viscosity (cp)"
+        },
+        {
+          "name": "Rs",
+          "description": "Solution GOR (scf/STB)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PVT.BW",
+      "name": "P365.PVT.Bw",
+      "description": "Water formation volume factor (bbl/STB) by McCain (1990) correlation.",
+      "parameters": [
+        {
+          "name": "T_F",
+          "description": "Temperature (degrees F)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PVT.UW",
+      "name": "P365.PVT.Uw",
+      "description": "Water viscosity (cp) by McCain (1990) correlation.",
+      "parameters": [
+        {
+          "name": "T_F",
+          "description": "Temperature (degrees F)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "salinity_ppm",
+          "description": "Water salinity (ppm TDS, default 0)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PVT.CW",
+      "name": "P365.PVT.Cw",
+      "description": "Water compressibility (1/psi) by McCain (1990) correlation.",
+      "parameters": [
+        {
+          "name": "T_F",
+          "description": "Temperature (degrees F)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "salinity_ppm",
+          "description": "Water salinity (ppm TDS, default 0)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.IPR.PI",
+      "name": "P365.IPR.PI",
+      "description": "Productivity Index PI = q / (Pr - Pwf) (STB/d/psi or Mscfd/psi).",
+      "parameters": [
+        {
+          "name": "q",
+          "description": "Production rate (STB/d or Mscfd)"
+        },
+        {
+          "name": "Pr",
+          "description": "Reservoir pressure (psia)"
+        },
+        {
+          "name": "Pwf",
+          "description": "Flowing bottomhole pressure (psia)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.IPR.RATE.DARCY",
+      "name": "P365.IPR.Rate.Darcy",
+      "description": "Darcy inflow rate q = PI x (Pr - Pwf).",
+      "parameters": [
+        {
+          "name": "PI",
+          "description": "Productivity Index (STB/d/psi)"
+        },
+        {
+          "name": "Pr",
+          "description": "Reservoir pressure (psia)"
+        },
+        {
+          "name": "Pwf",
+          "description": "Flowing bottomhole pressure (psia)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.IPR.PI.PSS",
+      "name": "P365.IPR.PI.PSS",
+      "description": "Pseudo-steady-state PI: kh / [141.2 x mu x Bo x (ln(re/rw) - 0.75 + S)] (STB/d/psi).",
+      "parameters": [
+        {
+          "name": "k_md",
+          "description": "Permeability (md)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay thickness (ft)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Oil viscosity (cp)"
+        },
+        {
+          "name": "Bo",
+          "description": "Oil FVF (bbl/STB)"
+        },
+        {
+          "name": "re_ft",
+          "description": "Drainage radius (ft)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "skin",
+          "description": "Skin factor (dimensionless)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.IPR.RATE.VOGEL",
+      "name": "P365.IPR.Rate.Vogel",
+      "description": "Vogel (1968) IPR rate below bubble point: q = Qmax x [1 - 0.2 x (Pwf/Pr) - 0.8 x (Pwf/Pr)^2] (STB/d).",
+      "parameters": [
+        {
+          "name": "Pr",
+          "description": "Reservoir pressure (psia)"
+        },
+        {
+          "name": "Qmax",
+          "description": "Maximum flow rate (STB/d)"
+        },
+        {
+          "name": "Pwf",
+          "description": "Flowing bottomhole pressure (psia)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.IPR.QMAX.VOGEL",
+      "name": "P365.IPR.Qmax.Vogel",
+      "description": "Vogel back-calculation of Qmax from a test rate at a given Pwf.",
+      "parameters": [
+        {
+          "name": "Pr",
+          "description": "Reservoir pressure (psia)"
+        },
+        {
+          "name": "Pwf_test",
+          "description": "Test flowing bottomhole pressure (psia)"
+        },
+        {
+          "name": "q_test",
+          "description": "Test production rate (STB/d)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.IPR.RATE.COMPOSITE",
+      "name": "P365.IPR.Rate.Composite",
+      "description": "Composite IPR (Darcy above Pb + Vogel below Pb). Returns rate at given Pwf (STB/d).",
+      "parameters": [
+        {
+          "name": "Pr",
+          "description": "Reservoir pressure (psia)"
+        },
+        {
+          "name": "Pb",
+          "description": "Bubble point pressure (psia)"
+        },
+        {
+          "name": "PI",
+          "description": "Productivity index above bubble point (STB/d/psi)"
+        },
+        {
+          "name": "Pwf",
+          "description": "Flowing bottomhole pressure (psia)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.IPR.RATE.FETKOVICH",
+      "name": "P365.IPR.Rate.Fetkovich",
+      "description": "Fetkovich empirical backpressure IPR: q = C x (Pr^2 - Pwf^2)^n (Mscfd).",
+      "parameters": [
+        {
+          "name": "C",
+          "description": "Backpressure coefficient"
+        },
+        {
+          "name": "n",
+          "description": "Backpressure exponent (0.5-1.0)"
+        },
+        {
+          "name": "Pr",
+          "description": "Reservoir pressure (psia)"
+        },
+        {
+          "name": "Pwf",
+          "description": "Flowing bottomhole pressure (psia)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.IPR.RATE.GASDARCY",
+      "name": "P365.IPR.Rate.GasDarcy",
+      "description": "Gas well Darcy deliverability (PSS, field units). Returns rate (Mscfd).",
+      "parameters": [
+        {
+          "name": "k_md",
+          "description": "Permeability (md)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay (ft)"
+        },
+        {
+          "name": "T_F",
+          "description": "Reservoir temperature (degrees F)"
+        },
+        {
+          "name": "Z",
+          "description": "Average Z-factor"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Gas viscosity (cp)"
+        },
+        {
+          "name": "Pr",
+          "description": "Reservoir pressure (psia)"
+        },
+        {
+          "name": "Pwf",
+          "description": "Flowing BHP (psia)"
+        },
+        {
+          "name": "re_ft",
+          "description": "Drainage radius (ft)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "skin",
+          "description": "Skin factor"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.IPR.PI.HORIZONTAL.JOSHI",
+      "name": "P365.IPR.PI.Horizontal.Joshi",
+      "description": "Horizontal well PI by Joshi (1988) correlation (STB/d/psi).",
+      "parameters": [
+        {
+          "name": "k_md",
+          "description": "Average permeability (md)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay (ft)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Oil viscosity (cp)"
+        },
+        {
+          "name": "Bo",
+          "description": "Oil FVF (bbl/STB)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Horizontal well length (ft)"
+        },
+        {
+          "name": "reh_ft",
+          "description": "Drainage radius in horizontal plane (ft)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "skin",
+          "description": "Skin factor"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.MBE.GAS.PZ",
+      "name": "P365.MBE.Gas.PZ",
+      "description": "Gas reservoir p/Z ratio from reservoir pressure and Z-factor.",
+      "parameters": [
+        {
+          "name": "p",
+          "description": "Reservoir pressure (psia)"
+        },
+        {
+          "name": "Z",
+          "description": "Gas Z-factor (dimensionless)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.MBE.GAS.OGIP.TWOPOINT",
+      "name": "P365.MBE.Gas.OGIP.TwoPoint",
+      "description": "OGIP from two-point p/Z MBE regression (Mscf or Bcf).",
+      "parameters": [
+        {
+          "name": "pi_over_Zi",
+          "description": "Initial p/Z (psia)"
+        },
+        {
+          "name": "p1_over_Z1",
+          "description": "p/Z at Gp1 (psia)"
+        },
+        {
+          "name": "Gp1",
+          "description": "Cumulative gas produced at point 1 (Mscf)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.MBE.GAS.PRESSURE.FORECAST",
+      "name": "P365.MBE.Gas.Pressure.Forecast",
+      "description": "Forecast reservoir pressure at cumulative gas production Gp using p/Z MBE.",
+      "parameters": [
+        {
+          "name": "pi_over_Zi",
+          "description": "Initial p/Z (psia)"
+        },
+        {
+          "name": "OGIP",
+          "description": "Original gas in place (Mscf)"
+        },
+        {
+          "name": "Gp",
+          "description": "Cumulative gas produced (Mscf)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.MBE.OIL.EO",
+      "name": "P365.MBE.Oil.Eo",
+      "description": "Oil expansion term Eo (bbl/STB) for oil MBE.",
+      "parameters": [
+        {
+          "name": "Bo",
+          "description": "Current oil FVF (bbl/STB)"
+        },
+        {
+          "name": "Boi",
+          "description": "Initial oil FVF (bbl/STB)"
+        },
+        {
+          "name": "Rs",
+          "description": "Current solution GOR (scf/STB)"
+        },
+        {
+          "name": "Rsi",
+          "description": "Initial solution GOR (scf/STB)"
+        },
+        {
+          "name": "Bg",
+          "description": "Gas FVF (bbl/Mscf)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.MBE.OIL.F",
+      "name": "P365.MBE.Oil.F",
+      "description": "Underground withdrawal F (reservoir bbl) from oil, water, gas production.",
+      "parameters": [
+        {
+          "name": "Np",
+          "description": "Cumulative oil produced (STB)"
+        },
+        {
+          "name": "Bo",
+          "description": "Oil FVF (bbl/STB)"
+        },
+        {
+          "name": "Rs",
+          "description": "Solution GOR (scf/STB)"
+        },
+        {
+          "name": "Rsi",
+          "description": "Initial solution GOR (scf/STB)"
+        },
+        {
+          "name": "Bg",
+          "description": "Gas FVF (bbl/Mscf)"
+        },
+        {
+          "name": "Gp",
+          "description": "Cumulative gas produced (Mscf)"
+        },
+        {
+          "name": "Wp",
+          "description": "Cumulative water produced (STB)"
+        },
+        {
+          "name": "Bw",
+          "description": "Water FVF (bbl/STB)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.MBE.OIL.HAVLENAODEH",
+      "name": "P365.MBE.Oil.HavlenaOdeh",
+      "description": "Havlena-Odeh (1963) straight-line MBE. Returns [OOIP (STB), gas cap fraction m, R2].",
+      "parameters": [
+        {
+          "name": "F_arr",
+          "description": "Array of underground withdrawals F (res bbl)"
+        },
+        {
+          "name": "Eo_arr",
+          "description": "Array of oil expansion terms Eo (bbl/STB)"
+        },
+        {
+          "name": "Eg_arr",
+          "description": "Array of gas cap expansion terms Eg (bbl/STB)"
+        },
+        {
+          "name": "Efw_arr",
+          "description": "Array of formation/water expansion terms Efw (bbl/STB)"
+        }
+      ],
+      "result": {
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "id": "P365.MBE.OIL.DRIVEINDICES",
+      "name": "P365.MBE.Oil.DriveIndices",
+      "description": "Calculate drive mechanism indices: solution gas, gas cap, water, compressibility. Returns [Iso, Ig, Iw, Ic].",
+      "parameters": [
+        {
+          "name": "N",
+          "description": "OOIP (STB)"
+        },
+        {
+          "name": "Eo",
+          "description": "Oil expansion term (bbl/STB)"
+        },
+        {
+          "name": "m",
+          "description": "Gas cap fraction (dimensionless)"
+        },
+        {
+          "name": "Eg",
+          "description": "Gas cap expansion term (bbl/STB)"
+        },
+        {
+          "name": "Efw",
+          "description": "Formation/water expansion term (bbl/STB)"
+        },
+        {
+          "name": "We",
+          "description": "Aquifer water influx (bbl)"
+        },
+        {
+          "name": "Bw",
+          "description": "Water FVF (bbl/STB)"
+        },
+        {
+          "name": "Wp",
+          "description": "Cumulative water produced (STB)"
+        },
+        {
+          "name": "F",
+          "description": "Underground withdrawal (res bbl)"
+        }
+      ],
+      "result": {
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "id": "P365.PTA.DRAWDOWN.PWF",
+      "name": "P365.PTA.Drawdown.Pwf",
+      "description": "Drawdown flowing BHP by semilog (MDH) approximation (psia).",
+      "parameters": [
+        {
+          "name": "Pi",
+          "description": "Initial reservoir pressure (psia)"
+        },
+        {
+          "name": "q",
+          "description": "Production rate (STB/d)"
+        },
+        {
+          "name": "mu",
+          "description": "Oil viscosity (cp)"
+        },
+        {
+          "name": "Bo",
+          "description": "Oil FVF (bbl/STB)"
+        },
+        {
+          "name": "k",
+          "description": "Permeability (md)"
+        },
+        {
+          "name": "h",
+          "description": "Net pay (ft)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "ct",
+          "description": "Total compressibility (1/psi)"
+        },
+        {
+          "name": "rw",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "skin",
+          "description": "Skin factor"
+        },
+        {
+          "name": "t_hr",
+          "description": "Time (hours)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PTA.HORNER.PERMEABILITY",
+      "name": "P365.PTA.Horner.Permeability",
+      "description": "Permeability from Horner buildup slope: k = 162.6 x q x mu x Bo / (m x h) (md).",
+      "parameters": [
+        {
+          "name": "q",
+          "description": "Pre-shut-in production rate (STB/d)"
+        },
+        {
+          "name": "mu",
+          "description": "Oil viscosity (cp)"
+        },
+        {
+          "name": "Bo",
+          "description": "Oil FVF (bbl/STB)"
+        },
+        {
+          "name": "m",
+          "description": "Horner semilog slope (psi/cycle)"
+        },
+        {
+          "name": "h",
+          "description": "Net pay (ft)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PTA.HORNER.SKIN",
+      "name": "P365.PTA.Horner.Skin",
+      "description": "Skin from Horner buildup analysis (dimensionless).",
+      "parameters": [
+        {
+          "name": "P1hr",
+          "description": "Pressure at 1 hour on Horner plot (psia)"
+        },
+        {
+          "name": "Pwf",
+          "description": "Shut-in wellbore pressure at dt=0 (psia)"
+        },
+        {
+          "name": "m",
+          "description": "Horner semilog slope (psi/cycle)"
+        },
+        {
+          "name": "k",
+          "description": "Permeability (md)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "mu",
+          "description": "Oil viscosity (cp)"
+        },
+        {
+          "name": "ct",
+          "description": "Total compressibility (1/psi)"
+        },
+        {
+          "name": "rw",
+          "description": "Wellbore radius (ft)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PTA.HORNER.PSTAR",
+      "name": "P365.PTA.Horner.Pstar",
+      "description": "Extrapolated initial reservoir pressure P* from Horner plot (psia).",
+      "parameters": [
+        {
+          "name": "Pws_arr",
+          "description": "Array of shut-in pressures (psia)"
+        },
+        {
+          "name": "HTR_arr",
+          "description": "Array of Horner time ratios (tp+dt)/dt"
+        },
+        {
+          "name": "m",
+          "description": "Horner semilog slope (psi/cycle)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PTA.BOURDET.DERIVATIVE",
+      "name": "P365.PTA.Bourdet.Derivative",
+      "description": "Bourdet pressure derivative dp/d(ln t) array - key diagnostic for flow regime identification.",
+      "parameters": [
+        {
+          "name": "t_arr",
+          "description": "Time array (hours)"
+        },
+        {
+          "name": "p_arr",
+          "description": "Pressure array (psia)"
+        },
+        {
+          "name": "L",
+          "description": "Smoothing parameter (0.1-0.3 typical, 0 for no smoothing)"
+        }
+      ],
+      "result": {
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "id": "P365.PTA.WBS.COEFFICIENT",
+      "name": "P365.PTA.WBS.Coefficient",
+      "description": "Wellbore storage coefficient C (bbl/psi) from wellbore fluid compressibility and volume.",
+      "parameters": [
+        {
+          "name": "V_wb",
+          "description": "Wellbore fluid volume (bbl)"
+        },
+        {
+          "name": "ct_wb",
+          "description": "Wellbore fluid compressibility (1/psi)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.PTA.FAULT.BUILDUP",
+      "name": "P365.PTA.Fault.Buildup",
+      "description": "Buildup pressure near sealing fault using image well method (psia).",
+      "parameters": [
+        {
+          "name": "Pi",
+          "description": "Initial reservoir pressure (psia)"
+        },
+        {
+          "name": "q",
+          "description": "Pre-shut-in rate (STB/d)"
+        },
+        {
+          "name": "mu",
+          "description": "Viscosity (cp)"
+        },
+        {
+          "name": "Bo",
+          "description": "FVF (bbl/STB)"
+        },
+        {
+          "name": "k",
+          "description": "Permeability (md)"
+        },
+        {
+          "name": "h",
+          "description": "Net pay (ft)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "ct",
+          "description": "Total compressibility (1/psi)"
+        },
+        {
+          "name": "rw",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "L_fault",
+          "description": "Distance to fault (ft)"
+        },
+        {
+          "name": "tp_hr",
+          "description": "Production time (hours)"
+        },
+        {
+          "name": "dt_hr",
+          "description": "Shut-in time (hours)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.GEO.POREPRESSURE.EATON",
+      "name": "P365.GEO.PorePressure.Eaton",
+      "description": "Eaton (1975) pore pressure prediction from sonic transit time (psia).",
+      "parameters": [
+        {
+          "name": "depth_ft",
+          "description": "Depth (ft)"
+        },
+        {
+          "name": "obStress_psi",
+          "description": "Overburden stress (psi)"
+        },
+        {
+          "name": "normalPP_psi",
+          "description": "Normal (hydrostatic) pore pressure (psi)"
+        },
+        {
+          "name": "dtObserved",
+          "description": "Observed sonic transit time (us/ft)"
+        },
+        {
+          "name": "dtNormal",
+          "description": "Normal compaction transit time (us/ft)"
+        },
+        {
+          "name": "exponent",
+          "description": "Eaton exponent (default 3.0)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.GEO.FRACTUREGRADIENT.EATON",
+      "name": "P365.GEO.FractureGradient.Eaton",
+      "description": "Eaton (1975) fracture gradient (psi/ft) - most widely used method.",
+      "parameters": [
+        {
+          "name": "depth_ft",
+          "description": "Depth (ft)"
+        },
+        {
+          "name": "obGradient_psift",
+          "description": "Overburden gradient (psi/ft)"
+        },
+        {
+          "name": "ppGradient_psift",
+          "description": "Pore pressure gradient (psi/ft)"
+        },
+        {
+          "name": "nu",
+          "description": "Poisson's ratio (0-0.5)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.GEO.MUDWINDOW",
+      "name": "P365.GEO.MudWindow",
+      "description": "Drilling mud weight window [min collapse, min kick, max fracture, max overburden] (ppg).",
+      "parameters": [
+        {
+          "name": "depth_ft",
+          "description": "Depth (ft)"
+        },
+        {
+          "name": "ppGradient_psift",
+          "description": "Pore pressure gradient (psi/ft)"
+        },
+        {
+          "name": "fgGradient_psift",
+          "description": "Fracture gradient (psi/ft)"
+        },
+        {
+          "name": "collapseGradient_psift",
+          "description": "Wellbore collapse gradient (psi/ft)"
+        },
+        {
+          "name": "obGradient_psift",
+          "description": "Overburden gradient (psi/ft)"
+        }
+      ],
+      "result": {
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "id": "P365.GEO.MINHORIZONTALSTRESS",
+      "name": "P365.GEO.MinHorizontalStress",
+      "description": "Minimum horizontal stress (psi) using Eaton uniaxial strain and poroelastic correction.",
+      "parameters": [
+        {
+          "name": "nu",
+          "description": "Poisson's ratio (fraction)"
+        },
+        {
+          "name": "sigma_v",
+          "description": "Vertical (overburden) stress (psi)"
+        },
+        {
+          "name": "Pp",
+          "description": "Pore pressure (psi)"
+        },
+        {
+          "name": "alpha",
+          "description": "Biot coefficient (0-1)"
+        },
+        {
+          "name": "sigma_tect",
+          "description": "Tectonic stress addition (psi, use 0 if unknown)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.GEO.UCS.FROMYOUNGSMODULUS",
+      "name": "P365.GEO.UCS.FromYoungsModulus",
+      "description": "Unconfined compressive strength UCS (MPa) from dynamic Young's modulus - Chang et al. correlation.",
+      "parameters": [
+        {
+          "name": "dynamicYoungsModulus_GPa",
+          "description": "Dynamic Young's modulus (GPa)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.GEO.MOHRCOULOMB",
+      "name": "P365.GEO.MohrCoulomb",
+      "description": "Mohr-Coulomb shear strength (psi): tau = C + sigma_n x tan(phi).",
+      "parameters": [
+        {
+          "name": "cohesion_psi",
+          "description": "Cohesion C (psi)"
+        },
+        {
+          "name": "frictionAngle_deg",
+          "description": "Internal friction angle phi (degrees)"
+        },
+        {
+          "name": "normalStress_psi",
+          "description": "Normal stress sigma_n (psi)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SKIN.HAWKINS",
+      "name": "P365.SKIN.Hawkins",
+      "description": "Hawkins (1956) damage skin: S = (k/ks - 1) x ln(rs/rw).",
+      "parameters": [
+        {
+          "name": "k",
+          "description": "Reservoir permeability (md)"
+        },
+        {
+          "name": "ks",
+          "description": "Damaged zone permeability (md)"
+        },
+        {
+          "name": "rs",
+          "description": "Damage radius (ft)"
+        },
+        {
+          "name": "rw",
+          "description": "Wellbore radius (ft)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SKIN.PERFORATION.KARAKASTARIA",
+      "name": "P365.SKIN.Perforation.KarakasTariq",
+      "description": "Karakas-Tariq (1991) perforation skin from phasing, SPF, penetration depth, wellbore and damaged zone parameters.",
+      "parameters": [
+        {
+          "name": "phasing_deg",
+          "description": "Perforation phasing (0, 45, 60, 90, 120, or 180 degrees)"
+        },
+        {
+          "name": "SPF",
+          "description": "Shots per foot"
+        },
+        {
+          "name": "Lp_ft",
+          "description": "Perforation penetration depth (ft)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "kH",
+          "description": "Horizontal permeability (md)"
+        },
+        {
+          "name": "kV",
+          "description": "Vertical permeability (md)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay thickness (ft)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SKIN.NONDARCYD",
+      "name": "P365.SKIN.NonDarcyD",
+      "description": "Non-Darcy rate coefficient D ((Mscfd)^-1) for turbulent skin in gas wells.",
+      "parameters": [
+        {
+          "name": "k_md",
+          "description": "Permeability (md)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay (ft)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Gas viscosity (cp)"
+        },
+        {
+          "name": "Bg",
+          "description": "Gas FVF (res cf/scf)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SKIN.NONDARCYSKIN",
+      "name": "P365.SKIN.NonDarcySkin",
+      "description": "Rate-dependent (non-Darcy) skin contribution: S_nd = D x q.",
+      "parameters": [
+        {
+          "name": "D_coeff",
+          "description": "Non-Darcy coefficient D ((Mscfd)^-1)"
+        },
+        {
+          "name": "q_Mscfd",
+          "description": "Gas rate (Mscfd)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SKIN.PARTIALPENETRATION",
+      "name": "P365.SKIN.PartialPenetration",
+      "description": "Papatzacos (1987) partial penetration skin for incomplete perforation interval.",
+      "parameters": [
+        {
+          "name": "h_ft",
+          "description": "Total net pay (ft)"
+        },
+        {
+          "name": "hp_ft",
+          "description": "Perforated interval (ft)"
+        },
+        {
+          "name": "zw_ft",
+          "description": "Mid-perforation depth from top of pay (ft)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "kH_md",
+          "description": "Horizontal permeability (md)"
+        },
+        {
+          "name": "kV_md",
+          "description": "Vertical permeability (md)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SKIN.TOTAL",
+      "name": "P365.SKIN.Total",
+      "description": "Composite total skin = Hawkins damage + perforations + non-Darcy + partial penetration + gravel pack.",
+      "parameters": [
+        {
+          "name": "S_damage",
+          "description": "Hawkins damage skin"
+        },
+        {
+          "name": "S_perf",
+          "description": "Perforation skin"
+        },
+        {
+          "name": "S_nondarcy",
+          "description": "Non-Darcy rate-dependent skin"
+        },
+        {
+          "name": "S_partial",
+          "description": "Partial penetration skin"
+        },
+        {
+          "name": "S_gp",
+          "description": "Gravel pack skin (0 if absent)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SKIN.STIMULATIONRATIO",
+      "name": "P365.SKIN.StimulationRatio",
+      "description": "Post/pre-stimulation PI ratio: SR = (ln(re/rw) - 0.75 + S_pre) / (ln(re/rw) - 0.75 + S_post).",
+      "parameters": [
+        {
+          "name": "re_ft",
+          "description": "Drainage radius (ft)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "S_pre",
+          "description": "Pre-stimulation skin factor"
+        },
+        {
+          "name": "S_post",
+          "description": "Post-stimulation skin factor"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.HV.HHV",
+      "name": "P365.HV.HHV",
+      "description": "Higher Heating Value (BTU/scf) of a gas mixture by GPA 2145 component data.",
+      "parameters": [
+        {
+          "name": "yi",
+          "description": "Mole fractions array"
+        },
+        {
+          "name": "components",
+          "description": "Component name strings array (e.g. C1, C2, N2, CO2)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.HV.LHV",
+      "name": "P365.HV.LHV",
+      "description": "Lower Heating Value (BTU/scf) of a gas mixture by GPA 2145 component data.",
+      "parameters": [
+        {
+          "name": "yi",
+          "description": "Mole fractions array"
+        },
+        {
+          "name": "components",
+          "description": "Component name strings array"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.HV.WOBBE",
+      "name": "P365.HV.Wobbe",
+      "description": "Wobbe Index = HHV / sqrt(SG) (BTU/scf). Higher Wobbe means more energy per unit volume through a fixed orifice.",
+      "parameters": [
+        {
+          "name": "hhv_BTUscf",
+          "description": "Higher Heating Value (BTU/scf)"
+        },
+        {
+          "name": "sg",
+          "description": "Gas specific gravity (air=1.0)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.HV.ANALYSIS",
+      "name": "P365.HV.Analysis",
+      "description": "Complete gas composition analysis. Returns [MW, SG, HHV (BTU/scf), LHV (BTU/scf), Wobbe].",
+      "parameters": [
+        {
+          "name": "yi",
+          "description": "Mole fractions array"
+        },
+        {
+          "name": "components",
+          "description": "Component name strings array"
+        }
+      ],
+      "result": {
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "id": "P365.AGA8.Z",
+      "name": "P365.AGA8.Z",
+      "description": "AGA-8 (1994) Z-factor for custody transfer gas metering (SI: MPa, K).",
+      "parameters": [
+        {
+          "name": "P_MPa",
+          "description": "Pressure (MPa)"
+        },
+        {
+          "name": "T_K",
+          "description": "Temperature (K)"
+        },
+        {
+          "name": "yi",
+          "description": "Mole fractions array"
+        },
+        {
+          "name": "components",
+          "description": "Component name strings array"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.AGA8.Z.FIELDUNITS",
+      "name": "P365.AGA8.Z.FieldUnits",
+      "description": "AGA-8 Z-factor in field units (psia, degrees F). Wrapper around the SI AGA-8 implementation.",
+      "parameters": [
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "T_F",
+          "description": "Temperature (degrees F)"
+        },
+        {
+          "name": "yi",
+          "description": "Mole fractions array"
+        },
+        {
+          "name": "components",
+          "description": "Component name strings array"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.VFP.BEGGSBRILLBHP",
+      "name": "P365.VFP.BeggsBrillBHP",
+      "description": "Beggs-Brill (1973) bottomhole pressure for multiphase vertical/deviated flow (psia).",
+      "parameters": [
+        {
+          "name": "Pwh_psia",
+          "description": "Wellhead pressure (psia)"
+        },
+        {
+          "name": "depth_ft",
+          "description": "True vertical depth (ft)"
+        },
+        {
+          "name": "qo_STBd",
+          "description": "Oil rate (STB/d)"
+        },
+        {
+          "name": "qw_STBd",
+          "description": "Water rate (STB/d)"
+        },
+        {
+          "name": "qg_Mscfd",
+          "description": "Gas rate (Mscfd)"
+        },
+        {
+          "name": "P_avg_psia",
+          "description": "Average pressure for fluid properties (psia)"
+        },
+        {
+          "name": "T_avg_F",
+          "description": "Average temperature (degrees F)"
+        },
+        {
+          "name": "sg_g",
+          "description": "Gas specific gravity (air=1.0)"
+        },
+        {
+          "name": "API",
+          "description": "Oil API gravity"
+        },
+        {
+          "name": "WC",
+          "description": "Water cut (fraction 0-1)"
+        },
+        {
+          "name": "ID_in",
+          "description": "Tubing ID (inches)"
+        },
+        {
+          "name": "angle_deg",
+          "description": "Inclination from horizontal (90=vertical)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.VFP.TURNER.CRITICALVELOCITY",
+      "name": "P365.VFP.Turner.CriticalVelocity",
+      "description": "Turner et al. (1969) critical gas velocity for liquid unloading (ft/s).",
+      "parameters": [
+        {
+          "name": "sigma_dynes_cm",
+          "description": "Liquid surface tension (dynes/cm)"
+        },
+        {
+          "name": "rho_L_lbcf",
+          "description": "Liquid density (lb/ft3)"
+        },
+        {
+          "name": "rho_g_lbcf",
+          "description": "Gas density (lb/ft3)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.VFP.TURNER.MINCRITICALRATE",
+      "name": "P365.VFP.Turner.MinCriticalRate",
+      "description": "Minimum gas rate for liquid unloading (Mscfd) from Turner critical velocity.",
+      "parameters": [
+        {
+          "name": "v_crit_fps",
+          "description": "Critical velocity (ft/s)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Wellhead pressure (psia)"
+        },
+        {
+          "name": "T_F",
+          "description": "Average temperature (degrees F)"
+        },
+        {
+          "name": "Z",
+          "description": "Gas Z-factor"
+        },
+        {
+          "name": "ID_in",
+          "description": "Tubing ID (inches)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SF.CHOKE.RATE",
+      "name": "P365.SF.Choke.Rate",
+      "description": "Choke flow rate (STB/d) using a selectable critical flow correlation (Gilbert, Ros, Baxendell, Achong, Pilehvari).",
+      "parameters": [
+        {
+          "name": "Pu_psia",
+          "description": "Upstream (tubing) pressure (psia)"
+        },
+        {
+          "name": "GLR",
+          "description": "Producing GLR (scf/STB)"
+        },
+        {
+          "name": "bean_64ths",
+          "description": "Choke bean size (64ths of an inch)"
+        },
+        {
+          "name": "correlation",
+          "description": "Correlation name: Gilbert, Ros, Baxendell, Achong, or Pilehvari"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SF.COMPRESSOR.POWER",
+      "name": "P365.SF.Compressor.Power",
+      "description": "Compressor polytropic power (hp) for gas compression.",
+      "parameters": [
+        {
+          "name": "qg_Mscfd",
+          "description": "Gas flow rate (Mscfd)"
+        },
+        {
+          "name": "Pi_psia",
+          "description": "Suction pressure (psia)"
+        },
+        {
+          "name": "Pd_psia",
+          "description": "Discharge pressure (psia)"
+        },
+        {
+          "name": "T_suction_F",
+          "description": "Suction temperature (degrees F)"
+        },
+        {
+          "name": "Z_avg",
+          "description": "Average Z-factor"
+        },
+        {
+          "name": "eta_p",
+          "description": "Polytropic efficiency (fraction, e.g. 0.85)"
+        },
+        {
+          "name": "gamma",
+          "description": "Specific heat ratio Cp/Cv (e.g. 1.3 for natural gas)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SCAL.COREY.KRW",
+      "name": "P365.SCAL.Corey.Krw",
+      "description": "Corey power-law water relative permeability krw at water saturation Sw.",
+      "parameters": [
+        {
+          "name": "Sw",
+          "description": "Water saturation (fraction)"
+        },
+        {
+          "name": "Swc",
+          "description": "Connate water saturation (fraction)"
+        },
+        {
+          "name": "Sor",
+          "description": "Residual oil saturation (fraction)"
+        },
+        {
+          "name": "krw_max",
+          "description": "Max krw at Sor (fraction)"
+        },
+        {
+          "name": "nw",
+          "description": "Corey water exponent"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SCAL.COREY.KRO",
+      "name": "P365.SCAL.Corey.Kro",
+      "description": "Corey power-law oil relative permeability kro at water saturation Sw.",
+      "parameters": [
+        {
+          "name": "Sw",
+          "description": "Water saturation (fraction)"
+        },
+        {
+          "name": "Swc",
+          "description": "Connate water saturation (fraction)"
+        },
+        {
+          "name": "Sor",
+          "description": "Residual oil saturation (fraction)"
+        },
+        {
+          "name": "kro_max",
+          "description": "Max kro at Swc (fraction)"
+        },
+        {
+          "name": "no",
+          "description": "Corey oil exponent"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SCAL.LEVERETTJ",
+      "name": "P365.SCAL.LeverettJ",
+      "description": "Leverett J-function: J = Pc x sqrt(k/phi) / (sigma x cos(theta)). Used for cross-rock capillary pressure scaling.",
+      "parameters": [
+        {
+          "name": "Pc_psi",
+          "description": "Capillary pressure (psi)"
+        },
+        {
+          "name": "sigma_dyn",
+          "description": "Interfacial tension (dynes/cm)"
+        },
+        {
+          "name": "k_md",
+          "description": "Absolute permeability (md)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SCAL.BL.FRACTIONALFLOW",
+      "name": "P365.SCAL.BL.FractionalFlow",
+      "description": "Buckley-Leverett fractional flow fw(Sw) at a water saturation point.",
+      "parameters": [
+        {
+          "name": "Sw",
+          "description": "Water saturation (fraction)"
+        },
+        {
+          "name": "Swc",
+          "description": "Connate water saturation (fraction)"
+        },
+        {
+          "name": "Sor",
+          "description": "Residual oil saturation (fraction)"
+        },
+        {
+          "name": "krw_max",
+          "description": "Max krw (fraction)"
+        },
+        {
+          "name": "kro_max",
+          "description": "Max kro (fraction)"
+        },
+        {
+          "name": "nw",
+          "description": "Corey water exponent"
+        },
+        {
+          "name": "no",
+          "description": "Corey oil exponent"
+        },
+        {
+          "name": "mu_w",
+          "description": "Water viscosity (cp)"
+        },
+        {
+          "name": "mu_o",
+          "description": "Oil viscosity (cp)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.DIAGNOSTICS.BFACTOR",
+      "name": "P365.DCA.Diagnostics.BFactor",
+      "description": "Instantaneous Arps b-factor array from rate-time data - flow regime diagnostic.",
+      "parameters": [
+        {
+          "name": "t_arr",
+          "description": "Time array (months or days)"
+        },
+        {
+          "name": "q_arr",
+          "description": "Rate array (same units as decline model)"
+        }
+      ],
+      "result": {
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "id": "P365.DCA.DIAGNOSTICS.LOGLOGNDERIV",
+      "name": "P365.DCA.Diagnostics.LogLogDeriv",
+      "description": "Log-log derivative d(log q)/d(log t) for flow regime identification on a diagnostic plot.",
+      "parameters": [
+        {
+          "name": "t_arr",
+          "description": "Time array"
+        },
+        {
+          "name": "q_arr",
+          "description": "Rate array"
+        }
+      ],
+      "result": {
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "id": "P365.DCA.DIAGNOSTICS.FLOWREGIME",
+      "name": "P365.DCA.Diagnostics.FlowRegime",
+      "description": "Classify Arps flow regime from b-factor: exponential (b~0), hyperbolic, harmonic (b~1), or transient linear (b~2).",
+      "parameters": [
+        {
+          "name": "b",
+          "description": "Arps b-factor (dimensionless)"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.PLE.RATE",
+      "name": "P365.DCA.PLE.Rate",
+      "description": "Power Law Exponential (PLE) decline rate q(t) = qi x exp(-D_inf x t - (D1-D_inf)/n x t^n).",
+      "parameters": [
+        {
+          "name": "qi",
+          "description": "Initial rate"
+        },
+        {
+          "name": "D_inf",
+          "description": "Long-term decline constant (1/time unit)"
+        },
+        {
+          "name": "D1",
+          "description": "Early-time decline constant (1/time unit)"
+        },
+        {
+          "name": "n",
+          "description": "PLE time exponent (0 < n < 1)"
+        },
+        {
+          "name": "t",
+          "description": "Time"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.SEPD.RATE",
+      "name": "P365.DCA.SEPD.Rate",
+      "description": "Stretched Exponential Production Decline rate q(t) = qi x exp(-(t/tau)^n).",
+      "parameters": [
+        {
+          "name": "qi",
+          "description": "Initial rate"
+        },
+        {
+          "name": "tau",
+          "description": "Time constant tau"
+        },
+        {
+          "name": "n",
+          "description": "Stretch exponent (0 < n <= 1)"
+        },
+        {
+          "name": "t",
+          "description": "Time"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.DCA.LGM.EUR",
+      "name": "P365.DCA.LGM.EUR",
+      "description": "Logistic Growth Model EUR (ultimate): K carrying capacity = total recoverable reserves.",
+      "parameters": [
+        {
+          "name": "K",
+          "description": "Carrying capacity (EUR)"
+        },
+        {
+          "name": "a",
+          "description": "LGM hyperbolic parameter a"
+        },
+        {
+          "name": "n",
+          "description": "LGM time exponent n"
+        }
+      ],
+      "result": {
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.ECLIPSE.PARSESMSPEC",
+      "name": "P365.ECLIPSE.ParseSmspec",
+      "description": "Parse Eclipse .SMSPEC binary specification file. Returns structured header with keywords, wgnames, nums, units arrays.",
+      "parameters": [
+        {
+          "name": "fileBuffer",
+          "description": "ArrayBuffer of the .SMSPEC binary file content"
+        }
+      ],
+      "result": {
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "id": "P365.ECLIPSE.FORMATRESULTS",
+      "name": "P365.ECLIPSE.FormatResults",
+      "description": "Format parsed Eclipse summary data into a 2D table array for Excel worksheet output. First row is headers, subsequent rows are time-series data.",
+      "parameters": [
+        {
+          "name": "smspecHeader",
+          "description": "Parsed SMSPEC header object from ParseSmspec"
+        },
+        {
+          "name": "unsmryData",
+          "description": "Parsed UNSMRY data vectors object"
+        }
+      ],
+      "result": {
+        "dimensionality": "matrix"
+      }
     }
   ]
 }

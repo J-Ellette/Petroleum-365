@@ -510,12 +510,61 @@ Good stopping point after DCA extended models + Wellbore Integrity + functions.j
 #### Stopping Point — Session 9
 Good stopping point after FRAC extended (poroelastic closure + Nolte-G analysis) + SIM INCLUDE file generator (Eclipse/CMG) + Blueprint Manager + Function Browser catalogs. 1238 tests passing.
 
-#### Next Session — Session 10 (Planned)
-- [ ] Office.js taskpane UI — React Blueprint Manager + Function Browser (live taskpane HTML)
-- [ ] Ribbon manifest update (6 function library groups + Library/Toolbox buttons)
-- [ ] Expand functions.json to 100+ entries (add PVT/IPR/MBE/PTA/GEO/SKIN coverage)
-- [ ] Eclipse Results Import — .SMSPEC file parser (binary → Excel worksheet rows)
-- [ ] Web deployment / Netlify/Azure manifest hosting for web calculator URL
+---
+
+### Session 10 — Taskpane UI + Eclipse Parser + Expanded UDFs
+**Status:** Complete
+
+#### Completed
+- [x] Expand functions.json from 62 → 138 UDF registrations:
+  - PVT: pseudoCriticalByKays, WichertAziz, Ug.ByLee, Density.Gas, Cg.Gas, SG.Oil.ToAPI, Rs.ByStanding, Rs.ByVasquezBeggs, Bo.Sat.ByStanding, Bo.Sat.ByVasquezBeggs, Bo.Undersat, Co.ByVasquezBeggs, Uo.Dead.ByBeal, Uo.Sat.ByBeggsRobinson, Bw, Uw, Cw (17 new PVT entries)
+  - IPR: PI, Rate.Darcy, PI.PSS, Rate.Vogel, Qmax.Vogel, Rate.Composite, Rate.Fetkovich, Rate.GasDarcy, PI.Horizontal.Joshi (9 new IPR entries)
+  - MBE: Gas.PZ, Gas.OGIP.TwoPoint, Gas.Pressure.Forecast, Oil.Eo, Oil.F, Oil.HavlenaOdeh, Oil.DriveIndices (7 new MBE entries)
+  - PTA: Drawdown.Pwf, Horner.Permeability, Horner.Skin, Horner.Pstar, Bourdet.Derivative, WBS.Coefficient, Fault.Buildup (7 new PTA entries)
+  - GEO: PorePressure.Eaton, FractureGradient.Eaton, MudWindow, MinHorizontalStress, UCS.FromYoungsModulus, MohrCoulomb (6 new GEO entries)
+  - SKIN: Hawkins, Perforation.KarakasTariq, NonDarcyD, NonDarcySkin, PartialPenetration, Total, StimulationRatio (7 new SKIN entries)
+  - HV: HHV, LHV, Wobbe, Analysis (4 new HV entries)
+  - AGA8: Z, Z.FieldUnits (2 new AGA8 entries)
+  - VFP: BeggsBrillBHP, Turner.CriticalVelocity, Turner.MinCriticalRate (3 new VFP entries)
+  - SF: Choke.Rate, Compressor.Power (2 new SF entries)
+  - SCAL: Corey.Krw, Corey.Kro, LeverettJ, BL.FractionalFlow (4 new SCAL entries)
+  - DCA: Diagnostics.BFactor, Diagnostics.LogLogDeriv, Diagnostics.FlowRegime, PLE.Rate, SEPD.Rate, LGM.EUR (6 new DCA entries)
+  - Eclipse: ParseSmspec, FormatResults (2 new Eclipse entries)
+- [x] Eclipse SMSPEC/UNSMRY binary parser (src/functions/eclipse/index.ts):
+  - parseSmspec() — Fortran unformatted binary reader with auto byte-order detection
+  - parseUnsmry() — timestep data extraction (SEQHDR/MINISTEP/PARAMS records)
+  - formatEclipseResults() — 2D table formatter for Excel worksheet output
+  - buildSmspecHeader(), buildUnsmryData() — helpers for testing and demo
+  - buildVectorLabel(), validateSmspecHeader(), listWellNames(), filterByTime(), extractTimeSeries()
+- [x] Written 29 new Jest unit tests (test/eclipse/eclipse.test.ts — 1267 total, all passing)
+- [x] Taskpane HTML UI (src/taskpane/taskpane.html) — full 4-tab single-page app:
+  - Function Browser: searchable catalog with category filter chips, expandable cards, Insert into Cell
+  - Blueprint Manager: searchable blueprint catalog with category filter, tag chips
+  - Unit Converter: interactive category/from/to selection with result formula display
+  - Eclipse Import: file drop zone + import workflow with status display
+- [x] manifest.xml updated — full Petroleum 365 custom ribbon tab with 7 groups:
+  - Group 1: Production (DCA menu: Arps/Duong/PLE/EUR; FRAC menu: PKN/Nolte-G)
+  - Group 2: Reservoir (IPR menu: Vogel/Gas; MBE menu: Gas p/z/Oil H-O; PTA menu: Horner/Bourdet)
+  - Group 3: Well Flow (VFP menu: Beggs-Brill/Nodal; SF menu: Choke/Pipeline)
+  - Group 4: Artificial Lift (ESP menu: Sizing; GL menu: Injection Design)
+  - Group 5: Fluids & Rock (PVT menu: Gas/Oil/HV; SCAL menu: Corey)
+  - Group 6: Utilities (Unit Converter button; GEO menu: Mud Window)
+  - Group 7: Library (Functions button, Blueprints button, Toolbox button)
+- [x] Updated src/index.ts with Eclipse namespace (ParseSmspec, ParseUnsmry, FormatResults, helpers)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+- [x] Updated copilot.md and README.md for Session 10 (28 modules, 1267 tests, 138 UDFs)
+
+#### Stopping Point — Session 10
+Good stopping point: taskpane HTML UI complete (Function Browser + Blueprint Manager + Unit Converter + Eclipse Import), Eclipse SMSPEC binary parser module implemented, functions.json expanded from 62 → 138 UDFs, manifest updated with full 7-group custom ribbon tab, 1267 tests passing.
+
+#### Next Session — Session 11 (Planned)
+- [ ] DCA extended: SEPD cumulative + LGM cumulative + AKB+Diagnostics additional tests
+- [ ] Spline interpolation module (cubic, linear, monotone PCHIP)
+- [ ] Economic limit calculator (NPV, IRR, payout) module
+- [ ] Nodal analysis extended: multi-string VLP, artificial lift overlay
+- [ ] Well production allocation (multi-well field-level proration)
+- [ ] Unit Converter: add more unit categories (torque, power, thermal conductivity)
+- [ ] Web deployment manifest (Netlify/GitHub Pages hosting configuration)
 
 ## Function Naming Convention
 `P365.[Category].[Property].[Qualifier].By[Author]`
@@ -546,6 +595,7 @@ Good stopping point after FRAC extended (poroelastic closure + Nolte-G analysis)
 | SKIN | Composite Skin Factor (Hawkins, perforations, non-Darcy, partial penetration) |
 | WBI | Wellbore Integrity (casing burst/collapse, cement, FIT/LOT/XLOT, mud window) |
 | SIM | Reservoir Simulation INCLUDE Generator (Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, file generator) |
+| Eclipse | Eclipse Results Import (SMSPEC/UNSMRY binary parser, time-series extraction, Excel formatter) |
 
 ## Key Engineering Details (from P365.md)
 - Pipe material roughness: Bare Steel 0.000150 ft · Coated Steel 0.000100 ft · PE 0.000005 ft

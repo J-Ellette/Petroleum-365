@@ -2,7 +2,7 @@
 
 > **A comprehensive petroleum engineering function library and Excel add-in for natural gas, oil, CNG, and LNG calculations.**
 
-[![Tests](https://img.shields.io/badge/tests-1238%20passing-brightgreen)](./test)
+[![Tests](https://img.shields.io/badge/tests-1267%20passing-brightgreen)](./test)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -28,7 +28,7 @@
 
 ## What Is P365?
 
-**Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **800+ engineering calculations** organized into 27 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design (including poroelastic closure stress and Nolte G-function analysis), nodal analysis, LNG thermodynamics, wellbore heat transfer, geomechanics, composite skin factor analysis, wellbore integrity (casing design, cement jobs, shoe tests), and **reservoir simulation INCLUDE file generation** (Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, and batch file generator).
+**Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **800+ engineering calculations** organized into 28 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design (including poroelastic closure stress and Nolte G-function analysis), nodal analysis, LNG thermodynamics, wellbore heat transfer, geomechanics, composite skin factor analysis, wellbore integrity (casing design, cement jobs, shoe tests), **reservoir simulation INCLUDE file generation** (Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, and batch file generator), and **Eclipse Results Import** (SMSPEC/UNSMRY binary parser that loads simulator output directly into Excel worksheets).
 
 P365 is designed to work **inside Microsoft Excel** as a custom function library (UDFs), letting engineers use familiar spreadsheet workflows backed by rigorous, well-tested engineering correlations. It is also available as a standalone TypeScript/Node.js library for integration into web applications, pipelines, or custom tooling. The full **Office 365 add-in suite** — Word, Outlook, Teams, PowerPoint, OneNote, and Access — extends P365 calculations into reports, emails, collaboration cards, presentations, field notes, and job databases.
 
@@ -53,7 +53,7 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 ## Features
 
 - ✅ **723 passing unit tests** — every correlation is independently verified
-- ✅ **27 engineering modules** covering the full production lifecycle
+- ✅ **28 engineering modules** covering the full production lifecycle
 - ✅ **Field units throughout** — psi, °F, STB, scf, ft, cp, md
 - ✅ **Named after correlation authors** — `P365.PVT.Z.ByDAK` is the Dranchuk-Abou-Kassem method
 - ✅ **Pure functions** — no side effects, no global state, fully testable
@@ -92,8 +92,9 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 | 23 | **SKIN** | Composite Skin Factor | Hawkins, Karakas-Tariq, non-Darcy, partial penetration, gravel pack |
 | 24 | **WBI** | Wellbore Integrity | Casing burst/collapse, buoyancy, cement volume/density, FIT/LOT/XLOT, mud window |
 | 25 | **SIM** | Sim INCLUDE Generator | Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, Corey table builder, File Generator |
-| 26 | **Blueprints** | Blueprint Manager Catalog | 35+ structured blueprint templates with category/search/install metadata |
-| 27 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions |
+| 26 | **Eclipse** | Eclipse Results Import | SMSPEC/UNSMRY binary parser, time-series extraction, Excel table formatter, well name listing |
+| 27 | **Blueprints** | Blueprint Manager Catalog | 35+ structured blueprint templates with category/search/install metadata |
+| 28 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions |
 
 ---
 
@@ -894,6 +895,46 @@ Supports **60+ categories** and **1,500+ unit pairs** including pressure, temper
 
 ---
 
+### Eclipse — Results Import (Session 10)
+
+Parse Eclipse reservoir simulator summary binary files and load time-series data into Excel.
+
+**Binary Parsers**
+| Function | Description |
+|----------|-------------|
+| `P365.Eclipse.ParseSmspec(buffer)` | Parse .SMSPEC file — returns header with keywords, wgnames, nums, units, startDate |
+| `P365.Eclipse.ParseUnsmry(buffer, bigEndian, nVec)` | Parse .UNSMRY file — returns all timestep PARAMS arrays |
+
+**Formatters**
+| Function | Description |
+|----------|-------------|
+| `P365.Eclipse.FormatResults(header, unsmry)` | Format parsed data into 2D table (header row + data rows) for Excel worksheet |
+
+**Helpers**
+| Function | Description |
+|----------|-------------|
+| `P365.Eclipse.BuildSmspecHeader(...)` | Build a demo SmspecHeader from metadata arrays (no binary file needed) |
+| `P365.Eclipse.BuildUnsmryData(dataRows)` | Build demo UnsmryData from a 2D numeric array |
+| `P365.Eclipse.BuildVectorLabel(kw, wgname, unit)` | Build column label string: e.g. `"WOPR:PROD1 (SM3/DAY)"` |
+| `P365.Eclipse.ValidateHeader(header)` | Validate a parsed SmspecHeader — returns array of error strings |
+| `P365.Eclipse.ListWellNames(header)` | Extract sorted unique well names from a parsed header |
+| `P365.Eclipse.FilterByTime(unsmry, minDays, maxDays)` | Filter UnsmryData to a time window |
+| `P365.Eclipse.ExtractTimeSeries(header, unsmry, keyword, wgname)` | Extract [time, value] array for one vector |
+
+**Supported Formats**
+| Extension | Description |
+|-----------|-------------|
+| `.SMSPEC` | Summary specification file — field, well, group, region summary vectors |
+| `.FSMSPEC` | Fine summary specification file — fine-step data vectors |
+| `.UNSMRY` | Unified summary binary — time-series data for all vectors |
+
+**How it works in the taskpane:**
+1. Click **Toolbox** in the Petroleum 365 ribbon
+2. Select one or more `.SMSPEC`/`.UNSMRY` files using the drag-and-drop zone
+3. Click **Import to Excel** — each case is imported as a separate worksheet, ready for analysis
+
+---
+
 ## Development
 
 ### Project Structure
@@ -902,7 +943,7 @@ Supports **60+ categories** and **1,500+ unit pairs** including pressure, temper
 Petroleum-365/
 ├── src/
 │   ├── index.ts                  ← P365 namespace (all exports)
-│   ├── functions.json            ← UDF registrations (62 entries)
+│   ├── functions.json            ← UDF registrations (138 entries)
 │   └── functions/
 │       ├── pvt/                  ← PVT: gas.ts, oil.ts, water.ts
 │       ├── dca/                  ← Decline curve analysis
@@ -928,6 +969,7 @@ Petroleum-365/
 │       ├── skin/                 ← Composite skin factor
 │       ├── wbi/                  ← Wellbore integrity
 │       ├── sim/                  ← Sim INCLUDE file generator (Session 9)
+│       ├── eclipse/              ← Eclipse SMSPEC/UNSMRY binary parser (Session 10)
 │       ├── pipe/                 ← Pipe sizing
 │       └── utilities/            ← Unit converter
 ├── src/addins/
@@ -939,6 +981,8 @@ Petroleum-365/
 │   ├── powerpoint/               ← PowerPoint slide builders
 │   ├── onenote/                  ← OneNote note builders
 │   └── access/                   ← Access database schema + queries
+├── src/taskpane/
+│   └── taskpane.html             ← Full task pane UI (Function Browser + Blueprint Manager + Unit Converter + Eclipse Import)
 ├── test/                         ← Jest tests (mirrors src/functions)
 ├── manifest.xml                  ← Office Add-in manifest
 ├── package.json
@@ -952,7 +996,7 @@ Petroleum-365/
 | Command | Description |
 |---------|-------------|
 | `npm install` | Install all dependencies |
-| `npx jest --no-coverage` | Run all 1238 unit tests |
+| `npx jest --no-coverage` | Run all 1267 unit tests |
 | `npx tsc --noEmit` | TypeScript type-check (0 errors expected) |
 | `npm run build` | Build for production |
 

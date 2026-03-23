@@ -37,7 +37,8 @@ import * as WHTExports    from "./functions/wht";
 import * as GEOExports    from "./functions/geo";
 import * as SKINExports   from "./functions/skin";
 import * as WBIExports    from "./functions/wbi";
-import * as SIMExports    from "./functions/sim";
+import * as SIMExports     from "./functions/sim";
+import * as EclipseExports from "./functions/eclipse";
 
 // ─── Re-export raw modules ────────────────────────────────────────────────────
 export * as P365_PVT_Gas   from "./functions/pvt/gas";
@@ -67,6 +68,7 @@ export * as P365_GEO       from "./functions/geo";
 export * as P365_SKIN      from "./functions/skin";
 export * as P365_WBI       from "./functions/wbi";
 export * as P365_SIM       from "./functions/sim";
+export * as P365_Eclipse   from "./functions/eclipse";
 export { unitConverter, getUnitsForCategory, getCategories, listUnits } from "./functions/utilities/unitConverter";
 
 // ─── P365 Namespace Object ────────────────────────────────────────────────────
@@ -799,6 +801,23 @@ export const P365 = {
     GenerateFromTemplate: SIMExports.simGenerateFromTemplate,
     ValidateTokens:       SIMExports.simValidateTokens,
     BatchGenerate:        SIMExports.simBatchGenerate,
+  },
+
+  // ─── Eclipse — Reservoir Simulator Results Import ──────────────────────────
+  Eclipse: {
+    // Binary file parsers
+    ParseSmspec:          EclipseExports.parseSmspec,
+    ParseUnsmry:          EclipseExports.parseUnsmry,
+    // Result formatters
+    FormatResults:        EclipseExports.formatEclipseResults,
+    // Helpers
+    BuildSmspecHeader:    EclipseExports.buildSmspecHeader,
+    BuildUnsmryData:      EclipseExports.buildUnsmryData,
+    BuildVectorLabel:     EclipseExports.buildVectorLabel,
+    ValidateHeader:       EclipseExports.validateSmspecHeader,
+    ListWellNames:        EclipseExports.listWellNames,
+    FilterByTime:         EclipseExports.filterByTime,
+    ExtractTimeSeries:    EclipseExports.extractTimeSeries,
   },
 
 } as const;
