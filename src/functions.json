@@ -3537,6 +3537,645 @@
       "result": {
         "dimensionality": "matrix"
       }
+    },
+    {
+      "id": "P365.SPLINE.LINEAR",
+      "name": "SPLINE.LINEAR",
+      "description": "Piecewise linear interpolation at a query point. Extrapolates linearly outside the data range.",
+      "parameters": [
+        {
+          "name": "x",
+          "description": "Sorted x-coordinates (comma-separated or array)",
+          "type": "string"
+        },
+        {
+          "name": "y",
+          "description": "y-coordinates (comma-separated or array)",
+          "type": "string"
+        },
+        {
+          "name": "xq",
+          "description": "Query x value",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SPLINE.CUBIC",
+      "name": "SPLINE.CUBIC",
+      "description": "Natural cubic spline interpolation at a query point (zero curvature boundary conditions).",
+      "parameters": [
+        {
+          "name": "x",
+          "description": "Sorted x-coordinates",
+          "type": "string"
+        },
+        {
+          "name": "y",
+          "description": "y-coordinates",
+          "type": "string"
+        },
+        {
+          "name": "xq",
+          "description": "Query x value",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SPLINE.CUBIC.DERIV",
+      "name": "SPLINE.CUBIC.DERIV",
+      "description": "First derivative of a natural cubic spline at a query point (dy/dx).",
+      "parameters": [
+        {
+          "name": "x",
+          "description": "Sorted x-coordinates",
+          "type": "string"
+        },
+        {
+          "name": "y",
+          "description": "y-coordinates",
+          "type": "string"
+        },
+        {
+          "name": "xq",
+          "description": "Query x value",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SPLINE.CUBIC.INTEGRAL",
+      "name": "SPLINE.CUBIC.INTEGRAL",
+      "description": "Definite integral of a natural cubic spline from xa to xb.",
+      "parameters": [
+        {
+          "name": "x",
+          "description": "Sorted x-coordinates",
+          "type": "string"
+        },
+        {
+          "name": "y",
+          "description": "y-coordinates",
+          "type": "string"
+        },
+        {
+          "name": "xa",
+          "description": "Lower integration limit",
+          "type": "number"
+        },
+        {
+          "name": "xb",
+          "description": "Upper integration limit",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SPLINE.PCHIP",
+      "name": "SPLINE.PCHIP",
+      "description": "Monotone PCHIP interpolation (Fritsch-Carlson). Preserves monotonicity \u2014 no overshoot on step data.",
+      "parameters": [
+        {
+          "name": "x",
+          "description": "Sorted x-coordinates",
+          "type": "string"
+        },
+        {
+          "name": "y",
+          "description": "y-coordinates",
+          "type": "string"
+        },
+        {
+          "name": "xq",
+          "description": "Query x value",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SPLINE.PCHIP.INVERSE",
+      "name": "SPLINE.PCHIP.INVERSE",
+      "description": "Find x such that PCHIP(x) = yTarget (Brent root-finding). Returns NaN if not found.",
+      "parameters": [
+        {
+          "name": "x",
+          "description": "Sorted x-coordinates",
+          "type": "string"
+        },
+        {
+          "name": "y",
+          "description": "y-coordinates",
+          "type": "string"
+        },
+        {
+          "name": "yTarget",
+          "description": "Target y value to invert",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.SPLINE.BILINEAR",
+      "name": "SPLINE.BILINEAR",
+      "description": "2-D bilinear interpolation on a regular grid.",
+      "parameters": [
+        {
+          "name": "xs",
+          "description": "Sorted x-axis values (row headers)",
+          "type": "string"
+        },
+        {
+          "name": "ys",
+          "description": "Sorted y-axis values (column headers)",
+          "type": "string"
+        },
+        {
+          "name": "Z",
+          "description": "2-D value table Z[i][j] as a JSON array of arrays",
+          "type": "string"
+        },
+        {
+          "name": "xq",
+          "description": "Query x value",
+          "type": "number"
+        },
+        {
+          "name": "yq",
+          "description": "Query y value",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.ECO.NPV",
+      "name": "ECO.NPV",
+      "description": "Net Present Value: NPV = \u03a3 CF[t]/(1+r)^t. Returns project NPV in same currency as cashFlows.",
+      "parameters": [
+        {
+          "name": "cashFlows",
+          "description": "Periodic cash flows (positive=inflow, negative=outflow)",
+          "type": "string"
+        },
+        {
+          "name": "rate",
+          "description": "Periodic discount rate (e.g. 0.10 = 10%)",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.ECO.IRR",
+      "name": "ECO.IRR",
+      "description": "Internal Rate of Return \u2014 rate r that makes NPV=0. Returns NaN if no root found.",
+      "parameters": [
+        {
+          "name": "cashFlows",
+          "description": "Periodic cash flows (must have sign change)",
+          "type": "string"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.ECO.MIRR",
+      "name": "ECO.MIRR",
+      "description": "Modified IRR: reinvests positives at financeRate, discounts negatives at reinvestRate.",
+      "parameters": [
+        {
+          "name": "cashFlows",
+          "description": "Periodic cash flows",
+          "type": "string"
+        },
+        {
+          "name": "financeRate",
+          "description": "Rate used to compound positive flows",
+          "type": "number"
+        },
+        {
+          "name": "reinvestRate",
+          "description": "Rate used to discount negative flows",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.ECO.PAYOUT.SIMPLE",
+      "name": "ECO.PAYOUT.SIMPLE",
+      "description": "Simple (undiscounted) payout period \u2014 number of periods for cumulative CF to turn positive.",
+      "parameters": [
+        {
+          "name": "cashFlows",
+          "description": "Periodic cash flows",
+          "type": "string"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.ECO.PAYOUT.DISCOUNTED",
+      "name": "ECO.PAYOUT.DISCOUNTED",
+      "description": "Discounted payout period \u2014 periods for discounted cumulative CF to turn positive.",
+      "parameters": [
+        {
+          "name": "cashFlows",
+          "description": "Periodic cash flows",
+          "type": "string"
+        },
+        {
+          "name": "rate",
+          "description": "Periodic discount rate",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.ECO.OIL.ECONOMIC.LIMIT",
+      "name": "ECO.OIL.ECONOMIC.LIMIT",
+      "description": "Minimum economic rate (STB/month) where gross revenue = lifting cost.",
+      "parameters": [
+        {
+          "name": "monthlyOpex",
+          "description": "Monthly operating cost ($/month)",
+          "type": "number"
+        },
+        {
+          "name": "oilPrice",
+          "description": "Oil price ($/STB)",
+          "type": "number"
+        },
+        {
+          "name": "workingInterest",
+          "description": "Working interest fraction (e.g. 0.80)",
+          "type": "number"
+        },
+        {
+          "name": "netRevenueInterest",
+          "description": "Net revenue interest fraction (e.g. 0.75)",
+          "type": "number"
+        },
+        {
+          "name": "severanceTax",
+          "description": "Severance tax rate (default 0)",
+          "type": "number",
+          "optional": true
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.ECO.ARPS.EUR.AT.LIMIT",
+      "name": "ECO.ARPS.EUR.AT.LIMIT",
+      "description": "Arps decline EUR at economic limit: cumulative production from qi until rate reaches qEL.",
+      "parameters": [
+        {
+          "name": "qi",
+          "description": "Initial rate",
+          "type": "number"
+        },
+        {
+          "name": "Di",
+          "description": "Initial nominal decline rate (1/time)",
+          "type": "number"
+        },
+        {
+          "name": "b",
+          "description": "Arps decline exponent (0 = exponential)",
+          "type": "number"
+        },
+        {
+          "name": "qEL",
+          "description": "Economic limit rate (same units as qi)",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.ECO.TIME.TO.ECONOMIC.LIMIT",
+      "name": "ECO.TIME.TO.ECONOMIC.LIMIT",
+      "description": "Time for Arps decline to reach economic limit rate qEL.",
+      "parameters": [
+        {
+          "name": "qi",
+          "description": "Initial rate",
+          "type": "number"
+        },
+        {
+          "name": "Di",
+          "description": "Initial nominal decline rate (1/time)",
+          "type": "number"
+        },
+        {
+          "name": "b",
+          "description": "Arps decline exponent",
+          "type": "number"
+        },
+        {
+          "name": "qEL",
+          "description": "Economic limit rate",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.ECO.PROFITABILITY.INDEX",
+      "name": "ECO.PROFITABILITY.INDEX",
+      "description": "Profitability Index (PI = (NPV + CAPEX) / CAPEX). PI > 1 is value-creating.",
+      "parameters": [
+        {
+          "name": "cashFlows",
+          "description": "Periodic cash flows (period 0 = CAPEX outlay)",
+          "type": "string"
+        },
+        {
+          "name": "rate",
+          "description": "Discount rate",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.ECO.BREAK.EVEN.PRICE",
+      "name": "ECO.BREAK.EVEN.PRICE",
+      "description": "Break-even commodity price ($/unit) that makes NPV = 0.",
+      "parameters": [
+        {
+          "name": "volumes",
+          "description": "Production volumes per period",
+          "type": "string"
+        },
+        {
+          "name": "opexPerPeriod",
+          "description": "Operating cost per period",
+          "type": "string"
+        },
+        {
+          "name": "capex",
+          "description": "Initial capital expenditure (positive)",
+          "type": "number"
+        },
+        {
+          "name": "rate",
+          "description": "Discount rate per period",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WPA.PROPORTIONAL",
+      "name": "WPA.PROPORTIONAL",
+      "description": "Distribute field rate proportionally by weights (PI, AOF, historical rate, etc.).",
+      "parameters": [
+        {
+          "name": "wellIds",
+          "description": "Well identifiers (comma-separated)",
+          "type": "string"
+        },
+        {
+          "name": "weights",
+          "description": "Allocation weights per well",
+          "type": "string"
+        },
+        {
+          "name": "targetRate",
+          "description": "Total field rate to allocate",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "string",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WPA.CAPACITY.CURTAILMENT",
+      "name": "WPA.CAPACITY.CURTAILMENT",
+      "description": "Capacity-constrained proration: cap each well at maxRate and redistribute surplus.",
+      "parameters": [
+        {
+          "name": "wellIds",
+          "description": "Well identifiers",
+          "type": "string"
+        },
+        {
+          "name": "weights",
+          "description": "Allocation weights",
+          "type": "string"
+        },
+        {
+          "name": "maxRates",
+          "description": "Maximum capacity per well",
+          "type": "string"
+        },
+        {
+          "name": "targetRate",
+          "description": "Field target rate",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "string",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WPA.RECONCILE",
+      "name": "WPA.RECONCILE",
+      "description": "Scale metered well rates to match an accurate field-measured total.",
+      "parameters": [
+        {
+          "name": "wellIds",
+          "description": "Well identifiers",
+          "type": "string"
+        },
+        {
+          "name": "meteredRates",
+          "description": "Raw metered rates per well",
+          "type": "string"
+        },
+        {
+          "name": "fieldMeasured",
+          "description": "Accurately measured field total rate",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "string",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WPA.VOIDAGE.RATE",
+      "name": "WPA.VOIDAGE.RATE",
+      "description": "Total reservoir voidage rate (res bbl/d) from oil, water, and free gas production.",
+      "parameters": [
+        {
+          "name": "oilRates",
+          "description": "Oil production rates (STB/d)",
+          "type": "string"
+        },
+        {
+          "name": "waterRates",
+          "description": "Water production rates (STB/d)",
+          "type": "string"
+        },
+        {
+          "name": "gasRates",
+          "description": "Total gas rates (Mscf/d)",
+          "type": "string"
+        },
+        {
+          "name": "Bo",
+          "description": "Oil FVF (res bbl/STB)",
+          "type": "number"
+        },
+        {
+          "name": "Bg",
+          "description": "Gas FVF (res bbl/Mscf)",
+          "type": "number"
+        },
+        {
+          "name": "Bw",
+          "description": "Water FVF (res bbl/STB)",
+          "type": "number"
+        },
+        {
+          "name": "Rs",
+          "description": "Solution GOR (scf/STB)",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WPA.ACTUAL.VRR",
+      "name": "WPA.ACTUAL.VRR",
+      "description": "Actual voidage replacement ratio (VRR = injection_res / voidage_res).",
+      "parameters": [
+        {
+          "name": "waterInjSurface",
+          "description": "Water injection rate at surface (STB/d)",
+          "type": "number"
+        },
+        {
+          "name": "Bw_inj",
+          "description": "Injected water FVF (res bbl/STB)",
+          "type": "number"
+        },
+        {
+          "name": "gasInjSurface",
+          "description": "Gas injection rate at surface (Mscf/d)",
+          "type": "number"
+        },
+        {
+          "name": "Bg_inj",
+          "description": "Injected gas FVF (res bbl/Mscf)",
+          "type": "number"
+        },
+        {
+          "name": "voidageResBbld",
+          "description": "Total producer voidage (res bbl/d)",
+          "type": "number"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "id": "P365.WPA.FIELD.SUMMARY",
+      "name": "WPA.FIELD.SUMMARY",
+      "description": "Aggregate field production: total oil, water, gas, liquid, water cut, and GOR.",
+      "parameters": [
+        {
+          "name": "oilRates",
+          "description": "Oil rates per well (STB/d)",
+          "type": "string"
+        },
+        {
+          "name": "waterRates",
+          "description": "Water rates per well (STB/d)",
+          "type": "string"
+        },
+        {
+          "name": "gasRates",
+          "description": "Gas rates per well (Mscf/d)",
+          "type": "string"
+        }
+      ],
+      "result": {
+        "type": "string",
+        "dimensionality": "scalar"
+      }
     }
   ]
 }

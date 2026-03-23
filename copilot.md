@@ -557,14 +557,50 @@ Good stopping point after FRAC extended (poroelastic closure + Nolte-G analysis)
 #### Stopping Point — Session 10
 Good stopping point: taskpane HTML UI complete (Function Browser + Blueprint Manager + Unit Converter + Eclipse Import), Eclipse SMSPEC binary parser module implemented, functions.json expanded from 62 → 138 UDFs, manifest updated with full 7-group custom ribbon tab, 1267 tests passing.
 
-#### Next Session — Session 11 (Planned)
-- [ ] DCA extended: SEPD cumulative + LGM cumulative + AKB+Diagnostics additional tests
-- [ ] Spline interpolation module (cubic, linear, monotone PCHIP)
-- [ ] Economic limit calculator (NPV, IRR, payout) module
+---
+
+### Session 11 — Spline Interpolation + Economic Analysis + Well Production Allocation
+**Status:** Complete
+
+#### Completed
+- [x] New Spline module (src/functions/spline/index.ts):
+  - [x] **Linear**: `splineLinear`, `splineLinearArray` — piecewise linear with extrapolation
+  - [x] **Natural Cubic Spline**: `splineCubicCoefficients`, `splineCubic`, `splineCubicArray` — Thomas algorithm tridiagonal system
+  - [x] **Cubic Derivatives/Integrals**: `splineCubicDeriv`, `splineCubicIntegral` — exact antiderivative
+  - [x] **Monotone PCHIP**: `splinePchipSlopes`, `splinePchip`, `splinePchipArray` — Fritsch-Carlson 1980, no overshoot
+  - [x] **PCHIP Inverse**: `splinePchipInverse` — Brent's method root-finding
+  - [x] **Table Helpers**: `splineLookup` (1-D), `splineBilinear` (2-D grid interpolation)
+- [x] New ECO module (src/functions/eco/index.ts):
+  - [x] **NPV/DCF**: `ecoNPV`, `ecoNPVContinuous`, `ecoPV`, `ecoFV`
+  - [x] **Rate of Return**: `ecoIRR` (Brent's method, 200 iter), `ecoMIRR`
+  - [x] **Payout**: `ecoPayoutSimple`, `ecoPayoutDiscounted` — interpolated period
+  - [x] **Economic Limit**: `ecoOilEconomicLimit`, `ecoGasEconomicLimit` — min rate where revenue = OPEX
+  - [x] **EUR at Limit**: `ecoArpsEURAtLimit`, `ecoTimeToEconomicLimit` — Arps hyperbolic to qEL
+  - [x] **Profitability**: `ecoProfitabilityIndex`, `ecoBreakEvenPrice` (bisection on price space)
+  - [x] **Depletion**: `ecoUOPDepletion` — unit-of-production method
+  - [x] **Builders**: `ecoBuildCashFlows`, `ecoTornadoSensitivity`
+- [x] New WPA module (src/functions/wpa/index.ts):
+  - [x] **Proration**: `wpaProportional`, `wpaEqualShare`, `wpaPIWeighted`, `wpaAOFWeighted`
+  - [x] **Curtailment**: `wpaCapacityCurtailment` — iterative cap-and-redistribute algorithm
+  - [x] **Reconciliation**: `wpaReconcile` — scale meters to field-measured total
+  - [x] **Injection**: `wpaInjectorsProportional`, `wpaVoidageRate`, `wpaRequiredInjectionRate`, `wpaActualVRR`
+  - [x] **Field Summary**: `wpaFieldSummary`, `wpaFieldPI`
+- [x] Updated src/index.ts: Spline, ECO, and WPA namespaces registered
+- [x] Expanded functions.json from 138 → 161 UDF registrations (added Spline/ECO/WPA)
+- [x] Written 118 new Jest unit tests (1385 total, all passing — up from 1267)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+- [x] Updated copilot.md and README.md for Session 11 (31 modules, 1385 tests, 161 UDFs)
+
+#### Stopping Point — Session 11
+Good stopping point: Spline interpolation module (cubic/PCHIP/bilinear), Economic Analysis module (NPV/IRR/payout/economic limit), and Well Production Allocation module (proration/VRR/field summary) fully implemented with 118 new tests. Total: 1385 tests, 161 UDFs, 31 modules.
+
+#### Next Session — Session 12 (Planned)
 - [ ] Nodal analysis extended: multi-string VLP, artificial lift overlay
-- [ ] Well production allocation (multi-well field-level proration)
 - [ ] Unit Converter: add more unit categories (torque, power, thermal conductivity)
 - [ ] Web deployment manifest (Netlify/GitHub Pages hosting configuration)
+- [ ] DCA extended: additional diagnostic tests (SEPD cumulative shape, LGM saturation)
+- [ ] ECO extension: WI/NRI carry structure, royalty stacking, gas price escalation
+- [ ] Blueprint catalog: add Spline, ECO, WPA blueprints (3+ new entries)
 
 ## Function Naming Convention
 `P365.[Category].[Property].[Qualifier].By[Author]`
@@ -596,6 +632,9 @@ Good stopping point: taskpane HTML UI complete (Function Browser + Blueprint Man
 | WBI | Wellbore Integrity (casing burst/collapse, cement, FIT/LOT/XLOT, mud window) |
 | SIM | Reservoir Simulation INCLUDE Generator (Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, file generator) |
 | Eclipse | Eclipse Results Import (SMSPEC/UNSMRY binary parser, time-series extraction, Excel formatter) |
+| Spline | Interpolation (linear, natural cubic spline, monotone PCHIP, 2-D bilinear, inverse lookup) |
+| ECO | Economic Analysis (NPV, IRR, MIRR, payout, economic limit, EUR at limit, profitability index, break-even) |
+| WPA | Well Production Allocation (proportional proration, PI/AOF-weighted, curtailment, VRR, field summary) |
 
 ## Key Engineering Details (from P365.md)
 - Pipe material roughness: Bare Steel 0.000150 ft · Coated Steel 0.000100 ft · PE 0.000005 ft

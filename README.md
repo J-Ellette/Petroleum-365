@@ -2,7 +2,7 @@
 
 > **A comprehensive petroleum engineering function library and Excel add-in for natural gas, oil, CNG, and LNG calculations.**
 
-[![Tests](https://img.shields.io/badge/tests-1267%20passing-brightgreen)](./test)
+[![Tests](https://img.shields.io/badge/tests-1385%20passing-brightgreen)](./test)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -28,7 +28,7 @@
 
 ## What Is P365?
 
-**Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **800+ engineering calculations** organized into 28 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design (including poroelastic closure stress and Nolte G-function analysis), nodal analysis, LNG thermodynamics, wellbore heat transfer, geomechanics, composite skin factor analysis, wellbore integrity (casing design, cement jobs, shoe tests), **reservoir simulation INCLUDE file generation** (Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, and batch file generator), and **Eclipse Results Import** (SMSPEC/UNSMRY binary parser that loads simulator output directly into Excel worksheets).
+**Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **800+ engineering calculations** organized into 31 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design (including poroelastic closure stress and Nolte G-function analysis), nodal analysis, LNG thermodynamics, wellbore heat transfer, geomechanics, composite skin factor analysis, wellbore integrity (casing design, cement jobs, shoe tests), **reservoir simulation INCLUDE file generation** (Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, and batch file generator), **Eclipse Results Import** (SMSPEC/UNSMRY binary parser that loads simulator output directly into Excel worksheets), **spline interpolation** (cubic, linear, and monotone PCHIP), **economic analysis** (NPV, IRR, payout, economic limit, break-even price), and **well production allocation** (multi-well proration, capacity curtailment, voidage replacement).
 
 P365 is designed to work **inside Microsoft Excel** as a custom function library (UDFs), letting engineers use familiar spreadsheet workflows backed by rigorous, well-tested engineering correlations. It is also available as a standalone TypeScript/Node.js library for integration into web applications, pipelines, or custom tooling. The full **Office 365 add-in suite** — Word, Outlook, Teams, PowerPoint, OneNote, and Access — extends P365 calculations into reports, emails, collaboration cards, presentations, field notes, and job databases.
 
@@ -52,8 +52,8 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 
 ## Features
 
-- ✅ **723 passing unit tests** — every correlation is independently verified
-- ✅ **28 engineering modules** covering the full production lifecycle
+- ✅ **1385 passing unit tests** — every correlation is independently verified
+- ✅ **31 engineering modules** covering the full production lifecycle
 - ✅ **Field units throughout** — psi, °F, STB, scf, ft, cp, md
 - ✅ **Named after correlation authors** — `P365.PVT.Z.ByDAK` is the Dranchuk-Abou-Kassem method
 - ✅ **Pure functions** — no side effects, no global state, fully testable
@@ -93,8 +93,11 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 | 24 | **WBI** | Wellbore Integrity | Casing burst/collapse, buoyancy, cement volume/density, FIT/LOT/XLOT, mud window |
 | 25 | **SIM** | Sim INCLUDE Generator | Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, Corey table builder, File Generator |
 | 26 | **Eclipse** | Eclipse Results Import | SMSPEC/UNSMRY binary parser, time-series extraction, Excel table formatter, well name listing |
-| 27 | **Blueprints** | Blueprint Manager Catalog | 35+ structured blueprint templates with category/search/install metadata |
-| 28 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions |
+| 27 | **Spline** | Interpolation | Linear, natural cubic spline, monotone PCHIP, 2-D bilinear, inverse lookup, spline derivative/integral |
+| 28 | **ECO** | Economic Analysis | NPV, IRR, MIRR, payout (simple/discounted), economic limit, EUR at limit, profitability index, break-even price, UOP depletion, tornado sensitivity |
+| 29 | **WPA** | Well Production Allocation | Proportional proration, PI/AOF-weighted, capacity curtailment, meter reconciliation, voidage replacement (VRR), field summary |
+| 30 | **Blueprints** | Blueprint Manager Catalog | 35+ structured blueprint templates with category/search/install metadata |
+| 31 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions |
 
 ---
 
@@ -935,6 +938,114 @@ Parse Eclipse reservoir simulator summary binary files and load time-series data
 
 ---
 
+### Spline — Interpolation (Session 11)
+
+Smooth interpolation for PVT tables, relative permeability curves, rate-time data, and general data analysis.
+
+**Linear Interpolation**
+| Function | Description |
+|----------|-------------|
+| `P365.Spline.Linear(x, y, xq)` | Piecewise linear interpolation at a single query point |
+| `P365.Spline.LinearArray(x, y, xqs)` | Linear interpolation over an array of query points |
+
+**Natural Cubic Spline**
+| Function | Description |
+|----------|-------------|
+| `P365.Spline.Cubic(x, y, xq)` | Natural cubic spline (zero curvature BCs) at a single query point |
+| `P365.Spline.CubicArray(x, y, xqs)` | Cubic spline over an array of query points |
+| `P365.Spline.CubicDeriv(x, y, xq)` | First derivative dy/dx at a query point |
+| `P365.Spline.CubicIntegral(x, y, xa, xb)` | Definite integral of cubic spline from xa to xb |
+| `P365.Spline.CubicCoefficients(x, y)` | Internal: second-derivative coefficients array |
+
+**Monotone PCHIP** (Piecewise Cubic Hermite Interpolating Polynomial)
+| Function | Description |
+|----------|-------------|
+| `P365.Spline.Pchip(x, y, xq)` | Monotone-preserving PCHIP at a single query point (Fritsch-Carlson) |
+| `P365.Spline.PchipArray(x, y, xqs)` | PCHIP over an array of query points |
+| `P365.Spline.PchipInverse(x, y, yTarget)` | Find x where PCHIP(x) = yTarget (Brent method) |
+| `P365.Spline.PchipSlopes(x, y)` | Internal: harmonic-mean slopes at data nodes |
+
+**Table Lookup**
+| Function | Description |
+|----------|-------------|
+| `P365.Spline.Lookup(tableX, tableY, xq)` | 1-D table lookup with linear interpolation (like Excel VLOOKUP with interp) |
+| `P365.Spline.Bilinear(xs, ys, Z, xq, yq)` | 2-D bilinear interpolation on a regular grid |
+
+---
+
+### ECO — Economic Analysis (Session 11)
+
+Project economics for petroleum wells: NPV, IRR, payout, economic limit, and break-even analysis.
+
+**Discounted Cash Flow**
+| Function | Description |
+|----------|-------------|
+| `P365.ECO.NPV(cashFlows, rate)` | Net Present Value: Σ CF[t]/(1+r)^t |
+| `P365.ECO.NPVContinuous(cashFlows, rate)` | Continuous-discount NPV: Σ CF[t]·exp(−r·t) |
+| `P365.ECO.PV(futureValue, rate, periods)` | Present Value: FV/(1+r)^n |
+| `P365.ECO.FV(presentValue, rate, periods)` | Future Value: PV·(1+r)^n |
+
+**Rate of Return**
+| Function | Description |
+|----------|-------------|
+| `P365.ECO.IRR(cashFlows)` | Internal Rate of Return — r where NPV=0 (Brent's method) |
+| `P365.ECO.MIRR(cashFlows, financeRate, reinvestRate)` | Modified IRR with separate finance and reinvestment rates |
+
+**Payout**
+| Function | Description |
+|----------|-------------|
+| `P365.ECO.PayoutSimple(cashFlows)` | Undiscounted payout period (interpolated) |
+| `P365.ECO.PayoutDiscounted(cashFlows, rate)` | Discounted payout period (interpolated) |
+
+**Economic Limit**
+| Function | Description |
+|----------|-------------|
+| `P365.ECO.OilEconomicLimit(opex, price, WI, NRI, tax)` | Minimum economic oil rate (STB/month) |
+| `P365.ECO.GasEconomicLimit(opex, price, WI, NRI, tax)` | Minimum economic gas rate (Mscf/month) |
+| `P365.ECO.ArpsEURAtLimit(qi, Di, b, qEL)` | EUR from qi down to economic limit rate qEL |
+| `P365.ECO.TimeToEconomicLimit(qi, Di, b, qEL)` | Time to reach economic limit (Arps decline) |
+
+**Profitability**
+| Function | Description |
+|----------|-------------|
+| `P365.ECO.ProfitabilityIndex(cashFlows, rate)` | PI = (NPV + CAPEX) / CAPEX; PI > 1 = value-creating |
+| `P365.ECO.BreakEvenPrice(volumes, opex, capex, rate)` | Commodity price that makes NPV = 0 |
+| `P365.ECO.UOPDepletion(costBasis, reserves, production)` | Unit-of-production depletion expense |
+| `P365.ECO.BuildCashFlows(volumes, price, NRI, opex, capex)` | Build periodic cash-flow array |
+| `P365.ECO.TornadoSensitivity(baseFlows, rate, parameters)` | One-at-a-time NPV sensitivity (tornado chart input) |
+
+---
+
+### WPA — Well Production Allocation (Session 11)
+
+Multi-well field-level proration, injection distribution, and voidage replacement for reservoir management.
+
+**Proration Methods**
+| Function | Description |
+|----------|-------------|
+| `P365.WPA.Proportional(wellIds, weights, targetRate)` | Distribute rate by weight (PI, AOF, historical share) |
+| `P365.WPA.EqualShare(wellIds, targetRate)` | Equal-share proration |
+| `P365.WPA.PIWeighted(wellIds, piValues, fieldRate)` | PI-weighted allocation |
+| `P365.WPA.AOFWeighted(wellIds, aofValues, fieldRate)` | AOF-weighted gas well allocation |
+| `P365.WPA.CapacityCurtailment(wellIds, weights, maxRates, targetRate)` | Iterative cap-and-redistribute algorithm |
+| `P365.WPA.Reconcile(wellIds, meteredRates, fieldMeasured)` | Scale well meters to match accurate field total |
+
+**Injection**
+| Function | Description |
+|----------|-------------|
+| `P365.WPA.InjectorsProportional(wellIds, pvWeights, totalInj)` | Distribute injection by pore-volume weight |
+| `P365.WPA.VoidageRate(wells, Rs)` | Total reservoir voidage (res bbl/d) from oil + water + free gas |
+| `P365.WPA.RequiredInjectionRate(voidage, VRR, Bw_inj)` | Water injection needed to achieve target VRR |
+| `P365.WPA.ActualVRR(waterInj, Bw_inj, gasInj, Bg_inj, voidage)` | Actual voidage replacement ratio |
+
+**Field Summary**
+| Function | Description |
+|----------|-------------|
+| `P365.WPA.FieldSummary(wells)` | Aggregate field totals: oil, water, gas, liquid, water cut, GOR |
+| `P365.WPA.FieldPI(piValues, skinValues)` | Composite field PI with skin correction |
+
+---
+
 ## Development
 
 ### Project Structure
@@ -943,7 +1054,7 @@ Parse Eclipse reservoir simulator summary binary files and load time-series data
 Petroleum-365/
 ├── src/
 │   ├── index.ts                  ← P365 namespace (all exports)
-│   ├── functions.json            ← UDF registrations (138 entries)
+│   ├── functions.json            ← UDF registrations (161 entries)
 │   └── functions/
 │       ├── pvt/                  ← PVT: gas.ts, oil.ts, water.ts
 │       ├── dca/                  ← Decline curve analysis
@@ -970,6 +1081,9 @@ Petroleum-365/
 │       ├── wbi/                  ← Wellbore integrity
 │       ├── sim/                  ← Sim INCLUDE file generator (Session 9)
 │       ├── eclipse/              ← Eclipse SMSPEC/UNSMRY binary parser (Session 10)
+│       ├── spline/               ← Spline interpolation: cubic, PCHIP, bilinear (Session 11)
+│       ├── eco/                  ← Economic analysis: NPV/IRR/payout/economic limit (Session 11)
+│       ├── wpa/                  ← Well production allocation & VRR (Session 11)
 │       ├── pipe/                 ← Pipe sizing
 │       └── utilities/            ← Unit converter
 ├── src/addins/
@@ -996,7 +1110,7 @@ Petroleum-365/
 | Command | Description |
 |---------|-------------|
 | `npm install` | Install all dependencies |
-| `npx jest --no-coverage` | Run all 1267 unit tests |
+| `npx jest --no-coverage` | Run all 1385 unit tests |
 | `npx tsc --noEmit` | TypeScript type-check (0 errors expected) |
 | `npm run build` | Build for production |
 
