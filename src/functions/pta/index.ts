@@ -1127,3 +1127,267 @@ export function ptaDeconvolution(
 
   return dt_hrs.map((t, i) => ({ t_hrs: t, g_unit: g[i] }));
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// Session 17 — Pressure Buildup Analysis: MDH, Horner, wellbore storage
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Miller-Dyes-Hutchinson (MDH) pressure buildup analysis.
+ *
+ * Plots pressure vs. log(Δt) during a buildup test.  The straight-line slope m
+ * on the semi-log plot (psi/cycle) is used to compute permeability and skin.
+ *
+ *   k = 162.6 × q × μ × B / (m × h)
+ *   S = 1.1513 × [(P1hr − Pwf_s) / m − log(k / (φ μ ct rw²)) + 3.2275]
+ *
+ * This function returns the slope, extrapolated p*, permeability, and skin.
+ *
+ * @param dt_hrs    Shut-in time array (hours) — must be ascending
+ * @param Pws_psi   Shut-in wellbore pressure array (psia) — same length as dt_hrs
+ * @param q_STBd    Flow rate before shut-in (STB/d)
+ * @param mu_cp     Reservoir fluid viscosity (cp)
+ * @param Bo_RBSTB  Formation volume factor (RB/STB)
+ * @param h_ft      Net pay thickness (ft)
+ * @param phi       Porosity (fraction)
+ * @param ct_psi1   Total compressibility (1/psi)
+ * @param rw_ft     Wellbore radius (ft)
+ * @param Pwf_s_psi Flowing pressure at shut-in (psia)
+ * @returns         { m_psi_cycle, k_md, S_skin, P1hr_psi }
+ */
+export function ptaMDHAnalysis(
+  dt_hrs: number[],
+  Pws_psi: number[],
+  q_STBd: number,
+  mu_cp: number,
+  Bo_RBSTB: number,
+  h_ft: number,
+  phi: number,
+  ct_psi1: number,
+  rw_ft: number,
+  Pwf_s_psi: number,
+): {
+  m_psi_cycle: number;
+  k_md: number;
+  S_skin: number;
+  P1hr_psi: number;
+} {
+  const n = dt_hrs.length;
+  if (n < 3) throw new Error("MDH analysis requires at least 3 shut-in points");
+  if (Pws_psi.length !== n) throw new Error("dt_hrs and Pws_psi must be the same length");
+
+  // Use log10(dt) as x for linear regression on semi-log plot
+  // Find the MDH straight-line region: typically 0.1–10 hr or from data
+  // Simple approach: use 1/4 to 3/4 of data range (skip very early and late)
+  const i0 = Math.max(1, Math.floor(n * 0.15));
+  const i1 = Math.min(n - 2, Math.floor(n * 0.75));
+
+  const x: number[] = [];
+  const y: number[] = [];
+  for (let i = i0; i <= i1; i++) {
+    if (dt_hrs[i] > 0) {
+      x.push(Math.log10(dt_hrs[i]));
+      y.push(Pws_psi[i]);
+    }
+  }
+
+  // Linear regression: P = m*log10(Δt) + b
+  const nx = x.length;
+  const sumX  = x.reduce((a, v) => a + v, 0);
+  const sumY  = y.reduce((a, v) => a + v, 0);
+  const sumXY = x.reduce((a, v, i) => a + v * y[i], 0);
+  const sumX2 = x.reduce((a, v) => a + v * v, 0);
+  const denom = nx * sumX2 - sumX * sumX;
+  const m = denom !== 0 ? (nx * sumXY - sumX * sumY) / denom : 0;  // psi/cycle
+  const b = (sumY - m * sumX) / nx;                                  // intercept
+
+  // P at Δt = 1 hr from the regression line
+  const P1hr = m * Math.log10(1) + b;  // = b when log10(1)=0
+
+  // Permeability from Darcy flow: k = 162.6 q μ B / (m h)
+  const k_md = (162.6 * q_STBd * mu_cp * Bo_RBSTB) / (Math.abs(m) * h_ft);
+
+  // Skin factor (MDH form)
+  const S = 1.1513 * ((P1hr - Pwf_s_psi) / Math.abs(m)
+    - Math.log10(k_md / (phi * mu_cp * ct_psi1 * rw_ft * rw_ft)) + 3.2275);
+
+  return {
+    m_psi_cycle: m,
+    k_md,
+    S_skin: S,
+    P1hr_psi: P1hr,
+  };
+}
+
+/**
+ * Horner pressure buildup analysis.
+ *
+ * Plots pressure vs. log[(tp + Δt) / Δt] during a buildup test.
+ * The slope m of the Horner straight line gives k and skin, and extrapolating
+ * to (tp + Δt)/Δt = 1 gives p* (static reservoir pressure).
+ *
+ *   k = 162.6 × q × μ × B / (m × h)
+ *   S = 1.1513 × [(P1hr_Horner − Pwf_s) / m − log(k / (φ μ ct rw²)) + 3.2275]
+ *   p* = m × log(1) + b  →  at Horner time ratio = 1
+ *
+ * @param dt_hrs    Shut-in time array (hours)
+ * @param Pws_psi   Shut-in wellbore pressure array (psia)
+ * @param tp_hrs    Producing time before shut-in (hours)
+ * @param q_STBd    Flow rate before shut-in (STB/d)
+ * @param mu_cp     Fluid viscosity (cp)
+ * @param Bo_RBSTB  Formation volume factor (RB/STB)
+ * @param h_ft      Net pay thickness (ft)
+ * @param phi       Porosity (fraction)
+ * @param ct_psi1   Total compressibility (1/psi)
+ * @param rw_ft     Wellbore radius (ft)
+ * @param Pwf_s_psi Flowing pressure at shut-in (psia)
+ * @returns         { m_psi_cycle, k_md, S_skin, p_star_psi }
+ */
+export function ptaHornerAnalysis(
+  dt_hrs: number[],
+  Pws_psi: number[],
+  tp_hrs: number,
+  q_STBd: number,
+  mu_cp: number,
+  Bo_RBSTB: number,
+  h_ft: number,
+  phi: number,
+  ct_psi1: number,
+  rw_ft: number,
+  Pwf_s_psi: number,
+): {
+  m_psi_cycle: number;
+  k_md: number;
+  S_skin: number;
+  p_star_psi: number;
+} {
+  const n = dt_hrs.length;
+  if (n < 3) throw new Error("Horner analysis requires at least 3 shut-in points");
+  if (Pws_psi.length !== n) throw new Error("dt_hrs and Pws_psi must be the same length");
+
+  // Horner time ratio HTR = (tp + Δt) / Δt
+  // Straight line plots P vs log10(HTR), slope is negative (pressure rises as HTR decreases)
+  const i0 = Math.max(1, Math.floor(n * 0.15));
+  const i1 = Math.min(n - 2, Math.floor(n * 0.75));
+
+  const x: number[] = [];
+  const y: number[] = [];
+  for (let i = i0; i <= i1; i++) {
+    if (dt_hrs[i] > 0) {
+      const HTR = (tp_hrs + dt_hrs[i]) / dt_hrs[i];
+      x.push(Math.log10(HTR));
+      y.push(Pws_psi[i]);
+    }
+  }
+
+  // Linear regression: Pws = m × log10(HTR) + b
+  // Note: HTR decreases as shut-in progresses, so slope m is negative (pressure increases)
+  const nx = x.length;
+  const sumX  = x.reduce((a, v) => a + v, 0);
+  const sumY  = y.reduce((a, v) => a + v, 0);
+  const sumXY = x.reduce((a, v, i) => a + v * y[i], 0);
+  const sumX2 = x.reduce((a, v) => a + v * v, 0);
+  const denom = nx * sumX2 - sumX * sumX;
+  const m = denom !== 0 ? (nx * sumXY - sumX * sumY) / denom : 0;
+  const b = (sumY - m * sumX) / nx;
+
+  // p* at HTR = 1 → log10(1) = 0 → p* = b
+  const p_star = b;
+
+  // Permeability — use absolute value of slope
+  const k_md = (162.6 * q_STBd * mu_cp * Bo_RBSTB) / (Math.abs(m) * h_ft);
+
+  // P1hr on Horner plot at HTR = (tp+1)/1
+  const HTR_1hr = tp_hrs + 1;
+  const P1hr = m * Math.log10(HTR_1hr) + b;
+
+  // Skin
+  const S = 1.1513 * ((P1hr - Pwf_s_psi) / Math.abs(m)
+    - Math.log10(k_md / (phi * mu_cp * ct_psi1 * rw_ft * rw_ft)) + 3.2275);
+
+  return {
+    m_psi_cycle: m,
+    k_md,
+    S_skin: S,
+    p_star_psi: p_star,
+  };
+}
+
+/**
+ * Wellbore storage log-log diagnostic.
+ *
+ * During wellbore storage-dominated flow, both ΔP and ΔP' (Bourdet derivative)
+ * lie on the same unit-slope line on a log-log plot.  This function computes
+ * the wellbore storage coefficient C from the early-time unit-slope data.
+ *
+ *   Unit-slope equation: ΔP ≈ q B / (24 C) × Δt
+ *   → C = q B Δt / (24 ΔP)   [bbl/psi]
+ *
+ * It returns { C_bbl_psi, CD, unitSlopePoints } where unitSlopePoints are the
+ * early-time observations that fall on the unit slope (slope ≈ 1 on log-log plot).
+ *
+ * @param dt_hrs    Elapsed time array (hours) since well opened/shut
+ * @param dp_psi    Pressure change array (psi) — same length as dt_hrs
+ * @param q_STBd    Flow rate (STB/d)
+ * @param Bo_RBSTB  Formation volume factor (RB/STB)
+ * @param phi       Porosity (fraction)
+ * @param h_ft      Net pay thickness (ft)
+ * @param rw_ft     Wellbore radius (ft)
+ * @param ct_psi1   Total compressibility (1/psi)
+ * @returns         { C_bbl_psi, C_D, unitSlopeEnd_hrs }
+ */
+export function ptaWellboreStorageDiagnostic(
+  dt_hrs: number[],
+  dp_psi: number[],
+  q_STBd: number,
+  Bo_RBSTB: number,
+  phi: number,
+  h_ft: number,
+  rw_ft: number,
+  ct_psi1: number,
+): {
+  C_bbl_psi: number;
+  C_D: number;
+  unitSlopeEnd_hrs: number;
+} {
+  const n = dt_hrs.length;
+  if (n < 2) throw new Error("At least 2 data points required");
+  if (dp_psi.length !== n) throw new Error("dt_hrs and dp_psi must be the same length");
+
+  // Estimate C from early-time unit-slope region
+  // Use the first quarter of data (unit slope occurs early)
+  const iEnd = Math.max(2, Math.floor(n / 4));
+  let C_sum = 0;
+  let C_count = 0;
+  let unitSlopeEnd = dt_hrs[0];
+
+  for (let i = 1; i < iEnd; i++) {
+    if (dt_hrs[i] > 0 && dp_psi[i] > 0) {
+      // C = q B Δt / (24 ΔP)   [bbl/psi]  (q in STB/d, Δt in hrs, ΔP in psi)
+      const C_i = (q_STBd * Bo_RBSTB * dt_hrs[i]) / (24 * dp_psi[i]);
+      // Check unit slope: d(log ΔP)/d(log Δt) ≈ 1
+      if (i > 0 && dt_hrs[i - 1] > 0 && dp_psi[i - 1] > 0) {
+        const slope = (Math.log(dp_psi[i]) - Math.log(dp_psi[i - 1]))
+                    / (Math.log(dt_hrs[i]) - Math.log(dt_hrs[i - 1]));
+        if (slope > 0.7 && slope < 1.3) {
+          C_sum   += C_i;
+          C_count += 1;
+          unitSlopeEnd = dt_hrs[i];
+        }
+      }
+    }
+  }
+
+  const C = C_count > 0 ? C_sum / C_count
+    : (q_STBd * Bo_RBSTB * dt_hrs[iEnd - 1]) / (24 * (dp_psi[iEnd - 1] + 1e-9));
+
+  // Dimensionless wellbore storage coefficient
+  // C_D = C / (2π φ ct h rw²)
+  const C_D = C / (2 * Math.PI * phi * ct_psi1 * h_ft * rw_ft * rw_ft * 5.615);
+
+  return {
+    C_bbl_psi: C,
+    C_D,
+    unitSlopeEnd_hrs: unitSlopeEnd,
+  };
+}

@@ -650,3 +650,187 @@ export function geo3DCollapsePressure(
   const num  = q * (SHmax_psi + Shmin_psi) - UCS_psi - (q - 1) * alpha_biot * Pp_psi;
   return Math.max(0, num / (1 + q));
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// Session 17 — Mohr-Coulomb failure envelope and ECD
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Mohr-Coulomb shear failure envelope.
+ *
+ * Computes the shear strength (τ_f) at a given effective normal stress (σ_n)
+ * and the failure angle (θ_f from maximum principal stress) for a rock with
+ * cohesion C0 and internal friction angle φ.
+ *
+ *   τ_f = C0 + σ_n × tan(φ)
+ *   θ_f = 45° + φ/2   (angle of failure plane from σ₁)
+ *
+ * Also computes the differential stress at failure (σ₁ - σ₃) for a given
+ * confining stress σ₃:
+ *
+ *   (σ₁ - σ₃)_f = 2C0 cos(φ)/(1-sin(φ)) + 2σ₃ sin(φ)/(1-sin(φ))
+ *               = UCS + σ₃ × (q - 1)
+ *   where q = (1+sinφ)/(1-sinφ)
+ *
+ * @param sigma_n_eff_psi   Effective normal stress on failure plane (psi)
+ * @param C0_psi            Cohesion (psi)
+ * @param frictionAngle_deg Internal friction angle (°)
+ * @param sigma3_eff_psi    Minimum effective principal stress (confining, psi) — optional, used for diff stress
+ * @returns                 { tau_f_psi, theta_f_deg, diff_stress_failure_psi, UCS_psi }
+ */
+export function geoMohrCoulombFailureEnvelope(
+  sigma_n_eff_psi: number,
+  C0_psi: number,
+  frictionAngle_deg: number,
+  sigma3_eff_psi = 0,
+): {
+  tau_f_psi: number;
+  theta_f_deg: number;
+  diff_stress_failure_psi: number;
+  UCS_psi: number;
+} {
+  const phi  = frictionAngle_deg * (Math.PI / 180);
+  const sinP = Math.sin(phi);
+  const cosP = Math.cos(phi);
+  const tanP = Math.tan(phi);
+
+  const tau_f   = C0_psi + sigma_n_eff_psi * tanP;
+  const theta_f = 45 + frictionAngle_deg / 2;     // degrees
+
+  // q-factor (slope of σ₁ vs σ₃ at failure)
+  const q   = (1 + sinP) / (1 - sinP);
+  const UCS = 2 * C0_psi * cosP / (1 - sinP);
+  const diff_stress_f = UCS + sigma3_eff_psi * (q - 1);
+
+  return {
+    tau_f_psi: tau_f,
+    theta_f_deg: theta_f,
+    diff_stress_failure_psi: diff_stress_f,
+    UCS_psi: UCS,
+  };
+}
+
+/**
+ * Equivalent Circulating Density (ECD) calculation.
+ *
+ * The ECD accounts for the additional annular pressure loss during circulation
+ * on top of the hydrostatic mud column:
+ *
+ *   ECD (ppg) = MW (ppg) + ΔP_annulus (psi) / (0.052 × TVD_ft)
+ *
+ * Annular pressure loss uses the simplified Bingham plastic model:
+ *
+ *   ΔP_annulus = [48 μ_p Q / (300 (D_h-D_p)² (D_h+D_p))]
+ *              + [τ_y × L / (200 (D_h - D_p))]   (psi/100ft × L/100)
+ *
+ * where μ_p = plastic viscosity (cp), τ_y = yield point (lb/100ft²),
+ * Q = flow rate (gal/min), D_h = hole diameter (in), D_p = drill pipe OD (in).
+ *
+ * @param MW_ppg        Mud weight (lb/gal)
+ * @param TVD_ft        True vertical depth (ft)
+ * @param Q_gpm         Circulation flow rate (gal/min)
+ * @param D_hole_in     Hole (borehole) diameter (inches)
+ * @param D_pipe_in     Drill pipe outside diameter (inches)
+ * @param L_annulus_ft  Annular length (ft) — typically same as TVD
+ * @param mu_p_cp       Plastic viscosity (cp)
+ * @param tau_y_lb      Yield point (lb/100ft²)
+ * @returns             { ECD_ppg, dP_annulus_psi, ECD_gradient_psi_ft }
+ */
+export function geoECD(
+  MW_ppg: number,
+  TVD_ft: number,
+  Q_gpm: number,
+  D_hole_in: number,
+  D_pipe_in: number,
+  L_annulus_ft: number,
+  mu_p_cp: number,
+  tau_y_lb: number,
+): {
+  ECD_ppg: number;
+  dP_annulus_psi: number;
+  ECD_gradient_psi_ft: number;
+} {
+  const D_annulus = D_hole_in - D_pipe_in;  // annular clearance (in)
+
+  if (D_annulus <= 0) throw new Error("Hole diameter must be greater than pipe diameter");
+
+  // Bingham plastic annular pressure loss (psi per 100 ft):
+  // ΔP/100ft = (48 μ_p Q) / (300 (D_h-D_p)² (D_h+D_p)) + τ_y / (200 (D_h-D_p))
+  const dP_per100ft = (48 * mu_p_cp * Q_gpm)
+    / (300 * D_annulus * D_annulus * (D_hole_in + D_pipe_in))
+    + tau_y_lb / (200 * D_annulus);
+
+  // Total annular pressure loss
+  const dP_annulus = dP_per100ft * L_annulus_ft / 100;
+
+  // ECD: MW + annular losses referenced to TVD
+  const ECD = MW_ppg + dP_annulus / (0.052 * TVD_ft);
+
+  const ECD_grad = ECD * 0.052;  // psi/ft
+
+  return {
+    ECD_ppg: ECD,
+    dP_annulus_psi: dP_annulus,
+    ECD_gradient_psi_ft: ECD_grad,
+  };
+}
+
+/**
+ * Safe drilling mud weight window including ECD check.
+ *
+ * Returns the minimum MW (pore pressure gradient + safety margin),
+ * maximum MW (fracture gradient − safety margin), the ECD, and a
+ * stability flag indicating whether the ECD is within the window.
+ *
+ * @param PP_psi          Pore pressure (psi)
+ * @param FG_psi          Fracture gradient pressure (psi)
+ * @param TVD_ft          True vertical depth (ft)
+ * @param margin_ppg      Safety margin on each side (ppg)
+ * @param Q_gpm           Circulation flow rate (gal/min) — for ECD
+ * @param D_hole_in       Hole diameter (in)
+ * @param D_pipe_in       Drill pipe OD (in)
+ * @param L_annulus_ft    Annular length (ft)
+ * @param mu_p_cp         Plastic viscosity (cp)
+ * @param tau_y_lb        Yield point (lb/100ft²)
+ * @returns               { MW_min_ppg, MW_max_ppg, MW_recommended_ppg, ECD_ppg, window_safe }
+ */
+export function geoMudWeightWindowECD(
+  PP_psi: number,
+  FG_psi: number,
+  TVD_ft: number,
+  margin_ppg: number,
+  Q_gpm: number,
+  D_hole_in: number,
+  D_pipe_in: number,
+  L_annulus_ft: number,
+  mu_p_cp: number,
+  tau_y_lb: number,
+): {
+  MW_min_ppg: number;
+  MW_max_ppg: number;
+  MW_recommended_ppg: number;
+  ECD_ppg: number;
+  window_safe: boolean;
+} {
+  // Convert pore pressure and fracture gradient to ppg (EMW)
+  const PP_ppg  = PP_psi  / (0.052 * TVD_ft);
+  const FG_ppg  = FG_psi  / (0.052 * TVD_ft);
+
+  const MW_min = PP_ppg + margin_ppg;
+  const MW_max = FG_ppg - margin_ppg;
+  const MW_rec = (MW_min + MW_max) / 2;
+
+  // Compute ECD at recommended MW
+  const { ECD_ppg } = geoECD(MW_rec, TVD_ft, Q_gpm, D_hole_in, D_pipe_in,
+    L_annulus_ft, mu_p_cp, tau_y_lb);
+
+  const safe = ECD_ppg >= MW_min && ECD_ppg <= MW_max;
+
+  return {
+    MW_min_ppg:         MW_min,
+    MW_max_ppg:         MW_max,
+    MW_recommended_ppg: MW_rec,
+    ECD_ppg,
+    window_safe:        safe,
+  };
+}
