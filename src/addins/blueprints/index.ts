@@ -37,6 +37,9 @@ export type BlueprintCategory =
   | "GEO"
   | "SKIN"
   | "WBI"
+  | "Spline"
+  | "ECO"
+  | "WPA"
   | "Utilities";
 
 /** A single blueprint catalog entry. */
@@ -512,16 +515,161 @@ export const BLUEPRINT_CATALOG: Blueprint[] = [
     colCount: 7,
   },
 
+  // ── Spline ──────────────────────────────────────────────────────────────────
+  {
+    id: "spline-pvt-table-interpolation",
+    name: "PVT Table Spline Interpolation",
+    category: "Spline",
+    description:
+      "Interpolate fluid properties (Z-factor, viscosity, Bo, Rs) from a lab PVT table using monotone PCHIP spline interpolation. Avoids overshoot artifacts in saturated oil tables. Compare linear vs. cubic interpolation side-by-side.",
+    requiredFunctions: ["Spline.PCHIP", "Spline.Cubic", "Spline.Linear"],
+    tags: ["spline", "interpolation", "pvt", "pchip", "cubic", "z-factor", "viscosity"],
+    rowCount: 40,
+    colCount: 7,
+  },
+  {
+    id: "spline-rel-perm-smoothing",
+    name: "Relative Permeability Spline Smoothing",
+    category: "Spline",
+    description:
+      "Smooth laboratory relative permeability data using monotone PCHIP to preserve endpoints (Kro at Swi, Krw at Sorw) without introducing non-physical overshoot. Outputs smooth kr curve ready for simulation input.",
+    requiredFunctions: ["Spline.PCHIP", "Spline.PchipArray", "Spline.PchipInverse"],
+    tags: ["spline", "pchip", "relative permeability", "scal", "simulation", "smoothing", "kr"],
+    rowCount: 35,
+    colCount: 6,
+  },
+  {
+    id: "spline-decline-rate-lookup",
+    name: "Decline Rate Lookup with Bilinear Interpolation",
+    category: "Spline",
+    description:
+      "Two-dimensional lookup of type-curve decline rate from a reservoir parameter table (e.g., matrix permeability vs. fracture spacing). Applies bilinear interpolation between four corner cells.",
+    requiredFunctions: ["Spline.Bilinear", "Spline.Lookup"],
+    tags: ["spline", "bilinear", "type curve", "decline", "lookup", "2d table"],
+    rowCount: 30,
+    colCount: 8,
+  },
+
+  // ── ECO ─────────────────────────────────────────────────────────────────────
+  {
+    id: "eco-project-npv-irr",
+    name: "Project NPV & IRR Analysis",
+    category: "ECO",
+    description:
+      "Discounted cash flow analysis for an oil or gas project. Enter annual production volumes, commodity prices, OPEX, CAPEX, NRI, and discount rate to calculate NPV, IRR, payout period, and profitability index.",
+    requiredFunctions: [
+      "ECO.NPV", "ECO.IRR", "ECO.PayoutSimple", "ECO.PayoutDiscounted",
+      "ECO.ProfitabilityIndex", "ECO.BuildCashFlows",
+    ],
+    tags: ["npv", "irr", "dcf", "cash flow", "payout", "economics", "project evaluation"],
+    rowCount: 50,
+    colCount: 8,
+  },
+  {
+    id: "eco-economic-limit",
+    name: "Economic Limit & EUR at Abandonment",
+    category: "ECO",
+    description:
+      "Calculate the minimum economic production rate (the economic limit) where gross revenue equals lease operating expense. Integrates with Arps decline to determine EUR at economic limit and time to abandonment.",
+    requiredFunctions: [
+      "ECO.OilEconomicLimit", "ECO.GasEconomicLimit",
+      "ECO.ArpsEURAtLimit", "ECO.TimeToEconomicLimit",
+    ],
+    tags: ["economic limit", "eur", "abandonment", "opex", "arps", "dca", "roi"],
+    rowCount: 35,
+    colCount: 7,
+  },
+  {
+    id: "eco-wi-nri-royalty",
+    name: "Working Interest / NRI / Royalty Stack",
+    category: "ECO",
+    description:
+      "Calculate working interest revenue, net revenue interest (NRI), and stacked royalty deductions for oil or gas production. Supports multiple royalty owners (lessor royalty, ORRI, state royalty) with sequential royalty stacking.",
+    requiredFunctions: [
+      "ECO.WorkingInterest", "ECO.NetRevenueInterest", "ECO.RoyaltyStack",
+    ],
+    tags: ["wi", "nri", "royalty", "orri", "working interest", "lessor", "net revenue"],
+    rowCount: 30,
+    colCount: 6,
+  },
+  {
+    id: "eco-sensitivity-tornado",
+    name: "NPV Sensitivity Tornado Chart",
+    category: "ECO",
+    description:
+      "One-at-a-time sensitivity analysis showing how NPV responds to ±20% changes in oil price, gas price, OPEX, CAPEX, production, and discount rate. Results are sorted by swing magnitude for a tornado-chart presentation.",
+    requiredFunctions: ["ECO.NPV", "ECO.TornadoSensitivity", "ECO.IRR"],
+    tags: ["sensitivity", "tornado", "npv", "risk", "monte carlo", "economics", "swing"],
+    rowCount: 45,
+    colCount: 8,
+  },
+  {
+    id: "eco-gas-price-escalation",
+    name: "Gas Price Escalation & After-Tax NPV",
+    category: "ECO",
+    description:
+      "Build an escalated gas price schedule, compute nominal cash flows with inflation adjustment, and calculate after-tax NPV with UOP depletion shielding. Includes break-even price analysis.",
+    requiredFunctions: [
+      "ECO.GasPriceEscalation", "ECO.InflationAdjust", "ECO.AfterTaxNPV",
+      "ECO.AfterTaxNPVWithDepletion", "ECO.BreakEvenPrice",
+    ],
+    tags: ["gas price", "escalation", "inflation", "after-tax", "npv", "depletion", "tax"],
+    rowCount: 50,
+    colCount: 8,
+  },
+
+  // ── WPA ─────────────────────────────────────────────────────────────────────
+  {
+    id: "wpa-proportional-proration",
+    name: "Field Proration — Proportional Allocation",
+    category: "WPA",
+    description:
+      "Allocate a measured field total to individual wells by proportional proration (well rate / field rate). Includes PI-weighted and AOF-weighted allocation methods for comparison. Handles shut-in wells and partial-month production.",
+    requiredFunctions: [
+      "WPA.Proportional", "WPA.PIWeighted", "WPA.AOFWeighted", "WPA.EqualShare",
+    ],
+    tags: ["proration", "allocation", "field", "wpa", "pi weighted", "aof", "well rates"],
+    rowCount: 40,
+    colCount: 9,
+  },
+  {
+    id: "wpa-curtailment-vrr",
+    name: "Capacity Curtailment & Voidage Replacement Ratio",
+    category: "WPA",
+    description:
+      "Apply facility capacity constraints to a group of producing wells using iterative curtailment (cap-and-redistribute). Calculate required injection rate to achieve target voidage replacement ratio (VRR) for reservoir pressure maintenance.",
+    requiredFunctions: [
+      "WPA.CapacityCurtailment", "WPA.ActualVRR", "WPA.RequiredInjectionRate",
+      "WPA.VoidageRate",
+    ],
+    tags: ["curtailment", "vrr", "voidage", "injection", "capacity", "wpa", "reservoir pressure"],
+    rowCount: 45,
+    colCount: 8,
+  },
+  {
+    id: "wpa-field-summary",
+    name: "Field Production Summary Dashboard",
+    category: "WPA",
+    description:
+      "Aggregate individual well rates into a field-level production summary. Calculates total oil, gas, and water rates; field GOR; field WOR; field productivity index; and well-count by status. Also reconciles metered volumes to fiscal test separator data.",
+    requiredFunctions: [
+      "WPA.FieldSummary", "WPA.FieldPI", "WPA.Reconcile",
+    ],
+    tags: ["field summary", "wpa", "gor", "wor", "production", "dashboard", "reconcile"],
+    rowCount: 50,
+    colCount: 10,
+  },
+
   // ── Utilities ───────────────────────────────────────────────────────────────
   {
     id: "utils-unit-converter",
     name: "Unit Converter Reference Sheet",
     category: "Utilities",
     description:
-      "Quick-reference unit conversion sheet covering all P365 unit categories: pressure, temperature, length, volume, flow rate, energy, density, viscosity, and permeability. Use P365.UnitConverter() in any cell.",
+      "Quick-reference unit conversion sheet covering all P365 unit categories: pressure, temperature, length, volume, flow rate, energy, density, viscosity, permeability, torque, thermal conductivity, and specific heat. Use P365.UnitConverter() in any cell.",
     requiredFunctions: ["UnitConverter"],
-    tags: ["units", "converter", "psi", "bar", "mpa", "stb", "m3", "bbl", "psia"],
-    rowCount: 40,
+    tags: ["units", "converter", "psi", "bar", "mpa", "stb", "m3", "bbl", "psia", "torque", "thermal"],
+    rowCount: 50,
     colCount: 5,
   },
 ];

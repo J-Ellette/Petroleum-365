@@ -985,3 +985,154 @@ export function dcaAnnualToMonthlyEffective(De_annual: number): number {
 export function dcaMonthlyToAnnualEffective(De_monthly: number): number {
   return 1 - Math.pow(1 - De_monthly, 12);
 }
+
+// ─── SEPD / LGM Extended Diagnostics ──────────────────────────────────────────
+
+/**
+ * SEPD cumulative shape ratio at time t.
+ *
+ * Shape = Gp(t) / Gp_max = 1 − exp(−(t/tau)^n)
+ *
+ * A shape of 0.5 means 50% of ultimate has been produced.
+ * The time at which shape = 0.5 is the characteristic "half-life" of the well.
+ *
+ * @param t    Time (same units as tau)
+ * @param tau  Characteristic time constant
+ * @param n    Stretched exponent (n < 1 = hyperbolic-like; n = 1 = exponential)
+ * @returns    Dimensionless cumulative shape ratio [0, 1)
+ */
+export function sepdCumShape(t: number, tau: number, n: number): number {
+  if (tau <= 0 || n <= 0) return 0;
+  return 1 - Math.exp(-Math.pow(t / tau, n));
+}
+
+/**
+ * LGM saturation fraction at time t (fraction of EUR produced).
+ *
+ * Saturation = Gp(t) / K = (1 + a × t^(−n))^(−1)
+ *
+ * @param t  Time (must be > 0)
+ * @param K  Carrying capacity (EUR, same units as rate·time)
+ * @param a  LGM parameter a (controls transient)
+ * @param n  LGM exponent n (controls curvature)
+ * @returns  Saturation fraction [0, 1)
+ */
+export function lgmSatFraction(t: number, K: number, a: number, n: number): number {
+  if (t <= 0 || K <= 0) return 0;
+  return lgmCumulative(t, K, a, n) / K;
+}
+
+/**
+ * Compare Arps, SEPD, and LGM goodness-of-fit on production data.
+ *
+ * Returns sum-of-squared-residuals (SSR) for each model fitted to the data.
+ * Lower SSR = better fit.
+ *
+ * @param times   Array of time values
+ * @param rates   Array of rate values (same length as times)
+ * @returns       { arpsSSR, sepdSSR, lgmSSR } — SSR for each model
+ */
+export function dcaModelComparison(
+  times: number[],
+  rates: number[],
+): { arpsSSR: number; sepdSSR: number; lgmSSR: number } {
+  const n = Math.min(times.length, rates.length);
+  if (n < 3) return { arpsSSR: Infinity, sepdSSR: Infinity, lgmSSR: Infinity };
+
+  // ── Arps fit ──────────────────────────────────────────────────────────────
+  const [Qi_a, Di_a, b_a] = arpsFit(times, rates);
+  let arpsSSR = 0;
+  for (let i = 0; i < n; i++) {
+    const pred = arpsRate(Qi_a, Di_a, b_a, times[i]);
+    arpsSSR += (rates[i] - pred) ** 2;
+  }
+
+  // ── SEPD fit: 3-parameter (qi, tau, n) via brute scan + Nelder-Mead-like ──
+  const Qi_s = rates[0];
+  let bestSepdSSR = Infinity;
+  let best_tau = 1, best_n = 0.5;
+  const t_last = times[n - 1];
+  for (let ti = 1; ti <= 20; ti++) {
+    for (let ni = 1; ni <= 10; ni++) {
+      const tau = (ti / 10) * t_last;
+      const nn = ni * 0.15;
+      let ssr = 0;
+      for (let i = 0; i < n; i++) {
+        const pred = Qi_s * Math.exp(-Math.pow(times[i] / tau, nn));
+        ssr += (rates[i] - pred) ** 2;
+      }
+      if (ssr < bestSepdSSR) { bestSepdSSR = ssr; best_tau = tau; best_n = nn; }
+    }
+  }
+  // Refine
+  let sepdSSR = bestSepdSSR;
+  for (let iter = 0; iter < 50; iter++) {
+    for (const [dtau, dn] of [[0.05, 0], [-0.05, 0], [0, 0.05], [0, -0.05]]) {
+      const tau2 = best_tau * (1 + dtau);
+      const n2   = best_n + dn;
+      if (tau2 <= 0 || n2 <= 0) continue;
+      let ssr = 0;
+      for (let i = 0; i < n; i++) {
+        const pred = Qi_s * Math.exp(-Math.pow(times[i] / tau2, n2));
+        ssr += (rates[i] - pred) ** 2;
+      }
+      if (ssr < sepdSSR) { sepdSSR = ssr; best_tau = tau2; best_n = n2; }
+    }
+  }
+
+  // ── LGM fit: scan K, a, n ─────────────────────────────────────────────────
+  const maxQ = Math.max(...rates);
+  let bestLgmSSR = Infinity;
+  let best_K = maxQ * 10, best_a = 1, best_ln = 1;
+  for (let ki = 1; ki <= 10; ki++) {
+    for (let ai = 1; ai <= 5; ai++) {
+      for (let lni = 1; lni <= 5; lni++) {
+        const K  = maxQ * ki;
+        const a  = ai * 0.5;
+        const ln = lni * 0.4;
+        let ssr = 0;
+        for (let i = 0; i < n; i++) {
+          if (times[i] <= 0) continue;
+          const pred = lgmRate(times[i], K, a, ln);
+          ssr += (rates[i] - pred) ** 2;
+        }
+        if (ssr < bestLgmSSR) { bestLgmSSR = ssr; best_K = K; best_a = a; best_ln = ln; }
+      }
+    }
+  }
+  const lgmSSR = bestLgmSSR;
+
+  return { arpsSSR, sepdSSR, lgmSSR };
+}
+
+/**
+ * Arps EUR at economic limit with terminal exponential switch.
+ *
+ * Equivalent to Transient Hyperbolic EUR — calculates EUR accounting for
+ * the transition from hyperbolic to terminal exponential decline.
+ *
+ * EUR = Gp(t_switch) + q(t_switch) / D_term
+ *
+ * @param Qi       Initial rate
+ * @param Di       Initial nominal decline rate (1/time)
+ * @param b        Hyperbolic exponent
+ * @param Dterm    Terminal decline rate for exponential tail (1/time)
+ * @param qEL      Economic limit rate (abandonment rate)
+ * @returns        EUR (same units as rate × time)
+ */
+export function arpsEURWithTerminalDecline(
+  Qi: number,
+  Di: number,
+  b: number,
+  Dterm: number,
+  qEL: number,
+): number {
+  // Time at which D(t) = Dterm
+  const t_sw = thSwitchTime(Di, b, Dterm);
+  const q_sw = arpsRate(Qi, Di, b, t_sw);
+  const Gp_sw = arpsCumulative(Qi, Di, b, t_sw);
+  // Exponential tail to qEL
+  if (qEL >= q_sw) return Gp_sw;
+  const Gp_tail = (q_sw - qEL) / Dterm;
+  return Gp_sw + Gp_tail;
+}

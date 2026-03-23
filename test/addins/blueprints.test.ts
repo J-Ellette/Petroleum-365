@@ -141,3 +141,77 @@ describe("getBlueprintCategories", () => {
     expect(cats).toContain("FRAC");
   });
 });
+
+// ─── Session 12 additions (Spline, ECO, WPA categories) ──────────────────
+
+describe("Blueprint Catalog — Session 12 additions", () => {
+  test("Spline category is present", () => {
+    const cats = getBlueprintCategories();
+    expect(cats).toContain("Spline");
+  });
+
+  test("ECO category is present", () => {
+    const cats = getBlueprintCategories();
+    expect(cats).toContain("ECO");
+  });
+
+  test("WPA category is present", () => {
+    const cats = getBlueprintCategories();
+    expect(cats).toContain("WPA");
+  });
+
+  test("ECO blueprints include project NPV/IRR analysis", () => {
+    const ecoBPs = getBlueprintsByCategory("ECO");
+    expect(ecoBPs.length).toBeGreaterThanOrEqual(3);
+    expect(ecoBPs.some(b => b.id === "eco-project-npv-irr")).toBe(true);
+  });
+
+  test("ECO blueprint: WI/NRI/Royalty Stack blueprint exists", () => {
+    const bp = getBlueprintById("eco-wi-nri-royalty");
+    expect(bp).toBeDefined();
+    expect(bp!.category).toBe("ECO");
+    expect(bp!.requiredFunctions).toContain("ECO.WorkingInterest");
+  });
+
+  test("ECO blueprint: Gas Price Escalation blueprint exists", () => {
+    const bp = getBlueprintById("eco-gas-price-escalation");
+    expect(bp).toBeDefined();
+    expect(bp!.requiredFunctions).toContain("ECO.GasPriceEscalation");
+  });
+
+  test("Spline blueprints include PVT Table Interpolation", () => {
+    const splineBPs = getBlueprintsByCategory("Spline");
+    expect(splineBPs.length).toBeGreaterThanOrEqual(3);
+    expect(splineBPs.some(b => b.id === "spline-pvt-table-interpolation")).toBe(true);
+  });
+
+  test("WPA blueprints include proportional proration and curtailment", () => {
+    const wpaBPs = getBlueprintsByCategory("WPA");
+    expect(wpaBPs.length).toBeGreaterThanOrEqual(3);
+    expect(wpaBPs.some(b => b.id === "wpa-proportional-proration")).toBe(true);
+    expect(wpaBPs.some(b => b.id === "wpa-curtailment-vrr")).toBe(true);
+    expect(wpaBPs.some(b => b.id === "wpa-field-summary")).toBe(true);
+  });
+
+  test("updated Utilities unit converter blueprint includes torque/thermal tags", () => {
+    const bp = getBlueprintById("utils-unit-converter");
+    expect(bp).toBeDefined();
+    expect(bp!.tags).toContain("torque");
+    expect(bp!.tags).toContain("thermal");
+  });
+
+  test("searchBlueprints('escalation') finds ECO gas price blueprint", () => {
+    const results = searchBlueprints("escalation");
+    expect(results.some(b => b.id === "eco-gas-price-escalation")).toBe(true);
+  });
+
+  test("searchBlueprints('proration') finds WPA blueprint", () => {
+    const results = searchBlueprints("proration");
+    expect(results.some(b => b.id === "wpa-proportional-proration")).toBe(true);
+  });
+
+  test("searchBlueprints('pchip') finds Spline blueprint", () => {
+    const results = searchBlueprints("pchip");
+    expect(results.some(b => b.id === "spline-rel-perm-smoothing")).toBe(true);
+  });
+});

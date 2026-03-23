@@ -190,6 +190,62 @@ const UNITS: Record<string, UnitDef> = {
   "lbmol":  { factor: 1,          category: "molar" },
   "kmol":   { factor: 2.20462,    category: "molar" },
   "mol":    { factor: 2.20462e-3, category: "molar" },
+
+  // ─── Torque ──────────────────────────────────────────────────────────────
+  // Base: ft·lbf
+  "ft·lbf":   { factor: 1,           category: "torque", aliases: ["ft-lbf","ft lbf","ftlbf"] },
+  "in·lbf":   { factor: 1/12,        category: "torque", aliases: ["in-lbf","inlbf"] },
+  "N·m":      { factor: 0.737562,    category: "torque", aliases: ["Nm","N*m"] },
+  "kN·m":     { factor: 737.562,     category: "torque", aliases: ["kNm"] },
+  "lbf·ft":   { factor: 1,           category: "torque", aliases: ["lbf-ft"] },
+  "lbf·in":   { factor: 1/12,        category: "torque", aliases: ["lbf-in"] },
+  "kip·ft":   { factor: 1000,        category: "torque", aliases: ["kip-ft"] },
+  "dN·m":     { factor: 0.0737562,   category: "torque" },
+
+  // ─── Thermal conductivity ─────────────────────────────────────────────────
+  // Base: BTU/(hr·ft·°F)
+  "BTU/(hr·ft·°F)": { factor: 1,           category: "thermal_conductivity",
+                       aliases: ["BTU/hr/ft/F","Btu/hr/ft/F","BTU/hrftF"] },
+  "W/(m·K)":        { factor: 0.577789,    category: "thermal_conductivity",
+                       aliases: ["W/m/K","W/mK"] },
+  "W/(m·°C)":       { factor: 0.577789,    category: "thermal_conductivity",
+                       aliases: ["W/m/C"] },
+  "mW/(m·K)":       { factor: 5.77789e-4,  category: "thermal_conductivity",
+                       aliases: ["mW/m/K"] },
+  "kW/(m·K)":       { factor: 577.789,     category: "thermal_conductivity",
+                       aliases: ["kW/m/K"] },
+  "kcal/(hr·m·°C)": { factor: 0.671969,    category: "thermal_conductivity",
+                       aliases: ["kcal/hr/m/C"] },
+  "cal/(s·cm·°C)":  { factor: 241.909,     category: "thermal_conductivity",
+                       aliases: ["cal/s/cm/C"] },
+
+  // ─── Specific heat capacity ──────────────────────────────────────────────
+  // Base: BTU/(lbm·°F)
+  "BTU/(lbm·°F)": { factor: 1,         category: "specific_heat",
+                     aliases: ["BTU/lb/F","Btu/lbm/F"] },
+  "BTU/(lbm·°R)": { factor: 1,         category: "specific_heat",
+                     aliases: ["BTU/lb/R"] },
+  "J/(kg·K)":     { factor: 2.38846e-4,category: "specific_heat",
+                     aliases: ["J/kg/K"] },
+  "kJ/(kg·K)":    { factor: 0.238846,  category: "specific_heat",
+                     aliases: ["kJ/kg/K","kJ/kgK"] },
+  "cal/(g·°C)":   { factor: 1,         category: "specific_heat",
+                     aliases: ["cal/g/C","kcal/kg/C"] },
+  "kcal/(kg·°C)": { factor: 1,         category: "specific_heat",
+                     aliases: ["kcal/kg/K"] },
+
+  // ─── Mass flow rate ───────────────────────────────────────────────────────
+  // Base: lbm/hr
+  "lbm/hr":   { factor: 1,          category: "flow_mass", aliases: ["lb/hr"] },
+  "lbm/s":    { factor: 3600,       category: "flow_mass", aliases: ["lb/s"] },
+  "lbm/min":  { factor: 60,         category: "flow_mass", aliases: ["lb/min"] },
+  "kg/hr":    { factor: 2.20462,    category: "flow_mass" },
+  "kg/s":     { factor: 7936.64,    category: "flow_mass" },
+  "kg/min":   { factor: 132.277,    category: "flow_mass" },
+  "g/s":      { factor: 7.93664,    category: "flow_mass" },
+  "tonne/hr": { factor: 2204.62,    category: "flow_mass", aliases: ["MT/hr","t/hr"] },
+  "tonne/d":  { factor: 91.8592,    category: "flow_mass", aliases: ["MT/d","t/d"] },
+  "ton/hr":   { factor: 2000,       category: "flow_mass", aliases: ["short ton/hr"] },
 };
 
 // Build alias lookup

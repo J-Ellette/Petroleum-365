@@ -4176,6 +4176,344 @@
         "type": "string",
         "dimensionality": "scalar"
       }
+    },
+    {
+      "name": "ECO.WORKING.INTEREST",
+      "description": "Calculate working interest (WI) revenue. WI_Revenue = GrossRevenue \u00d7 WI",
+      "parameters": [
+        {
+          "name": "grossRevenue",
+          "description": "Gross revenue before burdens (USD)"
+        },
+        {
+          "name": "wi",
+          "description": "Working interest fraction (e.g. 0.75 = 75%)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "ECO.NET.REVENUE.INTEREST",
+      "description": "Calculate Net Revenue Interest (NRI). NRI = WI \u00d7 (1 - totalRoyalty)",
+      "parameters": [
+        {
+          "name": "wi",
+          "description": "Working interest fraction"
+        },
+        {
+          "name": "totalRoyalty",
+          "description": "Total royalty burden (e.g. 0.1875 for 3/16)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "ECO.ROYALTY.STACK",
+      "description": "Calculate net revenue after stacking multiple royalty deductions sequentially",
+      "parameters": [
+        {
+          "name": "grossRevenue",
+          "description": "Gross revenue before royalties (USD)"
+        },
+        {
+          "name": "royalties",
+          "description": "Array of royalty fractions (e.g. [0.125, 0.03])"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "ECO.GAS.PRICE.ESCALATION",
+      "description": "Project gas prices forward with annual escalation rate. Returns array of escalated prices.",
+      "parameters": [
+        {
+          "name": "basePrice",
+          "description": "Price at period 0 (USD/Mscf or USD/MMBtu)"
+        },
+        {
+          "name": "escalationRate",
+          "description": "Annual price escalation rate (e.g. 0.03 = 3%/yr)"
+        },
+        {
+          "name": "periods",
+          "description": "Number of periods to generate"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "name": "ECO.INFLATION.ADJUST",
+      "description": "Adjust real cash flows for inflation to produce nominal cash flows. CF_nominal[t] = CF_real[t] \u00d7 (1+r)^t",
+      "parameters": [
+        {
+          "name": "realCashFlows",
+          "description": "Array of real (constant-dollar) cash flows"
+        },
+        {
+          "name": "inflationRate",
+          "description": "Annual inflation rate (e.g. 0.03 = 3%/yr)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "name": "ECO.AFTER.TAX.NPV",
+      "description": "Calculate after-tax NPV using flat income tax rate on positive cash flows",
+      "parameters": [
+        {
+          "name": "cashFlows",
+          "description": "Pre-tax cash flows (positive = income, negative = expense)"
+        },
+        {
+          "name": "rate",
+          "description": "Periodic discount rate"
+        },
+        {
+          "name": "taxRate",
+          "description": "Income tax rate (e.g. 0.21 for 21% federal)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "ECO.AFTER.TAX.NPV.DEPLETION",
+      "description": "After-tax NPV with UOP depletion shielding. taxable[t] = preTaxCF[t] - depletion[t]",
+      "parameters": [
+        {
+          "name": "cashFlows",
+          "description": "Pre-tax cash flows"
+        },
+        {
+          "name": "rate",
+          "description": "Periodic discount rate"
+        },
+        {
+          "name": "taxRate",
+          "description": "Income tax rate"
+        },
+        {
+          "name": "depletion",
+          "description": "Per-period depletion deduction"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "ECO.BUILD.ESCALATED.REVENUE",
+      "description": "Build escalated revenue cash flows: Revenue[t] = volume[t] \u00d7 price[0] \u00d7 (1+esc)^t \u00d7 NRI - OPEX[t]",
+      "parameters": [
+        {
+          "name": "volumes",
+          "description": "Array of production volumes per period"
+        },
+        {
+          "name": "basePrice",
+          "description": "Price at t=0 (USD/STB or USD/Mscf)"
+        },
+        {
+          "name": "priceEscalation",
+          "description": "Annual price escalation rate"
+        },
+        {
+          "name": "nri",
+          "description": "Net revenue interest fraction"
+        },
+        {
+          "name": "opex",
+          "description": "Operating cost per period (scalar or array)"
+        },
+        {
+          "name": "capex",
+          "description": "Capital expenditure per period (optional array)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "name": "ECO.LOE.PER.BOE",
+      "description": "Calculate lease operating expense per BOE. LOE/BOE = totalOpex / (oilVol + gasVol/BOEperMscf)",
+      "parameters": [
+        {
+          "name": "totalOpex",
+          "description": "Total operating expenditure in period (USD)"
+        },
+        {
+          "name": "oilVolume_STB",
+          "description": "Oil production (STB)"
+        },
+        {
+          "name": "gasVolume_Mscf",
+          "description": "Gas production (Mscf)"
+        },
+        {
+          "name": "boePerMscf",
+          "description": "BOE conversion for gas (default 6.0 Mscf/BOE)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "ECO.RECYCLE.RATIO",
+      "description": "Calculate CAPEX recycle ratio. RecycleRatio = (Revenue - OPEX) / CAPEX",
+      "parameters": [
+        {
+          "name": "revenue",
+          "description": "Cumulative undiscounted revenue (USD)"
+        },
+        {
+          "name": "opex",
+          "description": "Cumulative undiscounted operating expense (USD)"
+        },
+        {
+          "name": "capex",
+          "description": "Total capital investment (USD)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "ECO.FINDING.COST",
+      "description": "Calculate finding and development cost per BOE. F&D = totalCapex / EUR_BOE",
+      "parameters": [
+        {
+          "name": "totalCapex",
+          "description": "Total drilling + completion + facilities cost (USD)"
+        },
+        {
+          "name": "eur_BOE",
+          "description": "Estimated ultimate recovery (BOE)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "DCA.SEPD.CUM.SHAPE",
+      "description": "SEPD cumulative shape ratio: fraction of EUR produced at time t. Shape = 1 - exp(-(t/tau)^n)",
+      "parameters": [
+        {
+          "name": "t",
+          "description": "Time (same units as tau)"
+        },
+        {
+          "name": "tau",
+          "description": "Characteristic time constant"
+        },
+        {
+          "name": "n",
+          "description": "Stretched exponent (n<1 hyperbolic-like, n=1 exponential)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "DCA.LGM.SAT.FRACTION",
+      "description": "LGM saturation fraction at time t (fraction of EUR produced). Saturation = Gp(t) / K",
+      "parameters": [
+        {
+          "name": "t",
+          "description": "Time (must be > 0)"
+        },
+        {
+          "name": "K",
+          "description": "Carrying capacity / EUR"
+        },
+        {
+          "name": "a",
+          "description": "LGM parameter a"
+        },
+        {
+          "name": "n",
+          "description": "LGM exponent n"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "DCA.MODEL.COMPARISON",
+      "description": "Compare Arps, SEPD, and LGM goodness-of-fit (SSR) on production data. Lower SSR = better fit.",
+      "parameters": [
+        {
+          "name": "times",
+          "description": "Array of time values"
+        },
+        {
+          "name": "rates",
+          "description": "Array of rate values"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "name": "DCA.ARPS.EUR.TERMINAL",
+      "description": "Arps EUR with terminal exponential decline switch. EUR = Gp(t_switch) + q(t_switch)/D_term",
+      "parameters": [
+        {
+          "name": "Qi",
+          "description": "Initial rate"
+        },
+        {
+          "name": "Di",
+          "description": "Initial nominal decline rate (1/time)"
+        },
+        {
+          "name": "b",
+          "description": "Hyperbolic exponent"
+        },
+        {
+          "name": "Dterm",
+          "description": "Terminal exponential decline rate (1/time)"
+        },
+        {
+          "name": "qEL",
+          "description": "Economic limit rate (abandonment rate)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
     }
   ]
 }

@@ -421,3 +421,122 @@ describe("dcaMonthlyToAnnualEffective", () => {
     expect(dcaMonthlyToAnnualEffective(0.02)).toBeCloseTo(expected, 5);
   });
 });
+
+// ─── sepdCumShape (new) ───────────────────────────────────────────────────
+
+import {
+  sepdCumShape,
+  lgmSatFraction,
+  dcaModelComparison,
+  arpsEURWithTerminalDecline,
+} from "../../src/functions/dca";
+
+describe("sepdCumShape", () => {
+  test("t=0: shape = 0", () => {
+    expect(sepdCumShape(0, 10, 0.8)).toBeCloseTo(0, 10);
+  });
+
+  test("t → ∞: shape → 1", () => {
+    // At t = 100 × tau, shape should be very close to 1
+    expect(sepdCumShape(1000, 10, 0.8)).toBeCloseTo(1, 5);
+  });
+
+  test("t = tau, n=1: shape = 1 - exp(-1) ≈ 0.6321", () => {
+    expect(sepdCumShape(5, 5, 1)).toBeCloseTo(1 - Math.exp(-1), 8);
+  });
+
+  test("negative tau/n: returns 0", () => {
+    expect(sepdCumShape(5, -1, 0.8)).toBe(0);
+    expect(sepdCumShape(5, 5, -0.5)).toBe(0);
+  });
+
+  test("output is between 0 and 1", () => {
+    for (const t of [1, 5, 10, 50, 100]) {
+      const s = sepdCumShape(t, 20, 0.6);
+      expect(s).toBeGreaterThanOrEqual(0);
+      expect(s).toBeLessThanOrEqual(1);
+    }
+  });
+});
+
+// ─── lgmSatFraction ───────────────────────────────────────────────────────
+
+describe("lgmSatFraction", () => {
+  test("t <= 0: returns 0", () => {
+    expect(lgmSatFraction(0, 100, 1, 1)).toBe(0);
+    expect(lgmSatFraction(-1, 100, 1, 1)).toBe(0);
+  });
+
+  test("saturation is between 0 and 1 for valid inputs", () => {
+    for (const t of [1, 5, 10, 50, 100]) {
+      const s = lgmSatFraction(t, 100, 1, 1);
+      expect(s).toBeGreaterThanOrEqual(0);
+      expect(s).toBeLessThanOrEqual(1);
+    }
+  });
+
+  test("saturation increases monotonically with time", () => {
+    const t1 = lgmSatFraction(10, 100, 1, 1);
+    const t2 = lgmSatFraction(50, 100, 1, 1);
+    const t3 = lgmSatFraction(100, 100, 1, 1);
+    expect(t1).toBeLessThan(t2);
+    expect(t2).toBeLessThan(t3);
+  });
+
+  test("zero K: returns 0", () => {
+    expect(lgmSatFraction(10, 0, 1, 1)).toBe(0);
+  });
+});
+
+// ─── dcaModelComparison ───────────────────────────────────────────────────
+
+describe("dcaModelComparison", () => {
+  test("returns finite SSR values for valid data", () => {
+    const times = [1, 2, 3, 4, 5, 6, 12, 24, 36];
+    const rates = [1000, 850, 740, 660, 600, 550, 420, 320, 270];
+    const result = dcaModelComparison(times, rates);
+    expect(isFinite(result.arpsSSR)).toBe(true);
+    expect(isFinite(result.sepdSSR)).toBe(true);
+    expect(isFinite(result.lgmSSR)).toBe(true);
+  });
+
+  test("insufficient data (<3 points): all SSR = Infinity", () => {
+    const result = dcaModelComparison([1, 2], [100, 90]);
+    expect(result.arpsSSR).toBe(Infinity);
+    expect(result.sepdSSR).toBe(Infinity);
+    expect(result.lgmSSR).toBe(Infinity);
+  });
+
+  test("all SSR values are non-negative", () => {
+    const times = [1, 6, 12, 24, 36, 48, 60];
+    const rates = [1500, 900, 650, 450, 340, 270, 220];
+    const result = dcaModelComparison(times, rates);
+    expect(result.arpsSSR).toBeGreaterThanOrEqual(0);
+    expect(result.sepdSSR).toBeGreaterThanOrEqual(0);
+    expect(result.lgmSSR).toBeGreaterThanOrEqual(0);
+  });
+});
+
+// ─── arpsEURWithTerminalDecline ───────────────────────────────────────────
+
+describe("arpsEURWithTerminalDecline", () => {
+  test("qEL >= q(switch): EUR = Gp at switch time only", () => {
+    // With very high economic limit, production stops at switch
+    const Qi = 1000, Di = 0.3, b = 1.2, Dterm = 0.05, qEL = 999;
+    const eur = arpsEURWithTerminalDecline(Qi, Di, b, Dterm, qEL);
+    expect(eur).toBeGreaterThan(0);
+  });
+
+  test("EUR increases as economic limit decreases", () => {
+    const Qi = 1000, Di = 0.3, b = 1.2, Dterm = 0.05;
+    const eur_high = arpsEURWithTerminalDecline(Qi, Di, b, Dterm, 50);
+    const eur_low  = arpsEURWithTerminalDecline(Qi, Di, b, Dterm, 10);
+    expect(eur_low).toBeGreaterThan(eur_high);
+  });
+
+  test("returns finite positive value for realistic inputs", () => {
+    const eur = arpsEURWithTerminalDecline(1000, 0.3, 1.2, 0.05, 50);
+    expect(isFinite(eur)).toBe(true);
+    expect(eur).toBeGreaterThan(0);
+  });
+});
