@@ -831,6 +831,37 @@ export const BLUEPRINT_CATALOG: Blueprint[] = [
     rowCount: 50,
     colCount: 12,
   },
+  {
+    id: "pta-horner-buildup",
+    name: "Horner Pressure Buildup Analysis",
+    category: "PTA",
+    description:
+      "Analyze pressure buildup test data using the Horner method. Enter shut-in pressure vs. elapsed time, producing time (tp), and fluid/reservoir properties. The sheet computes the Horner time ratio (tp+Δt)/Δt, plots Pws on a semi-log Horner plot, extracts the slope m, then calculates permeability (k), skin factor (S), and extrapolated static reservoir pressure (p*) using the Miller-Dyes-Hutchinson (MDH) and Horner techniques. Includes a wellbore storage diagnostic (unit-slope log-log overlay) to identify the start of the semi-log straight line and a dual-porosity identification check (storativity ratio ω).",
+    requiredFunctions: [
+      "PTA.HornerAnalysis",
+      "PTA.MDHAnalysis",
+      "PTA.WellboreStorageDiagnostic",
+      "PTA.DualPorosityPwf",
+    ],
+    tags: ["pta", "pressure buildup", "horner", "mdh", "skin", "permeability", "p*", "well test", "dual porosity", "wellbore storage"],
+    rowCount: 60,
+    colCount: 10,
+  },
+  {
+    id: "eos-lk-mixture",
+    name: "Lee-Kesler Mixture Properties",
+    category: "EoS",
+    description:
+      "Calculate thermodynamic properties for a multi-component gas mixture using the Lee-Kesler (1975) corresponding-states correlation with Pitzer three-parameter extension. Enter component critical properties (Tc, Pc, ω) and mole fractions. The sheet computes Kay's rule pseudocritical properties (Tc_mix, Pc_mix, ω_mix), then evaluates the Lee-Kesler BWR equation of state for simple and reference (n-octane) fluids to obtain: compressibility factor Z, dimensionless departure enthalpy (H−H^ig)/(RTc), and departure entropy (S−S^ig)/R. Useful for custody-transfer gas metering, separator design, and pipeline flow simulation.",
+    requiredFunctions: [
+      "EoS.LKMixturePseudoCriticals",
+      "EoS.LKMixtureZ",
+      "EoS.LKMixtureProperties",
+    ],
+    tags: ["eos", "lee-kesler", "mixture", "pseudocriticals", "kay's rule", "z-factor", "departure enthalpy", "departure entropy", "thermodynamics", "gas properties"],
+    rowCount: 35,
+    colCount: 10,
+  },
 ];
 
 // ─── Catalog Accessors ────────────────────────────────────────────────────────

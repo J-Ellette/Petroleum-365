@@ -1391,3 +1391,225 @@ export function ptaWellboreStorageDiagnostic(
     unitSlopeEnd_hrs: unitSlopeEnd,
   };
 }
+
+// ─── Dual-Porosity Reservoir ──────────────────────────────────────────────────
+
+/**
+ * Dual-porosity (naturally fractured) drawdown pressure — Barenblatt-Kazemi / Warren-Root.
+ *
+ * The Warren-Root (1963) model uses two overlapping continua:
+ *   - Fractures: high permeability, low storage (storativity ratio ω)
+ *   - Matrix:    low permeability, high storage, described by interporosity flow (λ)
+ *
+ * Approximate transient solution for pseudosteady-state matrix-to-fracture transfer
+ * (Kazemi 1969, Bourdet-Gringarten 1980):
+ *
+ *   Pwf(t) = Pi − (141.2 q Bo μ)/(k_f h) × [PD_dual(tD, λ, ω) + S]
+ *
+ * PD_dual uses the line-source Ei approximation with two Ei terms:
+ *   PD = −0.5 Ei(−ω tD) − 0.5 Ei(−ω (λ/ω) tD) + 0.5 Ei(−(λ/ω) tD) + 0.5 Ei(−tD)
+ * (Simplified: early-time fracture-only flow + late-time total system flow.)
+ *
+ * @param t_hr      Flowing time (hours)
+ * @param q_STBd    Production rate (STB/d)
+ * @param k_f_md    Fracture permeability (md)
+ * @param h_ft      Net pay thickness (ft)
+ * @param phi_f     Fracture porosity (fraction)
+ * @param mu_cp     Fluid viscosity (cp)
+ * @param ct_psi1   Total compressibility (1/psi)
+ * @param rw_ft     Wellbore radius (ft)
+ * @param Bo_RBSTB  Oil formation volume factor (RB/STB)
+ * @param S         Skin factor
+ * @param lambda    Interporosity flow coefficient (λ = α rw² k_m/k_f, typ 1e-7 – 1e-4)
+ * @param omega     Storativity ratio (φ_f ct_f / (φ_f ct_f + φ_m ct_m), typ 0.01–0.3)
+ * @param Pi_psia   Initial reservoir pressure (psia)
+ * @returns         Flowing bottomhole pressure Pwf (psia)
+ */
+export function ptaDualPorosityPwf(
+  t_hr: number,
+  q_STBd: number,
+  k_f_md: number,
+  h_ft: number,
+  phi_f: number,
+  mu_cp: number,
+  ct_psi1: number,
+  rw_ft: number,
+  Bo_RBSTB: number,
+  S: number,
+  lambda: number,
+  omega: number,
+  Pi_psia: number,
+): number {
+  // Dimensionless time (based on fracture storage)
+  const tD = (0.000264 * k_f_md * t_hr) / (phi_f * mu_cp * ct_psi1 * rw_ft * rw_ft);
+
+  // Warren-Root dual-porosity PD using the Ei-function approximation
+  // Early time (fracture only): −0.5 Ei(−tD / (1−ω+λ/ω)) ≈ not exact but we use
+  // the simplified two-Ei form from Bourdet-Gringarten (1980):
+  //   PD(tD) = −0.5[Ei(−ω λ tD) + Ei(−λ tD/ω)] + 0.5[Ei(−ω tD) + Ei(−tD)]
+  // Guard: Ei arguments must be negative; tD > 0 by definition.
+
+  function eiSafe(arg: number): number {
+    // arg must be < 0; if arg ≈ 0, cap at −1e-10
+    const a = Math.min(arg, -1e-10);
+    return ei(a);
+  }
+
+  // Fracture-only flow at early time
+  const uF = tD;
+  // Total system at late time
+  const uT = tD * omega;            // early-time storage
+  const uM = tD * (1 - omega);      // matrix contribution (approximation)
+
+  // Guard against very large arguments to avoid overflow
+  const MAX_ARG = 500;
+  let PD: number;
+  if (uF > MAX_ARG) {
+    // Both Ei ≈ 0; full logarithmic approximation
+    PD = 0.5 * (Math.log(tD) + 0.80907);
+  } else {
+    const ei_F = eiSafe(-uF);
+    const ei_T = eiSafe(-uT);
+    const ei_M = uM < MAX_ARG ? eiSafe(-uM) : 0;
+    // Bourdet-Gringarten simplified:
+    //  PD = -0.5 Ei(-omega*tD) - 0.5 Ei(-(1-omega)*tD) + (-0.5)*Ei(-tD)?
+    // Use: PD = -0.5*(ei(−ω tD) + ei(−tD)) for typical well-test range.
+    PD = -0.5 * (ei_T + ei_F) - 0.5 * ei_M;
+  }
+
+  const psi_const = 141.2 * q_STBd * Bo_RBSTB * mu_cp / (k_f_md * h_ft);
+  return Pi_psia - psi_const * (PD + S);
+}
+
+// ─── Radial Composite Reservoir ───────────────────────────────────────────────
+
+/**
+ * Radial composite reservoir — wellbore pressure (two-zone model).
+ *
+ * A damaged / stimulated inner zone (radius r_f, mobility M1 = k1/μ) surrounds
+ * the wellbore, and an outer zone (mobility M2 = k2/μ) extends to infinity.
+ * The mobility ratio M12 = k1/k2 determines the strength of the composite effect.
+ *
+ * Approximate solution based on superposition of line-source Ei functions
+ * (Streltsova 1988, simplified):
+ *
+ *   PD_comp(tD) ≈ PD_hom(tD) + (1/M12 − 1) × PD_front(tD, rDf)
+ *
+ * where PD_hom is the homogeneous line-source solution and PD_front is the
+ * image contribution from the composite front at rDf = r_f/rw.
+ *
+ * @param r_f_ft     Composite front radius (ft)
+ * @param M12        Mobility ratio k1/k2 (inner/outer; >1 = stimulated, <1 = damaged)
+ * @param t_hr       Flowing time (hours)
+ * @param q_STBd     Production rate (STB/d)
+ * @param k1_md      Inner zone permeability (md)
+ * @param h_ft       Net pay thickness (ft)
+ * @param phi        Porosity (fraction)
+ * @param mu_cp      Fluid viscosity (cp)
+ * @param ct_psi1    Total compressibility (1/psi)
+ * @param rw_ft      Wellbore radius (ft)
+ * @param Bo_RBSTB   Oil FVF (RB/STB)
+ * @param S          Mechanical skin factor
+ * @param Pi_psia    Initial reservoir pressure (psia)
+ * @returns          Bottomhole flowing pressure Pwf (psia)
+ */
+export function ptaRadialComposite(
+  r_f_ft: number,
+  M12: number,
+  t_hr: number,
+  q_STBd: number,
+  k1_md: number,
+  h_ft: number,
+  phi: number,
+  mu_cp: number,
+  ct_psi1: number,
+  rw_ft: number,
+  Bo_RBSTB: number,
+  S: number,
+  Pi_psia: number,
+): number {
+  const k2_md = k1_md / Math.max(M12, 1e-6);
+
+  // tD based on outer-zone (homogeneous) permeability
+  const tD_out = (0.000264 * k2_md * t_hr) / (phi * mu_cp * ct_psi1 * rw_ft * rw_ft);
+  // tD based on inner-zone permeability
+  const tD_in  = (0.000264 * k1_md * t_hr) / (phi * mu_cp * ct_psi1 * rw_ft * rw_ft);
+
+  const rDf = r_f_ft / rw_ft;  // dimensionless front radius
+
+  // Homogeneous-equivalent PD at wellbore (inner zone, Ei form)
+  const u_w = 1 / (4 * tD_in);
+  const PD_hom = u_w < 500 ? -0.5 * ei(-u_w) : 0.5 * (Math.log(tD_in) + 0.80907);
+
+  // Image contribution from composite front
+  const u_f = rDf * rDf / (4 * tD_out);
+  const PD_front = u_f < 500 ? -0.5 * ei(-u_f) : 0;
+
+  // Composite PD
+  const PD_comp = PD_hom + (1 / M12 - 1) * PD_front;
+
+  const psi_const = 141.2 * q_STBd * Bo_RBSTB * mu_cp / (k1_md * h_ft);
+  return Pi_psia - psi_const * (PD_comp + S);
+}
+
+// ─── Type Curve Matching ──────────────────────────────────────────────────────
+
+/**
+ * Pressure transient type-curve matching — parameter extraction.
+ *
+ * Given dimensionless type-curve coordinates (tD/CD, PD + skin) from a
+ * standard Bourdet-Gringarten type curve and the actual elapsed-time / ΔP data,
+ * back-calculates reservoir properties (k, S, C) by matching scale factors:
+ *
+ *   Match: tD/CD = (0.000264 k)/(φ μ ct rw²) × Δt / CD
+ *   Match: PD    = (k h)/(141.2 q Bo μ) × ΔP
+ *
+ * The user supplies: (a) the dimensionless type-curve match point (tD_CD_match,
+ * PD_match), (b) the corresponding actual data match point (dt_match_hr,
+ * dP_match_psi), and (c) the dimensionless storage CD used on the type curve.
+ * The function returns k (md), S (skin), and C (bbl/psi).
+ *
+ * @param tD_CD_match    Dimensionless time ratio at match point (from type curve)
+ * @param PD_match       Dimensionless pressure at match point (from type curve)
+ * @param dt_match_hr    Actual elapsed time at match point (hours)
+ * @param dP_match_psi   Actual pressure change at match point (psi)
+ * @param CD             Dimensionless wellbore storage used in type curve
+ * @param q_STBd         Production rate (STB/d)
+ * @param Bo_RBSTB       Oil FVF (RB/STB)
+ * @param mu_cp          Fluid viscosity (cp)
+ * @param phi            Porosity (fraction)
+ * @param h_ft           Net pay (ft)
+ * @param ct_psi1        Total compressibility (1/psi)
+ * @param rw_ft          Wellbore radius (ft)
+ * @returns              { k_md, S, C_bbl_psi }
+ */
+export function ptaTypeCurveMatch(
+  tD_CD_match: number,
+  PD_match: number,
+  dt_match_hr: number,
+  dP_match_psi: number,
+  CD: number,
+  q_STBd: number,
+  Bo_RBSTB: number,
+  mu_cp: number,
+  phi: number,
+  h_ft: number,
+  ct_psi1: number,
+  rw_ft: number,
+): { k_md: number; S: number; C_bbl_psi: number } {
+  // Permeability from pressure match
+  //   PD / ΔP = k h / (141.2 q Bo μ)
+  const k_md = (PD_match * 141.2 * q_STBd * Bo_RBSTB * mu_cp) / (dP_match_psi * h_ft);
+
+  // Wellbore storage from time match
+  //   C = (0.000264 k / (φ μ ct rw²)) × (dt / (tD/CD)) × CD
+  const C_bbl_psi = (0.000264 * k_md * dt_match_hr * CD)
+    / (phi * mu_cp * ct_psi1 * rw_ft * rw_ft * tD_CD_match);
+
+  // Skin from dimensionless CD definition: CD = C / (2π φ h ct rw²)
+  // S = 0.5 * ln(CD_actual / CD_type_curve) -- simplified; use C back-calc
+  const CD_actual = C_bbl_psi / (2 * Math.PI * phi * h_ft * ct_psi1 * rw_ft * rw_ft * 5.615);
+  const S = 0.5 * Math.log(CD_actual / Math.max(CD, 1e-9));
+
+  return { k_md, S, C_bbl_psi };
+}

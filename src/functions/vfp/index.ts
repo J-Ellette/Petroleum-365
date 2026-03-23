@@ -1691,3 +1691,145 @@ export function azizGovierFogarasiBHP(
   }
   return P;
 }
+
+// ─── VFP System Optimization ──────────────────────────────────────────────────
+
+/**
+ * Optimal tubing inner diameter selection.
+ *
+ * Scans a list of candidate tubing IDs and returns the BHP for each,
+ * identifying the ID that minimizes BHP (maximum deliverability) for
+ * given production rates.  Uses the Beggs & Brill correlation internally.
+ *
+ * @param q_oil_bpd      Oil flow rate (bbl/d)
+ * @param q_gas_Mscfd    Free gas rate (Mscf/d)
+ * @param q_wat_bpd      Water flow rate (bbl/d)
+ * @param D_candidates   Array of candidate tubing IDs (inches)
+ * @param L_ft           Tubing depth / length (ft)
+ * @param Pwh_psia       Wellhead pressure (psia)
+ * @param SG_oil         Oil specific gravity (water=1)
+ * @param SG_gas         Gas specific gravity (air=1)
+ * @param mu_l_cp        Liquid viscosity (cp)
+ * @param T_avg_F        Average tubing temperature (°F)
+ * @returns              Array of {D_in, BHP_psia} plus bestD_in (lowest BHP)
+ */
+export function vfpOptimalTubing(
+  q_oil_bpd: number,
+  q_gas_Mscfd: number,
+  q_wat_bpd: number,
+  D_candidates: number[],
+  L_ft: number,
+  Pwh_psia: number,
+  SG_oil: number,
+  SG_gas: number,
+  mu_l_cp: number,
+  T_avg_F: number,
+): { results: { D_in: number; BHP_psia: number }[]; bestD_in: number } {
+  if (D_candidates.length === 0) throw new Error("D_candidates must not be empty");
+  const results: { D_in: number; BHP_psia: number }[] = [];
+  let bestD_in = D_candidates[0];
+  let bestBHP = Infinity;
+  const q_liq_bpd = q_oil_bpd + q_wat_bpd;
+  // Use a blended liquid SG weighted by flow rate
+  const SG_liq = q_liq_bpd > 0
+    ? (q_oil_bpd * SG_oil + q_wat_bpd * 1.0) / q_liq_bpd
+    : SG_oil;
+  for (const D of D_candidates) {
+    const BHP = beggsBrillBHP(
+      Pwh_psia, q_liq_bpd, q_gas_Mscfd,
+      D, L_ft, T_avg_F, T_avg_F, SG_liq, SG_gas,
+    );
+    results.push({ D_in: D, BHP_psia: BHP });
+    if (BHP < bestBHP) { bestBHP = BHP; bestD_in = D; }
+  }
+  return { results, bestD_in };
+}
+
+/**
+ * Optimal Gas-Liquid Ratio (GLR) for a flowing well system.
+ *
+ * Scans GLR values from glr_min to glr_max (scf/bbl) and computes the VLP
+ * BHP at each GLR.  A lower BHP at a given IPR corresponds to a higher
+ * production rate.  Returns the GLR that minimises BHP (optimal lift).
+ *
+ * @param q_liq_bpd      Liquid rate (bbl/d) — held constant in scan
+ * @param glr_min        Minimum GLR to scan (scf/bbl)
+ * @param glr_max        Maximum GLR to scan (scf/bbl)
+ * @param nScan          Number of scan points (default 20)
+ * @param D_in           Tubing inside diameter (inches)
+ * @param L_ft           Tubing depth (ft)
+ * @param Pwh_psia       Wellhead pressure (psia)
+ * @param SG_oil         Oil specific gravity (water=1)
+ * @param SG_gas         Gas specific gravity (air=1)
+ * @param mu_l_cp        Liquid viscosity (cp)
+ * @param T_avg_F        Average tubing temperature (°F)
+ * @returns              {glr_scan, bhp_scan, optGLR_scf_bbl, minBHP_psia}
+ */
+export function vfpGLROptimal(
+  q_liq_bpd: number,
+  glr_min: number,
+  glr_max: number,
+  nScan: number,
+  D_in: number,
+  L_ft: number,
+  Pwh_psia: number,
+  SG_oil: number,
+  SG_gas: number,
+  mu_l_cp: number,
+  T_avg_F: number,
+): { glr_scan: number[]; bhp_scan: number[]; optGLR_scf_bbl: number; minBHP_psia: number } {
+  if (nScan < 2) nScan = 20;
+  const glr_scan: number[] = [];
+  const bhp_scan: number[] = [];
+  let optGLR = glr_min;
+  let minBHP = Infinity;
+  for (let i = 0; i < nScan; i++) {
+    const glr = glr_min + (glr_max - glr_min) * i / (nScan - 1);
+    const q_gas_Mscfd = q_liq_bpd * glr / 1000;
+    const BHP = beggsBrillBHP(
+      Pwh_psia, q_liq_bpd, q_gas_Mscfd,
+      D_in, L_ft, T_avg_F, T_avg_F, SG_oil, SG_gas,
+    );
+    glr_scan.push(glr);
+    bhp_scan.push(BHP);
+    if (BHP < minBHP) { minBHP = BHP; optGLR = glr; }
+  }
+  return { glr_scan, bhp_scan, optGLR_scf_bbl: optGLR, minBHP_psia: minBHP };
+}
+
+/**
+ * Choke (bean) pressure drop — Gilbert critical-flow correlation.
+ *
+ * Gilbert (1954) equation for critical multiphase flow through a choke:
+ *
+ *   q_oil = (1 / 10) · (P_up · d^1.89) / (GLR^0.546)
+ *
+ * Re-arranged for pressure drop: ΔP = P_up – P_dn  where P_up is solved
+ * from the measured rates and bean size (critical flow assumed):
+ *
+ *   P_up = 10 · q_oil · GLR^0.546 / d^1.89
+ *
+ * Returns upstream pressure, downstream pressure, pressure drop, and a
+ * flag indicating whether flow is critical (sonic) or subcritical.
+ *
+ * @param q_oil_bpd      Oil rate (bbl/d)
+ * @param q_gas_Mscfd    Gas rate (Mscf/d)
+ * @param d_choke_64ths  Bean/choke size in 64ths of an inch (e.g. 16 = 16/64" = 1/4")
+ * @param P_dn_psia      Downstream (tubing head) pressure (psia)
+ * @returns              {P_up_psia, P_dn_psia, dP_psia, GLR_scf_bbl, critical}
+ */
+export function vfpChokeDP(
+  q_oil_bpd: number,
+  q_gas_Mscfd: number,
+  d_choke_64ths: number,
+  P_dn_psia: number,
+): { P_up_psia: number; P_dn_psia: number; dP_psia: number; GLR_scf_bbl: number; critical: boolean } {
+  const GLR = (q_gas_Mscfd * 1000) / Math.max(q_oil_bpd, 0.001); // scf/bbl
+  const d = d_choke_64ths;                                         // 64ths of inch
+  // Gilbert: P_up = 10 · q · GLR^0.546 / d^1.89 (field units, q in bbl/d)
+  const P_up = 10 * q_oil_bpd * Math.pow(GLR, 0.546) / Math.pow(d, 1.89);
+  const dP = P_up - P_dn_psia;
+  // Critical flow condition: P_dn / P_up < 0.546 (approximate critical ratio for natural gas)
+  const critical = P_dn_psia / P_up < 0.546;
+  return { P_up_psia: P_up, P_dn_psia, dP_psia: dP, GLR_scf_bbl: GLR, critical };
+}

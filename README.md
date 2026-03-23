@@ -2,7 +2,7 @@
 
 > **A comprehensive petroleum engineering function library and Excel add-in for natural gas, oil, CNG, and LNG calculations.**
 
-[![Tests](https://img.shields.io/badge/tests-1904%20passing-brightgreen)](./test)
+[![Tests](https://img.shields.io/badge/tests-1983%20passing-brightgreen)](./test)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -52,7 +52,7 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 
 ## Features
 
-- ✅ **1904 passing unit tests** — every correlation is independently verified
+- ✅ **1983 passing unit tests** — every correlation is independently verified
 - ✅ **33 engineering modules** covering the full production lifecycle
 - ✅ **Field units throughout** — psi, °F, STB, scf, ft, cp, md
 - ✅ **Named after correlation authors** — `P365.PVT.Z.ByDAK` is the Dranchuk-Abou-Kassem method
@@ -101,7 +101,7 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 | 32 | **PTA** (ext.) | Multi-Well Testing | Interference transient pressure (line-source Ei), permeability/storativity inversion, pulse test amplitude/permeability/storativity |
 | 33 | **SRK** | Soave-Redlich-Kwong EoS | Pure-component and mixture flash, bubble-point, dew-point, fugacity coefficients, Peneloux volume shift (Session 15) |
 | 34 | **GasCond** | Gas Condensate PVT | Wellstream gravity, wet-gas correction, condensate FVF/density/viscosity, Whitson (1983) C7+ gamma-distribution split (Session 15) |
-| 35 | **Blueprints** | Blueprint Manager Catalog | 50+ structured blueprint templates; RTA, EoS stability, PTA interference/pulse added Session 14 |
+| 35 | **Blueprints** | Blueprint Manager Catalog | 52+ structured blueprint templates; Horner buildup + LK mixture added Session 18 |
 | 36 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions |
 
 ---
@@ -834,6 +834,11 @@ Available blueprints cover:
 - Nodal Analysis (IPR + VLP)
 - ESP Design Sheet
 - Gas Lift Valve Sizing
+- PR EoS Phase Envelope (bubble/dew scan, cricondentherm, cricondenbar)
+- TSO Fracture Design (PKN + Carter leakoff, proppant concentration, refrac score)
+- Pattern Flood Analysis (five-spot allocation, VRR balancing, Dykstra-Parsons, Stiles)
+- **Horner Pressure Buildup Analysis** *(Session 18 — Horner/MDH, wellbore storage, dual-porosity diagnostic)*
+- **Lee-Kesler Mixture Properties** *(Session 18 — Kay's rule pseudocriticals, Z-factor, departure H/S)*
 
 ---
 
@@ -1284,6 +1289,46 @@ Production data analytics for reservoir characterization from rate-pressure hist
 | `P365.GEO.ECD(MW_ppg, TVD_ft, Q_gpm, D_hole_in, D_pipe_in, L_ft, mu_p, tau_y)` | Equivalent circulating density (ppg), annular pressure loss (psi), ECD gradient |
 | `P365.GEO.MudWeightWindowECD(PP_psi, FG_psi, TVD_ft, margin, Q, D_h, D_p, L, mu_p, tau_y)` | Safe MW window (min/max/recommended ppg) + ECD stability check |
 
+### VFP System Optimization (Session 18)
+
+| Function | Description |
+|----------|-------------|
+| `P365.VFP.OptimalTubing(q_oil, q_gas, q_wat, D_candidates, L_ft, Pwh, SG_oil, SG_gas, mu_l, T_F)` | Scan candidate tubing IDs; returns BHP for each + best ID using Beggs & Brill |
+| `P365.VFP.GLROptimal(q_liq, glr_min, glr_max, nScan, D_in, L_ft, Pwh, SG_oil, SG_gas, mu_l, T_F)` | GLR scan for minimum BHP — identifies optimal artificial-lift GLR |
+| `P365.VFP.ChokeDP(q_oil, q_gas, d_64ths, P_dn)` | Gilbert (1954) choke critical-flow: P_up, ΔP, GLR, critical flow flag |
+
+### PTA Composite Reservoir Models (Session 18)
+
+| Function | Description |
+|----------|-------------|
+| `P365.PTA.DualPorosityPwf(t, q, kf, h, phi_f, mu, ct, rw, Bo, S, lambda, omega, Pi)` | Dual-porosity drawdown (Warren-Root / Barenblatt-Kazemi, Ei-function) |
+| `P365.PTA.RadialComposite(r_f, M12, t, q, k1, h, phi, mu, ct, rw, Bo, S, Pi)` | Two-zone radial composite reservoir Pwf (mobility ratio M12 = k1/k2) |
+| `P365.PTA.TypeCurveMatch(tD_CD, PD, dt, dP, CD, q, Bo, mu, phi, h, ct, rw)` | Bourdet-Gringarten match-point extraction: permeability k, skin S, storage C |
+
+### EoS Lee-Kesler Mixing Rules (Session 18)
+
+| Function | Description |
+|----------|-------------|
+| `P365.EoS.LeeKesler.MixturePseudoCriticals(Tc_arr, Pc_arr, omega_arr, z_arr)` | Kay's rule mixture pseudocriticals: Tc_mix (K), Pc_mix (bar), omega_mix |
+| `P365.EoS.LeeKesler.MixtureZ(T_K, P_bar, Tc_arr, Pc_arr, omega_arr, z_arr)` | Lee-Kesler Z-factor for multi-component gas mixture (Pitzer correlation) |
+| `P365.EoS.LeeKesler.MixtureProperties(T_K, P_bar, Tc_arr, Pc_arr, omega_arr, z_arr)` | Mixture Z + departure enthalpy (H−H^ig)/(RTc) + departure entropy (S−S^ig)/R |
+
+### GEO Deviated Wellbore & Fault Reactivation (Session 18)
+
+| Function | Description |
+|----------|-------------|
+| `P365.GEO.DeviatedKirsch(sh, sH, sv, Pp, Pw, inc, az, C0, phi_fr, T0)` | Deviated wellbore Kirsch: min/max hoop stress, breakdown P, collapse P for any inclination/azimuth |
+| `P365.GEO.FaultReactivation(sh, sH, sv, Pp, dip, az, mu_f, C_f)` | Fault reactivation: normal/shear stress, critical pore pressure, safety margin, reactivation flag |
+
+### SIM CMG STARS Keyword Generators (Session 18)
+
+| Function | Description |
+|----------|-------------|
+| `P365.SIM.StarsGrid(nx, ny, nz, dx, dy, dz)` | CMG STARS GRID CART + DI/DJ/DK keyword block (uniform or heterogeneous cell sizes) |
+| `P365.SIM.StarsPoro(nx, ny, nz, poro_arr)` | CMG STARS PORO CON keyword block (uniform or full nx×ny×nz array) |
+| `P365.SIM.StarsPerm(nx, ny, nz, perm_i, perm_j, perm_k)` | CMG STARS PERMI/PERMJ/PERMK keyword blocks for all directions |
+| `P365.SIM.StarsTemp(nx, ny, nz, temp_arr)` | CMG STARS TEMPI CON keyword block for thermal simulation initial temperature |
+
 
 
 ## Development
@@ -1294,7 +1339,7 @@ Production data analytics for reservoir characterization from rate-pressure hist
 Petroleum-365/
 ├── src/
 │   ├── index.ts                  ← P365 namespace (all exports)
-│   ├── functions.json            ← UDF registrations (269 entries)
+│   ├── functions.json            ← UDF registrations (284 entries)
 │   └── functions/
 │       ├── pvt/                  ← PVT: gas.ts, oil.ts, water.ts
 │       ├── dca/                  ← Decline curve analysis
@@ -1353,7 +1398,7 @@ Petroleum-365/
 | Command | Description |
 |---------|-------------|
 | `npm install` | Install all dependencies |
-| `npx jest --no-coverage` | Run all 1904 unit tests |
+| `npx jest --no-coverage` | Run all 1983 unit tests |
 | `npx tsc --noEmit` | TypeScript type-check (0 errors expected) |
 | `npm run build` | Build for production |
 
