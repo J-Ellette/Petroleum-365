@@ -403,6 +403,10 @@ export const P365 = {
     MDHAnalysis:              PTAExports.ptaMDHAnalysis,
     HornerAnalysis:           PTAExports.ptaHornerAnalysis,
     WellboreStorageDiagnostic: PTAExports.ptaWellboreStorageDiagnostic,
+    // Composite reservoir & type-curve matching (Session 18)
+    DualPorosityPwf:   PTAExports.ptaDualPorosityPwf,
+    RadialComposite:   PTAExports.ptaRadialComposite,
+    TypeCurveMatch:    PTAExports.ptaTypeCurveMatch,
   },
 
   // ─── VFP — Vertical Flow Performance ──────────────────────────────────────
@@ -458,6 +462,10 @@ export const P365 = {
       Gradient: VFPExports.azizGovierFogarasiGradient,
       BHP:      VFPExports.azizGovierFogarasiBHP,
     },
+    // System optimization (Session 18)
+    OptimalTubing: VFPExports.vfpOptimalTubing,
+    GLROptimal:    VFPExports.vfpGLROptimal,
+    ChokeDP:       VFPExports.vfpChokeDP,
   },
 
   // ─── SF — Surface Facilities ───────────────────────────────────────────────
@@ -661,6 +669,10 @@ export const P365 = {
       DepartureEnthalpy:  EoSExports.lkDepartureEnthalpy,
       DepartureEntropy:   EoSExports.lkDepartureEntropy,
       DepartureFunctions: EoSExports.lkDepartureFunctions,
+      // Session 18: mixing rules
+      MixturePseudoCriticals: EoSExports.lkMixturePseudoCriticals,
+      MixtureZ:               EoSExports.lkMixtureZ,
+      MixtureProperties:      EoSExports.lkMixtureProperties,
     },
   },
 
@@ -826,6 +838,9 @@ export const P365 = {
     MohrCoulombFailureEnvelope: GEOExports.geoMohrCoulombFailureEnvelope,
     ECD:                        GEOExports.geoECD,
     MudWeightWindowECD:         GEOExports.geoMudWeightWindowECD,
+    // Session 18: deviated wellbore stress, fault reactivation
+    DeviatedKirsch:    GEOExports.geoDeviatedKirsch,
+    FaultReactivation: GEOExports.geoFaultReactivation,
   },
 
   // ─── SKIN — Composite Skin Factor ─────────────────────────────────────────
@@ -931,6 +946,12 @@ export const P365 = {
     GenerateFromTemplate: SIMExports.simGenerateFromTemplate,
     ValidateTokens:       SIMExports.simValidateTokens,
     BatchGenerate:        SIMExports.simBatchGenerate,
+
+    // Session 18: CMG STARS keyword generators
+    StarsGrid: SIMExports.simStarsGrid,
+    StarsPoro: SIMExports.simStarsPoro,
+    StarsPerm: SIMExports.simStarsPerm,
+    StarsTemp: SIMExports.simStarsTemp,
   },
 
   // ─── Eclipse — Reservoir Simulator Results Import ──────────────────────────

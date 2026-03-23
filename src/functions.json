@@ -7369,6 +7369,579 @@
           "description": "Yield point (lb/100ft2)"
         }
       ]
+    },
+    {
+      "id": "P365.VFP.OptimalTubing",
+      "name": "P365.VFP.OptimalTubing",
+      "description": "Optimal tubing ID selection. Scans candidate tubing inside diameters and returns BHP for each using Beggs & Brill, identifying the ID that minimizes BHP for maximum deliverability.",
+      "parameters": [
+        {
+          "name": "q_oil_bpd",
+          "description": "Oil flow rate (bbl/d)"
+        },
+        {
+          "name": "q_gas_Mscfd",
+          "description": "Free gas rate (Mscf/d)"
+        },
+        {
+          "name": "q_wat_bpd",
+          "description": "Water flow rate (bbl/d)"
+        },
+        {
+          "name": "D_candidates",
+          "description": "Array of candidate tubing IDs (inches)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Tubing depth / length (ft)"
+        },
+        {
+          "name": "Pwh_psia",
+          "description": "Wellhead pressure (psia)"
+        },
+        {
+          "name": "SG_oil",
+          "description": "Oil specific gravity (water=1)"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity (air=1)"
+        },
+        {
+          "name": "mu_l_cp",
+          "description": "Liquid viscosity (cp)"
+        },
+        {
+          "name": "T_avg_F",
+          "description": "Average tubing temperature (\u00b0F)"
+        }
+      ]
+    },
+    {
+      "id": "P365.VFP.GLROptimal",
+      "name": "P365.VFP.GLROptimal",
+      "description": "Optimal Gas-Liquid Ratio (GLR) scan for a flowing well. Scans GLR from min to max and computes VLP BHP at each point, returning the GLR that minimises BHP (optimal artificial lift GLR).",
+      "parameters": [
+        {
+          "name": "q_liq_bpd",
+          "description": "Liquid rate (bbl/d)"
+        },
+        {
+          "name": "glr_min",
+          "description": "Minimum GLR to scan (scf/bbl)"
+        },
+        {
+          "name": "glr_max",
+          "description": "Maximum GLR to scan (scf/bbl)"
+        },
+        {
+          "name": "nScan",
+          "description": "Number of scan points (default 20)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inside diameter (inches)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Tubing depth (ft)"
+        },
+        {
+          "name": "Pwh_psia",
+          "description": "Wellhead pressure (psia)"
+        },
+        {
+          "name": "SG_oil",
+          "description": "Oil specific gravity (water=1)"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity (air=1)"
+        },
+        {
+          "name": "mu_l_cp",
+          "description": "Liquid viscosity (cp)"
+        },
+        {
+          "name": "T_avg_F",
+          "description": "Average tubing temperature (\u00b0F)"
+        }
+      ]
+    },
+    {
+      "id": "P365.VFP.ChokeDP",
+      "name": "P365.VFP.ChokeDP",
+      "description": "Choke (bean) pressure drop using the Gilbert (1954) critical-flow correlation for multiphase flow. Returns upstream pressure, pressure drop, GLR, and critical flow flag.",
+      "parameters": [
+        {
+          "name": "q_oil_bpd",
+          "description": "Oil rate (bbl/d)"
+        },
+        {
+          "name": "q_gas_Mscfd",
+          "description": "Gas rate (Mscf/d)"
+        },
+        {
+          "name": "d_choke_64ths",
+          "description": "Bean/choke size in 64ths of an inch"
+        },
+        {
+          "name": "P_dn_psia",
+          "description": "Downstream (tubing head) pressure (psia)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PTA.DualPorosityPwf",
+      "name": "P365.PTA.DualPorosityPwf",
+      "description": "Dual-porosity (naturally fractured) drawdown pressure using the Warren-Root / Barenblatt-Kazemi model with storativity ratio (omega) and interporosity flow coefficient (lambda).",
+      "parameters": [
+        {
+          "name": "t_hr",
+          "description": "Flowing time (hours)"
+        },
+        {
+          "name": "q_STBd",
+          "description": "Production rate (STB/d)"
+        },
+        {
+          "name": "k_f_md",
+          "description": "Fracture permeability (md)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay thickness (ft)"
+        },
+        {
+          "name": "phi_f",
+          "description": "Fracture porosity (fraction)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Fluid viscosity (cp)"
+        },
+        {
+          "name": "ct_psi1",
+          "description": "Total compressibility (1/psi)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "Bo_RBSTB",
+          "description": "Oil FVF (RB/STB)"
+        },
+        {
+          "name": "S",
+          "description": "Skin factor"
+        },
+        {
+          "name": "lambda",
+          "description": "Interporosity flow coefficient"
+        },
+        {
+          "name": "omega",
+          "description": "Storativity ratio (fracture/total)"
+        },
+        {
+          "name": "Pi_psia",
+          "description": "Initial reservoir pressure (psia)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PTA.RadialComposite",
+      "name": "P365.PTA.RadialComposite",
+      "description": "Radial composite (two-zone) reservoir wellbore pressure. Inner zone (k1, r_f) and outer zone (k2 = k1/M12) with mobility ratio M12. Uses Ei-function approximation.",
+      "parameters": [
+        {
+          "name": "r_f_ft",
+          "description": "Composite front radius (ft)"
+        },
+        {
+          "name": "M12",
+          "description": "Mobility ratio k1/k2 (>1 stimulated, <1 damaged)"
+        },
+        {
+          "name": "t_hr",
+          "description": "Flowing time (hours)"
+        },
+        {
+          "name": "q_STBd",
+          "description": "Production rate (STB/d)"
+        },
+        {
+          "name": "k1_md",
+          "description": "Inner zone permeability (md)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay thickness (ft)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Fluid viscosity (cp)"
+        },
+        {
+          "name": "ct_psi1",
+          "description": "Total compressibility (1/psi)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "Bo_RBSTB",
+          "description": "Oil FVF (RB/STB)"
+        },
+        {
+          "name": "S",
+          "description": "Mechanical skin factor"
+        },
+        {
+          "name": "Pi_psia",
+          "description": "Initial reservoir pressure (psia)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PTA.TypeCurveMatch",
+      "name": "P365.PTA.TypeCurveMatch",
+      "description": "Pressure transient type-curve matching parameter extraction. Given match-point coordinates from a Bourdet-Gringarten type curve, back-calculates permeability (k), skin (S), and wellbore storage (C).",
+      "parameters": [
+        {
+          "name": "tD_CD_match",
+          "description": "Dimensionless time ratio at match point"
+        },
+        {
+          "name": "PD_match",
+          "description": "Dimensionless pressure at match point"
+        },
+        {
+          "name": "dt_match_hr",
+          "description": "Actual elapsed time at match point (hours)"
+        },
+        {
+          "name": "dP_match_psi",
+          "description": "Actual pressure change at match point (psi)"
+        },
+        {
+          "name": "CD",
+          "description": "Dimensionless wellbore storage from type curve"
+        },
+        {
+          "name": "q_STBd",
+          "description": "Production rate (STB/d)"
+        },
+        {
+          "name": "Bo_RBSTB",
+          "description": "Oil FVF (RB/STB)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Fluid viscosity (cp)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay thickness (ft)"
+        },
+        {
+          "name": "ct_psi1",
+          "description": "Total compressibility (1/psi)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        }
+      ]
+    },
+    {
+      "id": "P365.EoS.LKMixturePseudoCriticals",
+      "name": "P365.EoS.LKMixturePseudoCriticals",
+      "description": "Lee-Kesler / Kay's rule mixture pseudocritical properties. Computes mole-fraction-weighted Tc_mix (K), Pc_mix (bar), and omega_mix for a multi-component gas mixture.",
+      "parameters": [
+        {
+          "name": "Tc_arr",
+          "description": "Critical temperatures (K) for each component"
+        },
+        {
+          "name": "Pc_arr",
+          "description": "Critical pressures (bar) for each component"
+        },
+        {
+          "name": "omega_arr",
+          "description": "Acentric factors for each component"
+        },
+        {
+          "name": "z_arr",
+          "description": "Mole fractions (auto-normalized)"
+        }
+      ]
+    },
+    {
+      "id": "P365.EoS.LKMixtureZ",
+      "name": "P365.EoS.LKMixtureZ",
+      "description": "Lee-Kesler Z-factor for a multi-component gas mixture using Kay's rule pseudocriticals and the Pitzer three-parameter BWR correlation.",
+      "parameters": [
+        {
+          "name": "T_K",
+          "description": "Temperature (K)"
+        },
+        {
+          "name": "P_bar",
+          "description": "Pressure (bar)"
+        },
+        {
+          "name": "Tc_arr",
+          "description": "Critical temperatures (K) for each component"
+        },
+        {
+          "name": "Pc_arr",
+          "description": "Critical pressures (bar) for each component"
+        },
+        {
+          "name": "omega_arr",
+          "description": "Acentric factors for each component"
+        },
+        {
+          "name": "z_arr",
+          "description": "Mole fractions (auto-normalized)"
+        }
+      ]
+    },
+    {
+      "id": "P365.EoS.LKMixtureProperties",
+      "name": "P365.EoS.LKMixtureProperties",
+      "description": "Lee-Kesler mixture thermodynamic properties: Z-factor, dimensionless departure enthalpy (H-H^ig)/(RTc), and departure entropy (S-S^ig)/R using Kay's rule pseudocriticals.",
+      "parameters": [
+        {
+          "name": "T_K",
+          "description": "Temperature (K)"
+        },
+        {
+          "name": "P_bar",
+          "description": "Pressure (bar)"
+        },
+        {
+          "name": "Tc_arr",
+          "description": "Critical temperatures (K) for each component"
+        },
+        {
+          "name": "Pc_arr",
+          "description": "Critical pressures (bar) for each component"
+        },
+        {
+          "name": "omega_arr",
+          "description": "Acentric factors for each component"
+        },
+        {
+          "name": "z_arr",
+          "description": "Mole fractions (auto-normalized)"
+        }
+      ]
+    },
+    {
+      "id": "P365.GEO.DeviatedKirsch",
+      "name": "P365.GEO.DeviatedKirsch",
+      "description": "Deviated wellbore Kirsch stress analysis. Computes min/max hoop stresses, wellbore breakdown pressure (tensile fracture), and collapse pressure (Mohr-Coulomb) for an arbitrarily inclined borehole.",
+      "parameters": [
+        {
+          "name": "sigma_h_psi",
+          "description": "Minimum horizontal stress (psi)"
+        },
+        {
+          "name": "sigma_H_psi",
+          "description": "Maximum horizontal stress (psi)"
+        },
+        {
+          "name": "sigma_v_psi",
+          "description": "Vertical (overburden) stress (psi)"
+        },
+        {
+          "name": "Pp_psi",
+          "description": "Pore pressure (psi)"
+        },
+        {
+          "name": "Pw_psi",
+          "description": "Wellbore pressure / mud weight equivalent (psi)"
+        },
+        {
+          "name": "inc_deg",
+          "description": "Wellbore inclination from vertical (\u00b0)"
+        },
+        {
+          "name": "az_deg",
+          "description": "Wellbore azimuth from sigma_H direction (\u00b0)"
+        },
+        {
+          "name": "C0_psi",
+          "description": "Unconfined compressive strength (psi)"
+        },
+        {
+          "name": "phi_fr_deg",
+          "description": "Internal friction angle (\u00b0)"
+        },
+        {
+          "name": "T0_psi",
+          "description": "Tensile strength (psi), default 0"
+        }
+      ]
+    },
+    {
+      "id": "P365.GEO.FaultReactivation",
+      "name": "P365.GEO.FaultReactivation",
+      "description": "Fault reactivation critical pore pressure (Mohr-Coulomb on fault plane). Returns normal stress, shear stress, critical pore pressure for slip, safety margin, and reactivation flag.",
+      "parameters": [
+        {
+          "name": "sigma_h_psi",
+          "description": "Minimum horizontal stress (psi)"
+        },
+        {
+          "name": "sigma_H_psi",
+          "description": "Maximum horizontal stress (psi)"
+        },
+        {
+          "name": "sigma_v_psi",
+          "description": "Vertical stress (psi)"
+        },
+        {
+          "name": "P_p0_psi",
+          "description": "In-situ pore pressure (psi)"
+        },
+        {
+          "name": "fault_dip_deg",
+          "description": "Fault dip angle from horizontal (\u00b0)"
+        },
+        {
+          "name": "fault_strike_az",
+          "description": "Fault strike azimuth from sigma_H (\u00b0)"
+        },
+        {
+          "name": "mu_f",
+          "description": "Fault friction coefficient (typical 0.6)"
+        },
+        {
+          "name": "C_f_psi",
+          "description": "Fault cohesion (psi)"
+        }
+      ]
+    },
+    {
+      "id": "P365.SIM.StarsGrid",
+      "name": "P365.SIM.StarsGrid",
+      "description": "CMG STARS GRID CART + DI/DJ/DK keyword block generator. Creates grid dimension and cell size keywords for a Cartesian simulation grid. Supports uniform or heterogeneous cell spacing.",
+      "parameters": [
+        {
+          "name": "nx",
+          "description": "Number of grid blocks in I direction"
+        },
+        {
+          "name": "ny",
+          "description": "Number of grid blocks in J direction"
+        },
+        {
+          "name": "nz",
+          "description": "Number of grid blocks in K direction"
+        },
+        {
+          "name": "dx",
+          "description": "Cell size(s) in I direction (ft) \u2014 scalar or array"
+        },
+        {
+          "name": "dy",
+          "description": "Cell size(s) in J direction (ft) \u2014 scalar or array"
+        },
+        {
+          "name": "dz",
+          "description": "Cell size(s) in K direction (ft) \u2014 scalar or array"
+        }
+      ]
+    },
+    {
+      "id": "P365.SIM.StarsPoro",
+      "name": "P365.SIM.StarsPoro",
+      "description": "CMG STARS PORO keyword block generator. Creates the porosity table for a Cartesian simulation grid. Accepts a uniform value or a full nx\u00d7ny\u00d7nz array.",
+      "parameters": [
+        {
+          "name": "nx",
+          "description": "Grid I dimension"
+        },
+        {
+          "name": "ny",
+          "description": "Grid J dimension"
+        },
+        {
+          "name": "nz",
+          "description": "Grid K dimension"
+        },
+        {
+          "name": "poro_arr",
+          "description": "Porosity values (fraction) \u2014 scalar or array"
+        }
+      ]
+    },
+    {
+      "id": "P365.SIM.StarsPerm",
+      "name": "P365.SIM.StarsPerm",
+      "description": "CMG STARS PERMI/PERMJ/PERMK keyword block generator. Creates I, J, and K permeability tables for a simulation grid. Accepts scalar or array inputs for each direction.",
+      "parameters": [
+        {
+          "name": "nx",
+          "description": "Grid I dimension"
+        },
+        {
+          "name": "ny",
+          "description": "Grid J dimension"
+        },
+        {
+          "name": "nz",
+          "description": "Grid K dimension"
+        },
+        {
+          "name": "perm_i",
+          "description": "I-direction permeability (md) \u2014 scalar or array"
+        },
+        {
+          "name": "perm_j",
+          "description": "J-direction permeability (md) \u2014 scalar or array"
+        },
+        {
+          "name": "perm_k",
+          "description": "K-direction permeability (md) \u2014 scalar or array"
+        }
+      ]
+    },
+    {
+      "id": "P365.SIM.StarsTemp",
+      "name": "P365.SIM.StarsTemp",
+      "description": "CMG STARS TEMPI (initial temperature) keyword block generator for thermal simulation. Creates initial temperature distribution table. Accepts a uniform value or a full nx\u00d7ny\u00d7nz array.",
+      "parameters": [
+        {
+          "name": "nx",
+          "description": "Grid I dimension"
+        },
+        {
+          "name": "ny",
+          "description": "Grid J dimension"
+        },
+        {
+          "name": "nz",
+          "description": "Grid K dimension"
+        },
+        {
+          "name": "temp_arr",
+          "description": "Temperature values (\u00b0F) \u2014 scalar or array"
+        }
+      ]
     }
   ]
 }

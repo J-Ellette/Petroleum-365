@@ -834,3 +834,191 @@ export function geoMudWeightWindowECD(
     window_safe:        safe,
   };
 }
+
+// ─── Deviated Wellbore Stress Analysis ───────────────────────────────────────
+
+/**
+ * Deviated wellbore Kirsch equations — stress concentration around a borehole.
+ *
+ * Extends the vertical wellbore Kirsch solution to an arbitrarily deviated
+ * borehole using the transformation of Fjaer et al. (2008):
+ *
+ *   σ_xx' = σ_H cos²α sin²β + σ_h sin²α + σ_v cos²α cos²β  (in-plane h)
+ *   σ_zz' = σ_H sin²α + σ_h cos²α  (axial; simplified for azimuth effect)
+ *
+ * Hoop stresses at the borehole wall (θ measured from σ_H' direction):
+ *   σ_θθ = σ_xx' + σ_yy' − 2(σ_xx' − σ_yy') cos(2θ) − 4τ_xy' sin(2θ) − P_w
+ *
+ * The function returns: minimum and maximum hoop stresses around the borehole,
+ * wellbore breakdown pressure (tensile fracture: σ_θθ_min + T0 = P_w),
+ * and collapse pressure (shear failure: Mohr-Coulomb at max compression).
+ *
+ * @param σ_h_psi    Minimum horizontal stress (psi)
+ * @param σ_H_psi    Maximum horizontal stress (psi)
+ * @param σ_v_psi    Vertical (overburden) stress (psi)
+ * @param Pp_psi     Pore pressure (psi)
+ * @param Pw_psi     Wellbore pressure (mud pressure) (psi)
+ * @param inc_deg    Wellbore inclination from vertical (°): 0 = vertical, 90 = horizontal
+ * @param az_deg     Wellbore azimuth from σ_H direction (°)
+ * @param C0_psi     Unconfined compressive strength (psi)
+ * @param phi_fr_deg Internal friction angle (°)
+ * @param T0_psi     Tensile strength (psi), default 0 (natural fractures assumed)
+ * @returns          { σθθ_min_psi, σθθ_max_psi, breakdownP_psi, collapseP_psi,
+ *                     effectiveSh_psi, effectiveSH_psi, effectiveSv_psi }
+ */
+export function geoDeviatedKirsch(
+  σ_h_psi: number,
+  σ_H_psi: number,
+  σ_v_psi: number,
+  Pp_psi: number,
+  Pw_psi: number,
+  inc_deg: number,
+  az_deg: number,
+  C0_psi: number,
+  phi_fr_deg: number,
+  T0_psi = 0,
+): {
+  σθθ_min_psi: number;
+  σθθ_max_psi: number;
+  breakdownP_psi: number;
+  collapseP_psi: number;
+  effectiveSh_psi: number;
+  effectiveSH_psi: number;
+  effectiveSv_psi: number;
+} {
+  const inc = inc_deg * Math.PI / 180;
+  const az  = az_deg  * Math.PI / 180;
+
+  // Effective stresses (Biot α = 1 assumed)
+  const sSh = σ_h_psi - Pp_psi;
+  const sSH = σ_H_psi - Pp_psi;
+  const sSv = σ_v_psi - Pp_psi;
+
+  // Transform to borehole frame (Fjaer et al. 2008 simplified)
+  // σ_x'x' (across borehole, in horizontal plane)
+  const Sx = sSH * Math.pow(Math.cos(az), 2) * Math.pow(Math.cos(inc), 2)
+           + sSh * Math.pow(Math.sin(az), 2)
+           + sSv * Math.pow(Math.cos(az), 2) * Math.pow(Math.sin(inc), 2);
+  // σ_y'y' (across borehole, normal to azimuth)
+  const Sy = sSH * Math.pow(Math.sin(az), 2) * Math.pow(Math.cos(inc), 2)
+           + sSh * Math.pow(Math.cos(az), 2)
+           + sSv * Math.pow(Math.sin(az), 2) * Math.pow(Math.sin(inc), 2);
+  // Shear (x'y')
+  const Txy = (sSH - sSh) * Math.sin(az) * Math.cos(az) * Math.pow(Math.cos(inc), 2);
+
+  // Hoop stress at angle θ (Kirsch): σθθ(θ) = Sx+Sy − 2(Sx−Sy)cos2θ − 4τ sin2θ − ΔPw
+  // ΔPw = Pw − Pp (excess mud pressure above pore pressure)
+  const dPw = Pw_psi - Pp_psi;
+  // Min/max hoop: dσ/dθ=0 → tan2θ* = −2τ/(Sx−Sy)
+  const theta_star = 0.5 * Math.atan2(-2 * Txy, Sx - Sy);
+  const eval_hoop = (θ: number): number =>
+    Sx + Sy - 2 * (Sx - Sy) * Math.cos(2 * θ) - 4 * Txy * Math.sin(2 * θ) - dPw;
+
+  const h1 = eval_hoop(theta_star);
+  const h2 = eval_hoop(theta_star + Math.PI / 2);
+  const σθθ_min = Math.min(h1, h2);
+  const σθθ_max = Math.max(h1, h2);
+
+  // Breakdown pressure (tensile fracture): σθθ_min = −T0 → P_w at failure
+  // σθθ_min(Pw) = σθθ_min(Pw=Pp) − (Pw−Pp) = σθθ_min_ref − ΔPw
+  // At breakdown: σθθ_min_ref − (Pb − Pp) = −T0
+  const σθθ_min_at_ref = Sx + Sy - 2 * Math.abs(Sx - Sy) - Math.sqrt(4 * Txy * Txy + (Sx - Sy) * (Sx - Sy));
+  const breakdownP = Pp_psi + σθθ_min_at_ref + T0_psi;
+
+  // Collapse pressure (Mohr-Coulomb shear failure at max compression θθ)
+  // Collapse when (σθθ_max − σ_r) exceeds UCS equivalent
+  const phi = phi_fr_deg * Math.PI / 180;
+  const q_mc = (1 + Math.sin(phi)) / (1 - Math.sin(phi)); // Mohr-Coulomb q
+  // σr ≈ Pw at borehole wall; failure when σθθ_max ≥ q·σr + C0 (effective)
+  // Collapse Pw: σθθ_max(Pw) = q · Pw + C0  (effective stresses)
+  // σθθ_max = (Sx+Sy) + 2|...| − (Pw−Pp) = const_max − ΔPw
+  const const_max = Sx + Sy + 2 * Math.abs(Sx - Sy) + Math.sqrt(4 * Txy * Txy + (Sx - Sy) * (Sx - Sy));
+  // Failure: const_max − ΔPwc = q·ΔPwc + C0  → ΔPwc(1+q) = const_max − C0
+  const ΔPwc = (const_max - C0_psi) / (1 + q_mc);
+  const collapseP = Pp_psi + ΔPwc;
+
+  return {
+    σθθ_min_psi: σθθ_min,
+    σθθ_max_psi: σθθ_max,
+    breakdownP_psi: breakdownP,
+    collapseP_psi: collapseP,
+    effectiveSh_psi: sSh,
+    effectiveSH_psi: sSH,
+    effectiveSv_psi: sSv,
+  };
+}
+
+/**
+ * Fault reactivation — critical pore pressure (Mohr-Coulomb on fault plane).
+ *
+ * Computes the pore pressure at which a pre-existing fault reactivates
+ * (slides) under the current stress state.  Uses the Mohr-Coulomb
+ * criterion on the fault plane resolved from the principal stresses:
+ *
+ *   τ_f = μ_f (σ_n − P_crit) + C_f
+ *
+ * where σ_n and τ_f are the normal and shear stress on the fault plane.
+ *
+ * @param σ_h_psi    Minimum horizontal stress (psi)
+ * @param σ_H_psi    Maximum horizontal stress (psi)
+ * @param σ_v_psi    Vertical stress (psi)
+ * @param P_p0_psi   In-situ pore pressure (psi)
+ * @param fault_dip_deg   Fault dip angle (°) from horizontal (e.g. 60° for steep normal fault)
+ * @param fault_strike_az Fault strike azimuth from σ_H (°)
+ * @param mu_f       Fault friction coefficient (μ_f = tan φ_f); typical 0.6
+ * @param C_f_psi    Fault cohesion (psi); typically 0 for natural faults
+ * @returns          { σ_n_psi, τ_psi, P_crit_psi, safetyMargin_psi, willReactivate }
+ */
+export function geoFaultReactivation(
+  σ_h_psi: number,
+  σ_H_psi: number,
+  σ_v_psi: number,
+  P_p0_psi: number,
+  fault_dip_deg: number,
+  fault_strike_az: number,
+  mu_f: number,
+  C_f_psi: number,
+): {
+  σ_n_psi: number;
+  τ_psi: number;
+  P_crit_psi: number;
+  safetyMargin_psi: number;
+  willReactivate: boolean;
+} {
+  const dip = fault_dip_deg * Math.PI / 180;
+  const az  = fault_strike_az * Math.PI / 180;
+
+  // Resolve normal and shear stress on the fault plane.
+  // The fault pole (normal vector) is perpendicular to the fault plane.
+  // For a fault with strike azimuth and dip:
+  //   n = (−sin(az)·sin(dip), cos(az)·sin(dip), cos(dip))
+  // Traction vector t_i = σ_ij n_j (principal stress coords: σ1=σ_H, σ2=σ_h, σ3=σ_v)
+  const nx = -Math.sin(az) * Math.sin(dip);
+  const ny =  Math.cos(az) * Math.sin(dip);
+  const nz =  Math.cos(dip);
+
+  // Total normal stress on fault plane
+  const σ_n = σ_H_psi * nx * nx + σ_h_psi * ny * ny + σ_v_psi * nz * nz;
+
+  // Traction magnitude²
+  const T2 = σ_H_psi * σ_H_psi * nx * nx
+            + σ_h_psi * σ_h_psi * ny * ny
+            + σ_v_psi * σ_v_psi * nz * nz;
+  const τ = Math.sqrt(Math.max(0, T2 - σ_n * σ_n));
+
+  // Effective normal stress at current pore pressure
+  const σ_n_eff = σ_n - P_p0_psi;
+
+  // Mohr-Coulomb shear strength at current conditions
+  const τ_strength = mu_f * σ_n_eff + C_f_psi;
+
+  // Critical pore pressure for reactivation: τ = mu_f (σ_n − P_crit) + C_f
+  // → P_crit = σ_n − (τ − C_f) / mu_f
+  const P_crit = σ_n - (τ - C_f_psi) / Math.max(mu_f, 1e-9);
+
+  // Safety margin: positive = stable, negative = already reactivated
+  const safetyMargin = P_crit - P_p0_psi;
+  const willReactivate = τ > τ_strength;
+
+  return { σ_n_psi: σ_n, τ_psi: τ, P_crit_psi: P_crit, safetyMargin_psi: safetyMargin, willReactivate };
+}

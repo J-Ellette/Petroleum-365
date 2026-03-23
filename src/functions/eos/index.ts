@@ -1210,3 +1210,109 @@ export function lkDepartureFunctions(
 
   return { Z, H_dep_RTc: H_dep, S_dep_R: S_dep };
 }
+
+// ─── Lee-Kesler Mixing Rules ──────────────────────────────────────────────────
+
+/**
+ * Lee-Kesler / Kay's rule mixture pseudocritical properties.
+ *
+ * Computes mole-fraction-weighted (Kay's rule) mixture pseudocritical
+ * temperature, pressure, and acentric factor for a multi-component gas.
+ *
+ *   Tc_mix  = Σ yᵢ Tcᵢ
+ *   Pc_mix  = Σ yᵢ Pcᵢ
+ *   ω_mix   = Σ yᵢ ωᵢ
+ *
+ * @param Tc_arr    Critical temperatures (K) for each component
+ * @param Pc_arr    Critical pressures (bar) for each component
+ * @param omega_arr Acentric factors for each component
+ * @param z_arr     Mole fractions (should sum to 1; auto-normalized)
+ * @returns         { Tc_mix_K, Pc_mix_bar, omega_mix }
+ */
+export function lkMixturePseudoCriticals(
+  Tc_arr: number[],
+  Pc_arr: number[],
+  omega_arr: number[],
+  z_arr: number[],
+): { Tc_mix_K: number; Pc_mix_bar: number; omega_mix: number } {
+  const n = z_arr.length;
+  if (Tc_arr.length !== n || Pc_arr.length !== n || omega_arr.length !== n) {
+    throw new Error("All arrays must have the same length");
+  }
+  const zSum = z_arr.reduce((s, v) => s + v, 0);
+  let Tc_mix = 0, Pc_mix = 0, om_mix = 0;
+  for (let i = 0; i < n; i++) {
+    const yi = z_arr[i] / zSum;
+    Tc_mix += yi * Tc_arr[i];
+    Pc_mix += yi * Pc_arr[i];
+    om_mix += yi * omega_arr[i];
+  }
+  return { Tc_mix_K: Tc_mix, Pc_mix_bar: Pc_mix, omega_mix: om_mix };
+}
+
+/**
+ * Lee-Kesler Z-factor for a multi-component gas mixture.
+ *
+ * Uses Kay's rule to compute mixture pseudocriticals, then applies the
+ * Lee-Kesler (1975) BWR equation for the Pitzer three-parameter correlation.
+ *
+ * @param T_K       Temperature (K)
+ * @param P_bar     Pressure (bar)
+ * @param Tc_arr    Critical temperatures (K) for each component
+ * @param Pc_arr    Critical pressures (bar) for each component
+ * @param omega_arr Acentric factors for each component
+ * @param z_arr     Mole fractions (auto-normalized)
+ * @returns         Z-factor (dimensionless)
+ */
+export function lkMixtureZ(
+  T_K: number,
+  P_bar: number,
+  Tc_arr: number[],
+  Pc_arr: number[],
+  omega_arr: number[],
+  z_arr: number[],
+): number {
+  const { Tc_mix_K, Pc_mix_bar, omega_mix } = lkMixturePseudoCriticals(
+    Tc_arr, Pc_arr, omega_arr, z_arr,
+  );
+  return lkZFactorComponent(T_K, P_bar, Tc_mix_K, Pc_mix_bar, omega_mix);
+}
+
+/**
+ * Lee-Kesler mixture departure functions.
+ *
+ * Returns Z-factor, dimensionless departure enthalpy, and departure entropy
+ * for a multi-component gas mixture using Kay's rule pseudocriticals and the
+ * Lee-Kesler (1975) Pitzer three-parameter correlation.
+ *
+ * @param T_K       Temperature (K)
+ * @param P_bar     Pressure (bar)
+ * @param Tc_arr    Critical temperatures (K) for each component
+ * @param Pc_arr    Critical pressures (bar) for each component
+ * @param omega_arr Acentric factors for each component
+ * @param z_arr     Mole fractions (auto-normalized)
+ * @returns         { Z, H_dep_RTc, S_dep_R, Tc_mix_K, Pc_mix_bar, omega_mix }
+ */
+export function lkMixtureProperties(
+  T_K: number,
+  P_bar: number,
+  Tc_arr: number[],
+  Pc_arr: number[],
+  omega_arr: number[],
+  z_arr: number[],
+): {
+  Z: number;
+  H_dep_RTc: number;
+  S_dep_R: number;
+  Tc_mix_K: number;
+  Pc_mix_bar: number;
+  omega_mix: number;
+} {
+  const { Tc_mix_K, Pc_mix_bar, omega_mix } = lkMixturePseudoCriticals(
+    Tc_arr, Pc_arr, omega_arr, z_arr,
+  );
+  const { Z, H_dep_RTc, S_dep_R } = lkDepartureFunctions(
+    T_K, P_bar, Tc_mix_K, Pc_mix_bar, omega_mix,
+  );
+  return { Z, H_dep_RTc, S_dep_R, Tc_mix_K, Pc_mix_bar, omega_mix };
+}

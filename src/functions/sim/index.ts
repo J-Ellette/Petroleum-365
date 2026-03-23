@@ -505,3 +505,163 @@ export function simBuildSgofTable(
   }
   return rows;
 }
+
+// ─── CMG STARS Keyword Generators ────────────────────────────────────────────
+
+/**
+ * CMG STARS GRID keyword block.
+ *
+ * Generates a GRID CART / DI / DJ / DK section for a regular Cartesian grid.
+ * Supports uniform cell sizes (single values) or heterogeneous spacing
+ * (arrays of length nx, ny, nz respectively).
+ *
+ * @param nx     Number of grid blocks in X (I) direction
+ * @param ny     Number of grid blocks in Y (J) direction
+ * @param nz     Number of grid blocks in Z (K) direction
+ * @param dx     Cell size(s) in I direction (ft) — scalar or length-nx array
+ * @param dy     Cell size(s) in J direction (ft) — scalar or length-ny array
+ * @param dz     Cell size(s) in K direction (ft) — scalar or length-nz array
+ * @returns      CMG STARS GRID/DI/DJ/DK keyword block as a string
+ */
+export function simStarsGrid(
+  nx: number,
+  ny: number,
+  nz: number,
+  dx: number | number[],
+  dy: number | number[],
+  dz: number | number[],
+): string {
+  const expand = (val: number | number[], count: number): number[] => {
+    if (typeof val === "number") return Array(count).fill(val);
+    if (val.length !== count) throw new Error(`Array length mismatch: expected ${count}, got ${val.length}`);
+    return val as number[];
+  };
+  const dxArr = expand(dx, nx);
+  const dyArr = expand(dy, ny);
+  const dzArr = expand(dz, nz);
+
+  const fmt = (arr: number[]): string =>
+    arr.map(v => v.toFixed(4)).join(" ");
+
+  const lines: string[] = [
+    `GRID CART ${nx} ${ny} ${nz}`,
+    `DI CON`,
+    fmt(dxArr),
+    `DJ CON`,
+    fmt(dyArr),
+    `DK CON`,
+    fmt(dzArr),
+  ];
+  return lines.join("\n");
+}
+
+/**
+ * CMG STARS PORO keyword block.
+ *
+ * Generates a PORO (porosity) keyword section.  Supply a flat array of
+ * porosity values in I-J-K order (ix varies fastest).
+ *
+ * @param nx        Grid dimensions (I)
+ * @param ny        Grid dimensions (J)
+ * @param nz        Grid dimensions (K)
+ * @param poro_arr  Porosity values (fraction) — length nx×ny×nz, or single value
+ * @returns         CMG STARS PORO keyword block as a string
+ */
+export function simStarsPoro(
+  nx: number,
+  ny: number,
+  nz: number,
+  poro_arr: number | number[],
+): string {
+  const total = nx * ny * nz;
+  const vals: number[] = typeof poro_arr === "number"
+    ? Array(total).fill(poro_arr)
+    : (poro_arr as number[]);
+  if (vals.length !== total) {
+    throw new Error(`PORO: expected ${total} values, got ${vals.length}`);
+  }
+  const rows: string[] = ["PORO CON"];
+  const chunkSize = 10;
+  for (let i = 0; i < total; i += chunkSize) {
+    rows.push(vals.slice(i, i + chunkSize).map(v => v.toFixed(6)).join(" "));
+  }
+  return rows.join("\n");
+}
+
+/**
+ * CMG STARS PERMI / PERMJ / PERMK keyword blocks.
+ *
+ * Generates permeability keyword sections for all three directions.
+ * Pass a single value to apply uniformly, or an array of length nx×ny×nz.
+ *
+ * @param nx        Grid dimensions (I)
+ * @param ny        Grid dimensions (J)
+ * @param nz        Grid dimensions (K)
+ * @param perm_i    I-direction permeability (md) — scalar or array
+ * @param perm_j    J-direction permeability (md) — scalar or array
+ * @param perm_k    K-direction permeability (md) — scalar or array
+ * @returns         CMG STARS PERMI/PERMJ/PERMK keyword blocks as a string
+ */
+export function simStarsPerm(
+  nx: number,
+  ny: number,
+  nz: number,
+  perm_i: number | number[],
+  perm_j: number | number[],
+  perm_k: number | number[],
+): string {
+  const total = nx * ny * nz;
+  const buildBlock = (keyword: string, val: number | number[]): string => {
+    const vals: number[] = typeof val === "number"
+      ? Array(total).fill(val)
+      : (val as number[]);
+    if (vals.length !== total) {
+      throw new Error(`${keyword}: expected ${total} values, got ${vals.length}`);
+    }
+    const rows: string[] = [`${keyword} CON`];
+    const chunkSize = 10;
+    for (let i = 0; i < total; i += chunkSize) {
+      rows.push(vals.slice(i, i + chunkSize).map(v => v.toFixed(4)).join(" "));
+    }
+    return rows.join("\n");
+  };
+  return [
+    buildBlock("PERMI", perm_i),
+    buildBlock("PERMJ", perm_j),
+    buildBlock("PERMK", perm_k),
+  ].join("\n");
+}
+
+/**
+ * CMG STARS TEMPI (initial temperature) keyword block.
+ *
+ * Generates the TEMPI keyword for reservoir initial temperature distribution
+ * used in thermal simulation.  Pass a single value for uniform temperature
+ * or an array of length nx×ny×nz for heterogeneous distribution.
+ *
+ * @param nx        Grid dimensions (I)
+ * @param ny        Grid dimensions (J)
+ * @param nz        Grid dimensions (K)
+ * @param temp_arr  Temperature values (°F) — scalar or array
+ * @returns         CMG STARS TEMPI keyword block as a string
+ */
+export function simStarsTemp(
+  nx: number,
+  ny: number,
+  nz: number,
+  temp_arr: number | number[],
+): string {
+  const total = nx * ny * nz;
+  const vals: number[] = typeof temp_arr === "number"
+    ? Array(total).fill(temp_arr)
+    : (temp_arr as number[]);
+  if (vals.length !== total) {
+    throw new Error(`TEMPI: expected ${total} values, got ${vals.length}`);
+  }
+  const rows: string[] = ["TEMPI CON"];
+  const chunkSize = 10;
+  for (let i = 0; i < total; i += chunkSize) {
+    rows.push(vals.slice(i, i + chunkSize).map(v => v.toFixed(2)).join(" "));
+  }
+  return rows.join("\n");
+}

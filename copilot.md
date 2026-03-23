@@ -875,3 +875,55 @@ Good stopping point: VFP extended with Aziz-Govier-Fogarasi (AGF 1972) mechanist
 - [ ] GEO: Wellbore trajectory stress analysis (deviated well Kirsch equations), fault reactivation pressure
 - [ ] Blueprints: Horner buildup analysis blueprint, Lee-Kesler vapor-liquid blueprint
 - [ ] SIM: CMG STARS format keyword generator (GRID, PORO, PERM, TEMP tables)
+
+### Session 18 — VFP OPT + PTA Composite + EoS LK Mixing + GEO Deviated + SIM STARS + Blueprints
+**Status:** Complete
+
+#### Scope
+- VFP system optimization: optimal tubing ID selection (Beggs & Brill BHP scan), optimal GLR scan, Gilbert choke pressure drop
+- PTA composite reservoir models: dual-porosity (Warren-Root / Barenblatt-Kazemi), radial composite (two-zone Ei approximation), type-curve matching parameter extraction
+- EoS Lee-Kesler mixing rules: Kay's rule mixture pseudocriticals (Tc_mix, Pc_mix, ω_mix), mixture Z-factor, mixture departure enthalpy + entropy
+- GEO deviated wellbore: generalized Kirsch stress transformation (Fjaer et al. 2008) — hoop stresses, breakdown pressure, collapse pressure for any inclination/azimuth; fault reactivation critical pore pressure (Mohr-Coulomb on fault plane)
+- SIM CMG STARS: GRID CART/DI/DJ/DK generator, PORO, PERMI/PERMJ/PERMK, TEMPI keyword block generators
+- Blueprints: Horner pressure buildup analysis blueprint, Lee-Kesler mixture properties blueprint
+
+#### Completed
+- [x] Extended VFP module with 3 new functions (src/functions/vfp/index.ts):
+  - [x] `vfpOptimalTubing(...)` — scans candidate tubing IDs, returns BHP for each + bestD_in
+  - [x] `vfpGLROptimal(...)` — GLR scan from min to max, returns bhp_scan + optGLR_scf_bbl + minBHP_psia
+  - [x] `vfpChokeDP(q_oil, q_gas, d_64ths, P_dn)` — Gilbert critical-flow choke: P_up, dP, GLR, critical flag
+- [x] Extended PTA module with 3 new functions (src/functions/pta/index.ts):
+  - [x] `ptaDualPorosityPwf(...)` — Warren-Root / Barenblatt-Kazemi dual-porosity drawdown (λ, ω)
+  - [x] `ptaRadialComposite(r_f, M12, ...)` — two-zone composite reservoir Pwf (Ei-function approximation)
+  - [x] `ptaTypeCurveMatch(...)` — Bourdet-Gringarten match-point extraction of k, S, C
+- [x] Extended EoS module with 3 new Lee-Kesler mixing rule functions (src/functions/eos/index.ts):
+  - [x] `lkMixturePseudoCriticals(Tc, Pc, omega, z)` — Kay's rule Tc_mix, Pc_mix, omega_mix
+  - [x] `lkMixtureZ(T_K, P_bar, Tc, Pc, omega, z)` — Lee-Kesler Z for multi-component gas mixture
+  - [x] `lkMixtureProperties(...)` — Z + H_dep_RTc + S_dep_R + pseudocriticals
+- [x] Extended GEO module with 2 new functions (src/functions/geo/index.ts):
+  - [x] `geoDeviatedKirsch(σ_h, σ_H, σ_v, Pp, Pw, inc, az, C0, φ, T0)` — min/max hoop stress, breakdown P, collapse P
+  - [x] `geoFaultReactivation(σ_h, σ_H, σ_v, Pp, dip, az, μ_f, C_f)` — σ_n, τ, P_crit, safetyMargin, willReactivate
+- [x] Extended SIM module with 4 CMG STARS keyword generators (src/functions/sim/index.ts):
+  - [x] `simStarsGrid(nx, ny, nz, dx, dy, dz)` — GRID CART + DI/DJ/DK sections
+  - [x] `simStarsPoro(nx, ny, nz, poro_arr)` — PORO CON keyword block
+  - [x] `simStarsPerm(nx, ny, nz, perm_i, perm_j, perm_k)` — PERMI/PERMJ/PERMK keyword blocks
+  - [x] `simStarsTemp(nx, ny, nz, temp_arr)` — TEMPI CON keyword block (thermal sim)
+- [x] Added 2 new blueprints to catalog (src/addins/blueprints/index.ts):
+  - [x] `pta-horner-buildup` — Horner/MDH pressure buildup analysis (Horner, MDH, dual-porosity diagnostic)
+  - [x] `eos-lk-mixture` — Lee-Kesler mixture properties (Kay's rule, Z-factor, departure H/S)
+- [x] Updated src/index.ts: VFP +3, PTA +3, EoS.LeeKesler +3, GEO +2, SIM +4 new namespace entries
+- [x] Expanded functions.json from 269 → 284 UDF registrations (+15 entries)
+- [x] Written 79 new Jest unit tests (1983 total, all passing — up from 1904)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+- [x] Updated copilot.md and README.md for Session 18
+
+#### Stopping Point — Session 18
+Good stopping point: VFP extended with three system optimization tools — optimal tubing ID selection (Beggs & Brill BHP scan across candidate diameters), optimal GLR scan (finds minimum BHP GLR for artificial lift design), and Gilbert (1954) choke critical-flow correlation (P_up, ΔP, GLR, critical flag); PTA extended with composite reservoir models — dual-porosity Warren-Root model (Ei-function PD with storativity ratio ω and interporosity coefficient λ), radial composite two-zone model (mobility ratio M12 = k1/k2, composite-front image contribution), and Bourdet-Gringarten type-curve match-point extraction (k, S, C from tD/CD and PD match); EoS extended with Lee-Kesler mixing rules — Kay's rule pseudocriticals (Tc_mix, Pc_mix, ω_mix) for N-component gas, mixture Z-factor, and mixture departure enthalpy/entropy for custody-transfer and process design; GEO extended with deviated wellbore Kirsch analysis (Fjaer et al. 2008 transformation to borehole frame — min/max hoop stress, tensile breakdown pressure, Mohr-Coulomb collapse pressure for any well inclination and azimuth) and fault reactivation (Mohr-Coulomb on fault plane resolved from principal stresses — critical pore pressure for slip, safety margin, reactivation flag); SIM extended with four CMG STARS thermal simulation keyword generators (GRID CART/DI/DJ/DK, PORO, PERMI/PERMJ/PERMK, TEMPI); Blueprint catalog expanded with 2 new entries (Horner Buildup Analysis, Lee-Kesler Mixture Properties). 1983 tests passing. 284 UDFs. 33 modules.
+
+#### Next Session — Session 19 (Planned)
+- [ ] VFP: Nodal analysis intersection with IPR curve (gas and oil), choke sensitivity analysis
+- [ ] PTA: Derivative type curves for dual-porosity and composite models (semi-log derivative plot)
+- [ ] EoS: Lee-Kesler VLE flash for multi-component systems (K-factor + Rachford-Rice with LK Z)
+- [ ] GEO: Wellbore stability mud weight window for deviated wells (combining DeviatedKirsch + ECD)
+- [ ] WBI: Tubing design (burst/collapse/tension/triaxial) and casing wear assessment
+- [ ] Blueprints: Deviated wellbore stability blueprint, STARS simulation deck blueprint
