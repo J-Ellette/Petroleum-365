@@ -4514,6 +4514,614 @@
         "type": "number",
         "dimensionality": "scalar"
       }
+    },
+    {
+      "name": "VFP.ANSARI.GRADIENT",
+      "description": "Ansari (1994) mechanistic two-phase pressure gradient for upward wellbore flow. Returns psi/ft.",
+      "parameters": [
+        {
+          "name": "q_bpd",
+          "description": "Liquid rate (bbl/d)"
+        },
+        {
+          "name": "GOR",
+          "description": "Gas-oil ratio (scf/STB)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inner diameter (in)"
+        },
+        {
+          "name": "SG_liq",
+          "description": "Liquid specific gravity"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "P_psia",
+          "description": "Average pressure (psia)"
+        },
+        {
+          "name": "T_F",
+          "description": "Average temperature (\u00b0F)"
+        },
+        {
+          "name": "angle_deg",
+          "description": "Inclination from horizontal (\u00b0), default 90 = vertical"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "VFP.ANSARI.BHP",
+      "description": "Ansari (1994) mechanistic BHP by integrating pressure gradient over depth. Returns psia.",
+      "parameters": [
+        {
+          "name": "Pwh_psia",
+          "description": "Wellhead flowing pressure (psia)"
+        },
+        {
+          "name": "q_bpd",
+          "description": "Liquid rate (bbl/d)"
+        },
+        {
+          "name": "GOR",
+          "description": "Gas-oil ratio (scf/STB)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inner diameter (in)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Tubing length (ft)"
+        },
+        {
+          "name": "T_wh_F",
+          "description": "Wellhead temperature (\u00b0F)"
+        },
+        {
+          "name": "T_bh_F",
+          "description": "Bottomhole temperature (\u00b0F)"
+        },
+        {
+          "name": "SG_liq",
+          "description": "Liquid specific gravity"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "VFP.MUKHERJEE.BRILL.GRADIENT",
+      "description": "Mukherjee-Brill (1985) two-phase pressure gradient for inclined pipes. Returns psi/ft.",
+      "parameters": [
+        {
+          "name": "q_bpd",
+          "description": "Liquid rate (bbl/d)"
+        },
+        {
+          "name": "GOR",
+          "description": "Gas-oil ratio (scf/STB)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inner diameter (in)"
+        },
+        {
+          "name": "SG_liq",
+          "description": "Liquid specific gravity"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "P_psia",
+          "description": "Average pressure (psia)"
+        },
+        {
+          "name": "T_F",
+          "description": "Average temperature (\u00b0F)"
+        },
+        {
+          "name": "angle_deg",
+          "description": "Inclination from horizontal (\u00b0), default 90"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "VFP.MUKHERJEE.BRILL.BHP",
+      "description": "Mukherjee-Brill BHP by integrating gradient over depth. Returns psia.",
+      "parameters": [
+        {
+          "name": "Pwh_psia",
+          "description": "Wellhead flowing pressure (psia)"
+        },
+        {
+          "name": "q_bpd",
+          "description": "Liquid rate (bbl/d)"
+        },
+        {
+          "name": "GOR",
+          "description": "Gas-oil ratio (scf/STB)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inner diameter (in)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Tubing length (ft)"
+        },
+        {
+          "name": "T_wh_F",
+          "description": "Wellhead temperature (\u00b0F)"
+        },
+        {
+          "name": "T_bh_F",
+          "description": "Bottomhole temperature (\u00b0F)"
+        },
+        {
+          "name": "SG_liq",
+          "description": "Liquid specific gravity"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "angle_deg",
+          "description": "Inclination from horizontal (\u00b0), default 90"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "VFP.HASAN.KABIR.GRADIENT",
+      "description": "Hasan-Kabir (1988) drift-flux mechanistic gradient for inclined wellbores. Returns psi/ft.",
+      "parameters": [
+        {
+          "name": "q_bpd",
+          "description": "Liquid rate (bbl/d)"
+        },
+        {
+          "name": "GOR",
+          "description": "Gas-oil ratio (scf/STB)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inner diameter (in)"
+        },
+        {
+          "name": "SG_liq",
+          "description": "Liquid specific gravity"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "P_psia",
+          "description": "Average pressure (psia)"
+        },
+        {
+          "name": "T_F",
+          "description": "Average temperature (\u00b0F)"
+        },
+        {
+          "name": "angle_deg",
+          "description": "Inclination from horizontal (\u00b0), default 90"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "VFP.HASAN.KABIR.BHP",
+      "description": "Hasan-Kabir BHP by integrating gradient over depth. Returns psia.",
+      "parameters": [
+        {
+          "name": "Pwh_psia",
+          "description": "Wellhead flowing pressure (psia)"
+        },
+        {
+          "name": "q_bpd",
+          "description": "Liquid rate (bbl/d)"
+        },
+        {
+          "name": "GOR",
+          "description": "Gas-oil ratio (scf/STB)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inner diameter (in)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Tubing length (ft)"
+        },
+        {
+          "name": "T_wh_F",
+          "description": "Wellhead temperature (\u00b0F)"
+        },
+        {
+          "name": "T_bh_F",
+          "description": "Bottomhole temperature (\u00b0F)"
+        },
+        {
+          "name": "SG_liq",
+          "description": "Liquid specific gravity"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "angle_deg",
+          "description": "Inclination from horizontal (\u00b0), default 90"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "GEO.ELASTIC.MODULI.CONVERT",
+      "description": "Convert E and Poisson's ratio to bulk K, shear G, Lam\u00e9 \u03bb, and P-wave M moduli (all GPa).",
+      "parameters": [
+        {
+          "name": "E_GPa",
+          "description": "Young's modulus (GPa)"
+        },
+        {
+          "name": "nu",
+          "description": "Poisson's ratio (dimensionless, 0 < \u03bd < 0.5)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "name": "GEO.ELASTIC.MODULI.FROM.KG",
+      "description": "Convert bulk modulus K and shear modulus G to Young's modulus E and Poisson's ratio \u03bd.",
+      "parameters": [
+        {
+          "name": "K_GPa",
+          "description": "Bulk modulus (GPa)"
+        },
+        {
+          "name": "G_GPa",
+          "description": "Shear modulus (GPa)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "name": "GEO.STATIC.YOUNGS.MODULUS",
+      "description": "Static Young's modulus from dynamic (Eissa-Kazi 1988). E_static = 0.74\u00b7E_dynamic \u2212 0.82 (GPa).",
+      "parameters": [
+        {
+          "name": "E_dynamic_GPa",
+          "description": "Dynamic Young's modulus from sonic log (GPa)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "GEO.WELLBORE.STRESS.3D",
+      "description": "Kirsch (1898) effective stresses at borehole wall: \u03c3_r, \u03c3_\u03b8, \u03c3_z, \u03c4_eff (psi). Returns matrix.",
+      "parameters": [
+        {
+          "name": "SHmax_psi",
+          "description": "Maximum horizontal stress (psi)"
+        },
+        {
+          "name": "Shmin_psi",
+          "description": "Minimum horizontal stress (psi)"
+        },
+        {
+          "name": "Sv_psi",
+          "description": "Vertical overburden stress (psi)"
+        },
+        {
+          "name": "Pp_psi",
+          "description": "Pore pressure (psi)"
+        },
+        {
+          "name": "Pw_psi",
+          "description": "Wellbore mud pressure (psi)"
+        },
+        {
+          "name": "nu",
+          "description": "Poisson's ratio"
+        },
+        {
+          "name": "alpha_biot",
+          "description": "Biot coefficient (0\u20131)"
+        },
+        {
+          "name": "theta_deg",
+          "description": "Azimuthal angle from SHmax direction (\u00b0)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "name": "GEO.COLLAPSE.PRESSURE.3D",
+      "description": "Mohr-Coulomb borehole collapse pressure from 3D stress state (Kirsch + MC criterion). Returns psi.",
+      "parameters": [
+        {
+          "name": "SHmax_psi",
+          "description": "Maximum horizontal stress (psi)"
+        },
+        {
+          "name": "Shmin_psi",
+          "description": "Minimum horizontal stress (psi)"
+        },
+        {
+          "name": "Pp_psi",
+          "description": "Pore pressure (psi)"
+        },
+        {
+          "name": "UCS_psi",
+          "description": "Unconfined compressive strength (psi)"
+        },
+        {
+          "name": "frictionAngle_deg",
+          "description": "Internal friction angle (\u00b0)"
+        },
+        {
+          "name": "alpha_biot",
+          "description": "Biot coefficient (default 1.0)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "PVT.IFT.GAS.OIL.BAKER.SWERDLOFF",
+      "description": "Gas-oil interfacial tension (Baker-Swerdloff 1956) from API gravity, temperature, and solution GOR. Returns dyne/cm.",
+      "parameters": [
+        {
+          "name": "API",
+          "description": "Oil API gravity"
+        },
+        {
+          "name": "T_F",
+          "description": "Temperature (\u00b0F)"
+        },
+        {
+          "name": "Rs",
+          "description": "Solution GOR (scf/STB)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "PVT.IFT.GAS.OIL.MACLEOD.SUGDEN",
+      "description": "Gas-oil IFT from parachors (Macleod-Sugden equation). Returns dyne/cm.",
+      "parameters": [
+        {
+          "name": "parachors",
+          "description": "Array of component parachors"
+        },
+        {
+          "name": "xi_liquid",
+          "description": "Array of liquid mole fractions"
+        },
+        {
+          "name": "yi_vapor",
+          "description": "Array of vapor mole fractions"
+        },
+        {
+          "name": "rhoL_gcc",
+          "description": "Liquid molar density (mol/cm\u00b3)"
+        },
+        {
+          "name": "rhoG_gcc",
+          "description": "Vapor molar density (mol/cm\u00b3)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "PVT.IFT.GAS.BRINE",
+      "description": "Gas-brine interfacial tension (Jennings-Patzek 1993). Returns dyne/cm.",
+      "parameters": [
+        {
+          "name": "T_F",
+          "description": "Temperature (\u00b0F)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "salinity_ppm",
+          "description": "Total dissolved solids (ppm = mg/L)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "PVT.EOS.PENELOUX.SHIFT",
+      "description": "Peneloux (1982) volume-shift parameter for PR EoS from Tc, Pc, and acentric factor. Returns ft\u00b3/lb-mol.",
+      "parameters": [
+        {
+          "name": "Tc_R",
+          "description": "Critical temperature (\u00b0R)"
+        },
+        {
+          "name": "Pc_psia",
+          "description": "Critical pressure (psia)"
+        },
+        {
+          "name": "omega",
+          "description": "Acentric factor"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "PVT.EOS.VOLUME.SHIFT.REGRESS",
+      "description": "Regress volume-shift correction from observed and calculated molar volumes (least-squares mean offset).",
+      "parameters": [
+        {
+          "name": "V_calc",
+          "description": "Array of calculated molar volumes"
+        },
+        {
+          "name": "V_obs",
+          "description": "Array of observed molar volumes"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "name": "PVT.EOS.BINARY.INTERACTION",
+      "description": "Chueh-Prausnitz (1967) binary interaction parameter kij from critical volumes. Returns dimensionless kij.",
+      "parameters": [
+        {
+          "name": "Vc_i",
+          "description": "Critical volume of component i (ft\u00b3/lb-mol)"
+        },
+        {
+          "name": "Vc_j",
+          "description": "Critical volume of component j (ft\u00b3/lb-mol)"
+        },
+        {
+          "name": "n",
+          "description": "Exponent (default 6 for hydrocarbons)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "ECO.LHS.SAMPLE",
+      "description": "Latin Hypercube Sample: nSamples \u00d7 nVars matrix with values in [0,1). Each column is independently stratified.",
+      "parameters": [
+        {
+          "name": "nSamples",
+          "description": "Number of samples (rows)"
+        },
+        {
+          "name": "nVars",
+          "description": "Number of variables (columns)"
+        },
+        {
+          "name": "seed",
+          "description": "Random seed for reproducibility (default 42)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "matrix"
+      }
+    },
+    {
+      "name": "ECO.INV.TRANSFORM",
+      "description": "Inverse-transform sampling for uniform / triangular / normal / lognormal / PERT distributions.",
+      "parameters": [
+        {
+          "name": "u",
+          "description": "Uniform sample in [0,1)"
+        },
+        {
+          "name": "dist",
+          "description": "Distribution: 'uniform', 'triangular', 'normal', 'lognormal', 'pert'"
+        },
+        {
+          "name": "params",
+          "description": "Array of distribution parameters (see documentation)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "scalar"
+      }
+    },
+    {
+      "name": "ECO.MONTE.CARLO.NPV",
+      "description": "Monte Carlo NPV simulation using LHS. Returns {mean, p10, p50, p90, stddev, min, max} statistics.",
+      "parameters": [
+        {
+          "name": "nSamples",
+          "description": "Number of Monte Carlo iterations"
+        },
+        {
+          "name": "discountRate",
+          "description": "Annual discount rate (decimal)"
+        },
+        {
+          "name": "paramDists",
+          "description": "Array of {dist, params} distribution specifications"
+        },
+        {
+          "name": "npvFn",
+          "description": "NPV function taking (params[], discountRate) \u2192 NPV"
+        },
+        {
+          "name": "seed",
+          "description": "LHS seed for reproducibility (default 42)"
+        }
+      ],
+      "result": {
+        "type": "number",
+        "dimensionality": "matrix"
+      }
     }
   ]
 }

@@ -487,3 +487,166 @@ export function geoOffshoreOverburden(
     totalDepth_ft:   totalDepth,
   };
 }
+
+// ─── Elastic Moduli Conversion ────────────────────────────────────────────────
+
+/**
+ * Convert Young's modulus and Poisson's ratio to bulk, shear, and Lamé
+ * parameters (all in same units as E input, typically GPa).
+ *
+ * Relations:
+ *   K = E / (3·(1 − 2ν))          Bulk modulus
+ *   G = E / (2·(1 + ν))           Shear modulus
+ *   λ = E·ν / ((1+ν)·(1−2ν))      First Lamé parameter
+ *   M = K + 4G/3 = λ + 2G         P-wave modulus
+ *
+ * @param E_GPa  Young's modulus (GPa)
+ * @param nu     Poisson's ratio (dimensionless, 0 < ν < 0.5)
+ * @returns      { K_GPa, G_GPa, lambda_GPa, M_GPa }
+ */
+export function geoElasticModuliConvert(
+  E_GPa: number,
+  nu: number,
+): { K_GPa: number; G_GPa: number; lambda_GPa: number; M_GPa: number } {
+  const K      = E_GPa / (3 * (1 - 2 * nu));
+  const G      = E_GPa / (2 * (1 + nu));
+  const lambda = E_GPa * nu / ((1 + nu) * (1 - 2 * nu));
+  const M      = lambda + 2 * G;
+  return { K_GPa: K, G_GPa: G, lambda_GPa: lambda, M_GPa: M };
+}
+
+/**
+ * Convert bulk modulus K and shear modulus G to Young's modulus and
+ * Poisson's ratio.
+ *
+ *   E = 9KG / (3K + G)
+ *   ν = (3K − 2G) / (2·(3K + G))
+ *
+ * @param K_GPa  Bulk modulus (GPa)
+ * @param G_GPa  Shear modulus (GPa)
+ * @returns      { E_GPa, nu }
+ */
+export function geoElasticModuliFromKG(
+  K_GPa: number,
+  G_GPa: number,
+): { E_GPa: number; nu: number } {
+  const denom = 3 * K_GPa + G_GPa;
+  const E     = 9 * K_GPa * G_GPa / denom;
+  const nu    = (3 * K_GPa - 2 * G_GPa) / (2 * denom);
+  return { E_GPa: E, nu };
+}
+
+/**
+ * Static Young's modulus from dynamic Young's modulus (Eissa & Kazi 1988).
+ *
+ *   E_static = 0.74 × E_dynamic − 0.82   (GPa)
+ *
+ * @param E_dynamic_GPa  Dynamic Young's modulus (GPa)
+ * @returns              Static Young's modulus (GPa)
+ */
+export function geoStaticYoungsModulus(E_dynamic_GPa: number): number {
+  return Math.max(0.1, 0.74 * E_dynamic_GPa - 0.82);
+}
+
+// ─── 3D Wellbore Stress State (Kirsch Equations) ─────────────────────────────
+
+/**
+ * Kirsch (1898) solution for in-situ stresses around a cylindrical borehole
+ * in a linear-elastic medium.
+ *
+ * Gives the effective stresses at the borehole wall (r = Rw) as a function
+ * of far-field principal stresses and wellbore pressure.
+ *
+ *   σ_r     = Pw − Pp               (radial = mud pressure − pore pressure)
+ *   σ_θ     = SHmax + Shmin − 2(SHmax−Shmin)cos(2θ) − Pw − 2Pp·α·(1−2ν)/(1−ν)
+ *   σ_z     = Sv − 2ν(SHmax−Shmin)cos(2θ) − α(1−2ν)Pp/(1−ν)
+ *   τ_θz    = 0 (at borehole wall for vertical well)
+ *
+ * All stresses in psi.  θ = 0° is the SHmax azimuth direction.
+ *
+ * @param SHmax_psi   Maximum horizontal stress (psi)
+ * @param Shmin_psi   Minimum horizontal stress (psi)
+ * @param Sv_psi      Vertical (overburden) stress (psi)
+ * @param Pp_psi      Pore pressure (psi)
+ * @param Pw_psi      Wellbore mud pressure (psi)
+ * @param nu          Poisson's ratio
+ * @param alpha_biot  Biot coefficient (0–1)
+ * @param theta_deg   Azimuthal angle from SHmax (°)
+ * @returns           { sigma_r, sigma_theta, sigma_z, tau_eff_psi, P_eff }
+ *                    All effective stresses at the borehole wall (psi).
+ */
+export function geo3DWellboreStress(
+  SHmax_psi: number,
+  Shmin_psi: number,
+  Sv_psi: number,
+  Pp_psi: number,
+  Pw_psi: number,
+  nu: number,
+  alpha_biot: number,
+  theta_deg: number,
+): {
+  sigma_r_psi:     number;
+  sigma_theta_psi: number;
+  sigma_z_psi:     number;
+  tau_eff_psi:     number;
+  P_eff_mud_psi:   number;
+} {
+  const theta = theta_deg * (Math.PI / 180);
+  const cos2t = Math.cos(2 * theta);
+  const biotStressTerm = (1 - 2 * nu) / (1 - nu);  // Biot effective stress correction (1−2ν)/(1−ν)
+
+  // Kirsch equations at borehole wall (r = Rw)
+  const sigma_r     = Pw_psi - alpha_biot * Pp_psi;                              // effective radial
+  const sigma_theta = (SHmax_psi + Shmin_psi)
+                    - 2 * (SHmax_psi - Shmin_psi) * cos2t
+                    - Pw_psi
+                    - 2 * alpha_biot * Pp_psi * biotStressTerm;                    // effective hoop
+  const sigma_z     = Sv_psi
+                    - 2 * nu * (SHmax_psi - Shmin_psi) * cos2t
+                    - alpha_biot * Pp_psi * biotStressTerm;                        // effective axial
+
+  // Maximum shear stress (Tresca)
+  const tau_eff     = 0.5 * Math.abs(sigma_theta - sigma_r);
+  const P_eff_mud   = Pw_psi - Pp_psi;
+
+  return {
+    sigma_r_psi:     sigma_r,
+    sigma_theta_psi: sigma_theta,
+    sigma_z_psi:     sigma_z,
+    tau_eff_psi:     tau_eff,
+    P_eff_mud_psi:   P_eff_mud,
+  };
+}
+
+/**
+ * Critical wellbore collapse pressure using Mohr-Coulomb criterion and
+ * the Kirsch minimum hoop stress (at θ = 0°, in the SHmax azimuth).
+ *
+ * The collapse pressure is the minimum mud weight required to prevent
+ * shear failure at the borehole wall.
+ *
+ *   Pw_collapse = [q·(SHmax + Shmin) − UCS − (q−1)·α·Pp] / (1 + q)
+ *   where q = (1 + sinφ) / (1 − sinφ)
+ *
+ * @param SHmax_psi       Maximum horizontal stress (psi)
+ * @param Shmin_psi       Minimum horizontal stress (psi)
+ * @param Pp_psi          Pore pressure (psi)
+ * @param UCS_psi         Unconfined compressive strength (psi)
+ * @param frictionAngle_deg Internal friction angle (°)
+ * @param alpha_biot      Biot coefficient
+ * @returns               Minimum collapse pressure (psi)
+ */
+export function geo3DCollapsePressure(
+  SHmax_psi: number,
+  Shmin_psi: number,
+  Pp_psi: number,
+  UCS_psi: number,
+  frictionAngle_deg: number,
+  alpha_biot = 1.0,
+): number {
+  const phi  = frictionAngle_deg * (Math.PI / 180);
+  const sinP = Math.sin(phi);
+  const q    = (1 + sinP) / (1 - sinP);
+  const num  = q * (SHmax_psi + Shmin_psi) - UCS_psi - (q - 1) * alpha_biot * Pp_psi;
+  return Math.max(0, num / (1 + q));
+}

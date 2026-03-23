@@ -1,0 +1,68 @@
+# Petroleum 365 — Netlify Deployment Configuration
+#
+# Hosts the Office.js add-in manifest and taskpane at a public URL suitable
+# for sideloading or AppSource submission.
+#
+# Required headers for Office.js add-ins:
+#   Content-Security-Policy, X-Frame-Options, and CORS must allow
+#   Office host applications (Excel, Word, etc.) to embed the taskpane.
+#
+# Deploy: connect this repository to Netlify, set publish dir to "dist",
+# and run "npm run build" as the build command.
+
+[build]
+  command       = "npm run build"
+  publish       = "dist"
+  ignore        = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- src/ manifest.xml tsconfig.json package.json"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# ─── Production context ──────────────────────────────────────────────────────
+[context.production]
+  command = "npm run build"
+
+# ─── Branch deploy (staging) ─────────────────────────────────────────────────
+[context.branch-deploy]
+  command = "npm run build"
+
+# ─── Headers ─────────────────────────────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Content-Security-Policy frame-ancestors controls framing for modern browsers.
+    # The X-Frame-Options header is retained for older Office host compatibility.
+    Content-Security-Policy    = "default-src 'self' https://appsforoffice.microsoft.com https://*.office.com https://*.microsoft.com; script-src 'self' 'unsafe-inline' https://appsforoffice.microsoft.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.microsoft.com https://*.office.com; frame-ancestors https://excel.officeapps.live.com https://*.office.com https://*.microsoft.com"
+    X-Content-Type-Options     = "nosniff"
+    Referrer-Policy            = "strict-origin-when-cross-origin"
+    Permissions-Policy         = "geolocation=(), microphone=(), camera=()"
+
+[[headers]]
+  for = "/manifest.xml"
+  [headers.values]
+    Content-Type               = "application/xml"
+    Access-Control-Allow-Origin = "*"
+    Cache-Control              = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control              = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control              = "public, max-age=31536000, immutable"
+
+# ─── Redirects ───────────────────────────────────────────────────────────────
+# Single-page-application fallback for the taskpane router
+[[redirects]]
+  from   = "/taskpane/*"
+  to     = "/taskpane/taskpane.html"
+  status = 200
+
+# Redirect bare root to the taskpane
+[[redirects]]
+  from   = "/"
+  to     = "/taskpane/taskpane.html"
+  status = 302

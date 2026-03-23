@@ -392,3 +392,176 @@ export function nodalGasWell(
 
   return { q_op, Pwf_op, iprCurve, vlpCurve };
 }
+
+// ─── Multi-String VLP (Parallel Tubing Strings) ───────────────────────────────
+
+/**
+ * Multi-string VLP for parallel tubing strings completing to the same reservoir.
+ *
+ * Each string has its own VLP curve (BHP vs rate function).  At any given BHP
+ * the strings combine in parallel: total rate = Σ qi(BHP).
+ * The operating point is found where the composite VLP meets the IPR.
+ *
+ * @param vlpFunctions  Array of VLP functions: each takes rate (STB/d) and
+ *                      returns BHP (psia); used inversely — we sweep BHP and
+ *                      solve for rate per string.
+ * @param iprPwf        IPR function — given rate (STB/d) returns Pwf (psia)
+ * @param qMin          Minimum total rate search bound (STB/d)
+ * @param qMax          Maximum total rate search bound (STB/d)
+ * @param nBhpPoints    Number of BHP points for composite curve (default 30)
+ * @returns             { q_op, Pwf_op, compositeCurve, perStringRates }
+ */
+export function nodalMultiStringVLP(
+  vlpFunctions: Array<(q: number) => number>,
+  iprPwf: (q: number) => number,
+  qMin: number,
+  qMax: number,
+  nBhpPoints = 30,
+): {
+  q_op:          number;
+  Pwf_op:        number;
+  compositeCurve: Array<{ q: number; Pwf: number }>;
+  perStringRates: number[];
+} {
+  // Build a composite VLP by inverting each string's VLP across a BHP range
+  // For each BHP, binary-search the rate that gives that BHP on each string.
+  const Pwf_max = iprPwf(qMin * 0.01);   // high-rate / low pressure end
+  const Pwf_min = iprPwf(qMax);          // low-rate / high pressure end
+  const PwfMin  = Math.max(50, Pwf_min);
+  const PwfMax  = Math.min(Pwf_max * 1.2, 20000);
+
+  function invertVlp(vlpFn: (q: number) => number, Pwf_target: number): number {
+    // Binary search: find q such that vlpFn(q) ≈ Pwf_target
+    let lo = qMin / vlpFunctions.length;
+    let hi = qMax / vlpFunctions.length;
+    for (let iter = 0; iter < 60; iter++) {
+      const mid = (lo + hi) / 2;
+      if (vlpFn(mid) < Pwf_target) lo = mid; else hi = mid;
+      if (hi - lo < 0.01) break;
+    }
+    return (lo + hi) / 2;
+  }
+
+  const compositeCurve: Array<{ q: number; Pwf: number }> = [];
+  const step = (PwfMax - PwfMin) / (nBhpPoints - 1);
+  for (let i = 0; i < nBhpPoints; i++) {
+    const Pwf = PwfMin + i * step;
+    const totalQ = vlpFunctions.reduce((sum, fn) => sum + invertVlp(fn, Pwf), 0);
+    compositeCurve.push({ q: totalQ, Pwf });
+  }
+
+  // Intersection with IPR
+  const { q_op, Pwf_op } = nodalOperatingPoint(
+    iprPwf,
+    (q: number) => {
+      // Interpolate composite VLP
+      let lo = 0, hi = compositeCurve.length - 1;
+      while (hi - lo > 1) {
+        const mid = Math.floor((lo + hi) / 2);
+        if (compositeCurve[mid].q < q) lo = mid; else hi = mid;
+      }
+      const { q: q0, Pwf: p0 } = compositeCurve[lo];
+      const { q: q1, Pwf: p1 } = compositeCurve[hi];
+      if (q1 === q0) return p0;
+      return p0 + (p1 - p0) * (q - q0) / (q1 - q0);
+    },
+    qMin,
+    qMax,
+  );
+
+  // Per-string rates at operating BHP
+  const perStringRates = vlpFunctions.map(fn => invertVlp(fn, Pwf_op));
+
+  return { q_op, Pwf_op, compositeCurve, perStringRates };
+}
+
+// ─── Artificial Lift Overlay Comparison ──────────────────────────────────────
+
+/**
+ * Artificial lift overlay comparison: ESP, Gas Lift, and Rod Pump.
+ *
+ * Returns the estimated operating BHP and rate for each lift type at a
+ * simplified VLP model, useful for screening the best lift method.
+ *
+ * All VLP curves use the Beggs-Brill BHP function from the VFP module
+ * (re-implemented here internally to avoid circular imports).
+ *
+ * @param Pr_psia        Reservoir pressure (psia)
+ * @param Qmax_bpd       AOF / Vogel maximum rate (STB/d)
+ * @param depth_ft       True vertical depth (ft)
+ * @param D_in           Tubing inner diameter (in)
+ * @param GOR            Gas-oil ratio (scf/STB)
+ * @param SG_liq         Liquid specific gravity
+ * @param SG_gas         Gas specific gravity
+ * @param T_avg_F        Average temperature (°F)
+ * @param Pwh_psia       Natural flow wellhead pressure (psia)
+ * @param esp_deltaP_psi ESP pressure boost (psi) — additional pressure added by pump
+ * @param gl_qInj_mscfd  Gas lift injection rate (Mscf/d) — lowers effective SG
+ * @param rp_efficiency  Rod pump volumetric efficiency (0–1) — scales max rate
+ * @returns              { natural, esp, gasLift, rodPump } each with { q_op, Pwf_op }
+ */
+export function nodalArtificialLiftOverlay(
+  Pr_psia: number,
+  Qmax_bpd: number,
+  depth_ft: number,
+  D_in: number,
+  GOR: number,
+  SG_liq: number,
+  SG_gas: number,
+  T_avg_F: number,
+  Pwh_psia: number,
+  esp_deltaP_psi = 800,
+  gl_qInj_mscfd = 500,
+  rp_efficiency = 0.85,
+): {
+  natural:  { q_op: number; Pwf_op: number };
+  esp:      { q_op: number; Pwf_op: number };
+  gasLift:  { q_op: number; Pwf_op: number };
+  rodPump:  { q_op: number; Pwf_op: number };
+} {
+  // IPR: Vogel
+  const iprPwf = (q: number): number => vogelIPRPwf(Pr_psia, Qmax_bpd, q);
+
+  // Mix gradient: temperature-corrected gas density reduces effective gradient
+  // Gas density correction factor: (520 / T_avg_R) to account for gas expansion
+  const T_avg_R    = T_avg_F + 459.67;
+  const gasDenCorr = 520.0 / T_avg_R;               // standard-to-actual density ratio
+  const mixGrad = (sgL: number, gor: number): number => {
+    const oilGrad = 0.433 * sgL;
+    const gasCorr = 0.433 * SG_gas * gasDenCorr * gor / 5615;
+    return (oilGrad + gasCorr) / (1 + gor / 5615);
+  };
+
+  // Natural flow VLP
+  const grad_nat = mixGrad(SG_liq, GOR);
+  const vlpNat   = (_q: number): number => Pwh_psia + grad_nat * depth_ft;
+
+  // ESP: adds pressure boost, raising effective wellhead pressure equivalent
+  const vlpESP = (_q: number): number => Math.max(100, vlpNat(_q) - esp_deltaP_psi);
+
+  // Gas lift: injection lowers effective liquid gradient
+  const addedGasScf = gl_qInj_mscfd * 1000;
+  const qLiq        = Math.max(100, Qmax_bpd * 0.5);   // reference rate for GOR calc
+  const gorGL       = GOR + addedGasScf / qLiq;
+  const grad_gl     = mixGrad(SG_liq, gorGL);
+  const vlpGL       = (_q: number): number => Pwh_psia + grad_gl * depth_ft;
+
+  // Rod pump: limits max rate by volumetric efficiency
+  const Qmax_rp = Qmax_bpd * rp_efficiency;
+  const iprRP   = (q: number): number => vogelIPRPwf(Pr_psia, Qmax_rp, Math.min(q, Qmax_rp));
+
+  const qMin = Qmax_bpd * 0.01;
+  const qMax = Qmax_bpd * 1.5;
+
+  const nat = nodalOperatingPoint(iprPwf, vlpNat, qMin, qMax);
+  const esp = nodalOperatingPoint(iprPwf, vlpESP, qMin, qMax);
+  const gl  = nodalOperatingPoint(iprPwf, vlpGL,  qMin, qMax);
+  const rp  = nodalOperatingPoint(iprRP,  vlpNat, qMin * 0.1, Qmax_rp);
+
+  return {
+    natural:  { q_op: nat.q_op, Pwf_op: nat.Pwf_op },
+    esp:      { q_op: esp.q_op, Pwf_op: esp.Pwf_op },
+    gasLift:  { q_op: gl.q_op,  Pwf_op: gl.Pwf_op  },
+    rodPump:  { q_op: rp.q_op,  Pwf_op: rp.Pwf_op  },
+  };
+}
