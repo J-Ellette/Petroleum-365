@@ -1511,3 +1511,183 @@ export function orkiszewskiBHP(
   }
   return P;
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// Session 17 — Aziz-Govier-Fogarasi (AGF) mechanistic multiphase correlation
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Aziz-Govier-Fogarasi (1972) multiphase pressure gradient in a vertical pipe.
+ *
+ * Uses dimensionless velocity numbers (Ngv, Nlv, Nd, Nl) and the flow-pattern
+ * map of Aziz et al. to identify bubble, slug, churn, or mist flow and compute
+ * the two-phase pressure gradient (psi/ft).
+ *
+ * @param q_oil_bpd     Oil flow rate (bbl/d)
+ * @param q_gas_Mscfd   Total gas rate (Mscf/d)
+ * @param q_wat_bpd     Water flow rate (bbl/d)
+ * @param D_in          Tubing inside diameter (inches)
+ * @param SG_oil        Oil specific gravity (water=1)
+ * @param SG_gas        Gas specific gravity (air=1)
+ * @param mu_l_cp       Liquid viscosity (cp)
+ * @param sigma_dyn_cm  Liquid-gas surface tension (dyne/cm)
+ * @param P_avg_psia    Average pressure (psia)
+ * @param T_avg_F       Average temperature (°F)
+ * @returns             Two-phase pressure gradient (psi/ft)
+ */
+export function azizGovierFogarasiGradient(
+  q_oil_bpd: number,
+  q_gas_Mscfd: number,
+  q_wat_bpd: number,
+  D_in: number,
+  SG_oil: number,
+  SG_gas: number,
+  mu_l_cp: number,
+  sigma_dyn_cm: number,
+  P_avg_psia: number,
+  T_avg_F: number,
+): number {
+  const D_ft   = D_in / 12;
+  const A      = Math.PI / 4 * D_ft * D_ft;
+  const T_R    = T_avg_F + 459.67;
+
+  // Superficial velocities (ft/s) — convert field rates to ft³/s
+  const q_l_ft3s = (q_oil_bpd + q_wat_bpd) * 5.615 / 86400;
+  const z_factor = 0.9;  // approximate z for gradient calculation
+  const q_g_ft3s = q_gas_Mscfd * 1000 * (14.7 / P_avg_psia) * (T_R / 520) * z_factor / 86400;
+  const v_sl = q_l_ft3s / A;
+  const v_sg = q_g_ft3s / A;
+  const v_m  = v_sl + v_sg;
+
+  // Fluid properties
+  const rho_oil = SG_oil * 62.4;          // lb/ft³
+  const rho_wat = 62.4;
+  const rho_gas = SG_gas * 0.0764 * P_avg_psia / 14.7 * 520 / T_R;   // lb/ft³
+  const rho_l   = (q_oil_bpd * rho_oil + q_wat_bpd * rho_wat) / Math.max(q_oil_bpd + q_wat_bpd, 1e-9);
+  const sigma_lbf_ft = sigma_dyn_cm * 6.852e-3;  // dyne/cm → lbf/ft
+
+  // Aziz-Govier-Fogarasi dimensionless numbers
+  // Ngv = v_sg * (rho_l / (g * sigma))^0.25
+  // Nlv = v_sl * (rho_l / (g * sigma))^0.25
+  // Nd  = D * (rho_l * g / sigma)^0.5
+  // Nl  = mu_l * (g / (rho_l * sigma^3))^0.25
+  const g = 32.174;  // ft/s²
+  const sigma_lbf_ft2 = sigma_lbf_ft;  // lbf/ft is consistent with ft/s units
+  const refTerm  = Math.pow(rho_l / (g * sigma_lbf_ft2 + 1e-9), 0.25);
+  const Ngv = v_sg * refTerm;
+  const Nlv = v_sl * refTerm;
+  const Nd  = D_ft * Math.sqrt(rho_l * g / (sigma_lbf_ft2 + 1e-9));
+  const mu_l_lbf_s = mu_l_cp * 2.0885e-5;   // cp → lbf·s/ft²
+  const Nl  = mu_l_lbf_s * Math.pow(g / (rho_l * sigma_lbf_ft2 ** 3 + 1e-27), 0.25);
+
+  // Flow pattern boundaries (Aziz et al. 1972 Figs 1-2)
+  // Bubble/slug boundary:   Ngv_bs = 0.51 * (100 * Nlv)^0.172
+  // Slug/churn boundary:    Ngv_sc = 0.35 + Nlv
+  // Transition/mist:        Ngv_tm = 75  (approx.)
+  const Ngv_bs = 0.51 * Math.pow(Math.max(1, 100 * Nlv), 0.172);
+  const Ngv_sc = 0.35 + Nlv;
+  const Ngv_tm = 75.0;
+
+  let HL: number;
+  let regime: string;
+
+  if (Ngv < Ngv_bs) {
+    // ── Bubble flow ─────────────────────────────────────────────────────────
+    regime = "bubble";
+    // Liquid holdup: Aziz et al. bubble correlation
+    // HL = 1 - Ngv / (Ngv + 3.0 * refTerm * v_sg_slip)
+    // Simplified: HL ≈ 1 - v_sg / (v_m + v_slip)  with v_slip = 0.8 ft/s
+    const v_slip = 0.8;
+    HL = Math.max(0.5, Math.min(1.0, 1 - v_sg / (v_m + v_slip)));
+  } else if (Ngv < Ngv_sc) {
+    // ── Slug flow ────────────────────────────────────────────────────────────
+    regime = "slug";
+    // Griffith-Wallis slug model
+    const v_Taylor = 0.35 * Math.sqrt(g * D_ft);  // Taylor bubble velocity
+    HL = Math.max(0.1, Math.min(0.95, v_sl / (v_m + v_Taylor)));
+  } else if (Ngv < Ngv_tm) {
+    // ── Churn / transition flow ───────────────────────────────────────────────
+    regime = "churn";
+    // Transition between slug and mist: interpolate linearly in Ngv
+    const frac = (Ngv - Ngv_sc) / (Ngv_tm - Ngv_sc);
+    const HL_slug = Math.max(0.1, v_sl / (v_m + 0.35 * Math.sqrt(g * D_ft)));
+    const HL_mist = v_sl / v_m;
+    HL = (1 - frac) * HL_slug + frac * HL_mist;
+  } else {
+    // ── Annular-mist flow ────────────────────────────────────────────────────
+    regime = "mist";
+    // Lockhart-Martinelli no-slip fraction
+    HL = v_sl / v_m;
+  }
+
+  // Mixture density
+  const rho_s = rho_l * HL + rho_gas * (1 - HL);
+
+  // Friction factor (Moody)
+  const Re_mix = rho_l * v_m * D_ft / (mu_l_cp * 6.72e-4 + 1e-12);
+  const f_mix  = moodyFriction(Re_mix, 0.00015, D_ft);
+
+  // No-slip density for friction
+  const rho_ns = rho_l * (v_sl / v_m) + rho_gas * (v_sg / v_m);
+
+  // Two-phase friction factor correction (Aziz et al. suggest Φ²_l from HL)
+  const phi2_l  = Math.pow(1 + (1 - HL) / (HL + 1e-9), 0.25);
+
+  const grad_grav = rho_s / 144;            // psi/ft
+  const grad_fric = f_mix * phi2_l * rho_ns * v_m * v_m / (2 * g * D_ft * 144);
+
+  void regime;  // suppress unused-variable warning
+  return grad_grav + grad_fric;
+}
+
+/**
+ * Aziz-Govier-Fogarasi (1972) bottomhole pressure.
+ *
+ * Integrates the AGF two-phase gradient over the tubing length using
+ * 10 equal depth segments with linear temperature interpolation.
+ *
+ * @param Pwh_psia      Wellhead pressure (psia)
+ * @param q_oil_bpd     Oil rate (bbl/d)
+ * @param q_gas_Mscfd   Free gas rate (Mscf/d)
+ * @param q_wat_bpd     Water rate (bbl/d)
+ * @param D_in          Tubing inside diameter (inches)
+ * @param L_ft          Tubing length / depth (ft)
+ * @param SG_oil        Oil specific gravity (water=1)
+ * @param SG_gas        Gas specific gravity (air=1)
+ * @param mu_l_cp       Liquid viscosity (cp)
+ * @param sigma_dyn_cm  Liquid-gas surface tension (dyne/cm)
+ * @param T_wh_F        Wellhead temperature (°F)
+ * @param T_bh_F        Bottomhole temperature (°F)
+ * @returns             Bottomhole pressure (psia)
+ */
+export function azizGovierFogarasiBHP(
+  Pwh_psia: number,
+  q_oil_bpd: number,
+  q_gas_Mscfd: number,
+  q_wat_bpd: number,
+  D_in: number,
+  L_ft: number,
+  SG_oil: number,
+  SG_gas: number,
+  mu_l_cp: number,
+  sigma_dyn_cm: number,
+  T_wh_F: number,
+  T_bh_F: number,
+): number {
+  const nSeg = 10;
+  let P = Pwh_psia;
+  const dL = L_ft / nSeg;
+  for (let i = 0; i < nSeg; i++) {
+    const T_F = T_wh_F + (T_bh_F - T_wh_F) * (i + 0.5) / nSeg;
+    const P_avg = P + 0.5 * azizGovierFogarasiGradient(
+      q_oil_bpd, q_gas_Mscfd, q_wat_bpd, D_in,
+      SG_oil, SG_gas, mu_l_cp, sigma_dyn_cm, P, T_F,
+    ) * dL;
+    const grad = azizGovierFogarasiGradient(
+      q_oil_bpd, q_gas_Mscfd, q_wat_bpd, D_in,
+      SG_oil, SG_gas, mu_l_cp, sigma_dyn_cm, P_avg, T_F,
+    );
+    P += grad * dL;
+  }
+  return P;
+}

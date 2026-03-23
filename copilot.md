@@ -827,10 +827,51 @@ Good stopping point: VFP extended with three classic empirical correlations (Poe
 #### Stopping Point — Session 16
 Good stopping point: EoS extended with full phase envelope tracing (bubble/dew scan, cricondentherm, cricondenbar); PTA extended with multi-rate superposition RNP, log-log diagnostic plot (centered Bourdet derivative with L-smoothing), and simplified Tikhonov deconvolution; FRAC extended with TSO design (PKN + Carter leakoff), proppant areal concentration, and refrac candidate scoring (weighted scorecard); WPA extended with five-spot kh-weighted allocation, pattern flood VRR balancing, Dykstra-Parsons sweep (Koval formula), and Stiles layer sweep; Taskpane UI gained two new interactive tabs (SRK Flash calculator, Gas Condensate PVT). 1837 tests passing. 256 UDFs. 33 modules.
 
-#### Next Session — Session 17 (Planned)
-- [ ] Multi-phase flow: Aziz-Govier-Fogarasi mechanistic correlation
-- [ ] PTA extended: pressure derivative normalization, MDH/Horner p* comparison, wellbore storage correction
-- [ ] EoS: Lee-Kesler reference fluid correlations (departure functions for enthalpy/entropy)
-- [ ] GEO extended: shear failure Mohr-Coulomb, mud weight window with ECD
-- [ ] Blueprints: Phase Envelope blueprint, TSO Design blueprint, Pattern Flood blueprint
-- [ ] Taskpane: function browser category filtering enhancements
+### Session 17 — VFP AGF + PTA Buildup + EoS Lee-Kesler + GEO ECD/Mohr-Coulomb + Blueprints
+**Status:** Complete
+
+#### Scope
+- VFP mechanistic: Aziz-Govier-Fogarasi (AGF 1972) two-phase gradient + BHP
+- PTA extended: MDH/Horner pressure buildup p* analysis, wellbore storage log-log diagnostic
+- EoS Lee-Kesler: BWR-type Z-factor, departure enthalpy and entropy for simple and reference fluids
+- GEO extended: Mohr-Coulomb failure envelope, ECD (Bingham plastic), mud weight window with ECD check
+- Blueprints: Phase Envelope (PR EoS), TSO Design (FRAC), Pattern Flood (WPA) — 3 new blueprints
+
+#### Completed
+- [x] Extended VFP module with 2 new functions (Aziz-Govier-Fogarasi):
+  - [x] `azizGovierFogarasiGradient(...)` — AGF dimensionless velocity numbers (Ngv/Nlv/Nd/Nl), flow-pattern map (bubble/slug/churn/mist), two-phase pressure gradient (psi/ft)
+  - [x] `azizGovierFogarasiBHP(...)` — BHP integration over 10 segments with linear temperature profile
+- [x] Extended PTA module with 3 new functions:
+  - [x] `ptaMDHAnalysis(dt, Pws, q, ...)` — MDH semi-log slope, k_md, skin S, P1hr from shut-in data
+  - [x] `ptaHornerAnalysis(dt, Pws, tp, ...)` — Horner plot slope, k_md, skin S, p* (static reservoir pressure)
+  - [x] `ptaWellboreStorageDiagnostic(dt, dp, ...)` — unit-slope C (bbl/psi), C_D, unitSlopeEnd_hrs
+- [x] Extended EoS module with 5 new Lee-Kesler functions:
+  - [x] `lkZFactor(Tr, Pr, ref)` — BWR-type Z-factor for simple fluid (ω=0) or reference fluid (n-octane, ωR=0.3978)
+  - [x] `lkZFactorComponent(T_K, P_bar, Tc, Pc, omega)` — Pitzer three-parameter Z using simple + reference fluids
+  - [x] `lkDepartureEnthalpy(Tr, Pr, ref)` — departure enthalpy (H−H^ig)/(R·Tc) dimensionless
+  - [x] `lkDepartureEntropy(Tr, Pr, ref)` — departure entropy (S−S^ig)/R dimensionless
+  - [x] `lkDepartureFunctions(T_K, P_bar, Tc, Pc, omega)` — full Pitzer: returns Z, H_dep_RTc, S_dep_R
+- [x] Extended GEO module with 3 new functions:
+  - [x] `geoMohrCoulombFailureEnvelope(σ_n, C0, φ, σ3)` — τ_f, θ_f, diff-stress at failure, UCS
+  - [x] `geoECD(MW, TVD, Q, D_h, D_p, L, μ_p, τ_y)` — Bingham plastic ECD (ppg), annular ΔP (psi), ECD gradient (psi/ft)
+  - [x] `geoMudWeightWindowECD(PP, FG, TVD, margin, ...)` — MW_min/max/recommended, ECD, stability flag
+- [x] Added 3 new blueprints to catalog (src/addins/blueprints/index.ts):
+  - [x] `eos-phase-envelope` — PR EoS phase envelope (bubble/dew scan, cricondentherm, cricondenbar)
+  - [x] `frac-tso-design` — TSO fracture design + proppant concentration + refrac scoring
+  - [x] `wpa-pattern-flood` — Five-spot allocation, VRR balancing, Dykstra-Parsons, Stiles sweep
+- [x] Updated src/index.ts: VFP +2, PTA +3, EoS LeeKesler +5, GEO +3 new namespace entries
+- [x] Expanded functions.json from 256 → 269 UDF registrations (+13 entries)
+- [x] Written 67 new Jest unit tests (1904 total, all passing — up from 1837)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+- [x] Updated copilot.md and README.md for Session 17
+
+#### Stopping Point — Session 17
+Good stopping point: VFP extended with Aziz-Govier-Fogarasi (AGF 1972) mechanistic two-phase flow correlation (bubble/slug/churn/mist regime map using dimensionless Ngv, Nlv, Nd, Nl velocity numbers, gradient + BHP integration); PTA extended with classical pressure buildup analysis — MDH (semi-log slope → k, S, P1hr), Horner (Horner time ratio → k, S, p* extrapolation), and wellbore storage unit-slope diagnostic (C in bbl/psi, dimensionless CD); EoS extended with Lee-Kesler (1975) BWR reference fluid correlations for simple and reference (n-octane) fluids — Z-factor, departure enthalpy (H−H^ig)/(RTc), and departure entropy (S−S^ig)/R using the three-parameter Pitzer weighting; GEO extended with Mohr-Coulomb failure envelope (shear strength, failure angle, UCS, differential stress at failure), ECD (Bingham plastic annular pressure loss model), and mud weight window with ECD stability check; Blueprint catalog expanded with 3 new entries (PR Phase Envelope, TSO Design, Pattern Flood). 1904 tests passing. 269 UDFs. 33 modules.
+
+#### Next Session — Session 18 (Planned)
+- [ ] VFP: VLP/IPR system curve optimization (OPT module) — optimal tubing size, GLR, choke
+- [ ] PTA: Composite reservoir model (dual-porosity, radial composite), pressure derivative type-curve matching
+- [ ] EoS: Lee-Kesler mixing rules for mixtures (Kay's rule Tc/Pc, LK Z for gas mixtures)
+- [ ] GEO: Wellbore trajectory stress analysis (deviated well Kirsch equations), fault reactivation pressure
+- [ ] Blueprints: Horner buildup analysis blueprint, Lee-Kesler vapor-liquid blueprint
+- [ ] SIM: CMG STARS format keyword generator (GRID, PORO, PERM, TEMP tables)

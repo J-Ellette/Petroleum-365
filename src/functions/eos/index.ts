@@ -970,3 +970,243 @@ export function prCricondenbar(
     P_cricondenbar_psia: isFinite(P_cbar) ? P_cbar : P_best,
   };
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// Session 17 — Lee-Kesler Reference Fluid Correlations
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Lee-Kesler (1975) BWR-type Z-factor for a pure or pseudo-pure component.
+ *
+ * Uses the simple-fluid (ω=0) or reference-fluid (n-octane, ω_R=0.3978)
+ * modified Benedict-Webb-Rubin (BWR) equation of state.
+ *
+ * Tr = T / Tc,  Pr = P / Pc,  ρr = 0.2901 Pr / (Tr Z)  (reduced density, solved iteratively)
+ *
+ * Constants:
+ *   Simple fluid:   b1=0.1181193, b2=0.265728, b3=0.154790, b4=0.030323,
+ *                   c1=0.0236744, c2=0.0186984, c3=0, c4=0.042724,
+ *                   d1=0.155488e-4, d2=0.623689e-4, β=0.65392, γ=0.060167
+ *   Reference (ωR): b1=0.2026579, b2=0.331511, b3=0.027655, b4=0.203488,
+ *                   c1=0.0313422, c2=0.0503323, c3=0.016901, c4=0.041577,
+ *                   d1=0.48736e-4, d2=0.0740336e-4, β=1.226, γ=0.03754
+ *
+ * @param Tr   Reduced temperature T/Tc
+ * @param Pr   Reduced pressure P/Pc
+ * @param ref  false = simple fluid (ω=0), true = reference fluid (n-octane, ω_R=0.3978)
+ * @returns    Compressibility factor Z
+ */
+export function lkZFactor(Tr: number, Pr: number, ref = false): number {
+  // Constants
+  const b1 = ref ? 0.2026579  : 0.1181193;
+  const b2 = ref ? 0.331511   : 0.265728;
+  const b3 = ref ? 0.027655   : 0.154790;
+  const b4 = ref ? 0.203488   : 0.030323;
+  const c1 = ref ? 0.0313422  : 0.0236744;
+  const c2 = ref ? 0.0503323  : 0.0186984;
+  const c3 = ref ? 0.016901   : 0.0;
+  const c4 = ref ? 0.041577   : 0.042724;
+  const d1 = ref ? 0.48736e-4 : 0.155488e-4;
+  const d2 = ref ? 0.0740336e-4 : 0.623689e-4;
+  const beta  = ref ? 1.226   : 0.65392;
+  const gamma = ref ? 0.03754 : 0.060167;
+
+  // Solve Z iteratively: Z = 1 + B/Vr + C/Vr² + D/Vr⁵ + (c4/(Tr³ Vr²))(β+γ/Vr²)exp(-γ/Vr²)
+  // where Vr = Vr/RTc·Pc = (Z·Tr)/(Pr·Pc/Pc) = Z·Tr/Pr  → Vr = Z·Tr/Pr (dimensionless)
+  // Initial guess: Z = 1
+  let Z = 1.0;
+  for (let iter = 0; iter < 100; iter++) {
+    const Vr = Z * Tr / Pr;
+    if (Vr <= 0) { Z = 1; break; }
+    const B = b1 - b2 / Tr - b3 / (Tr * Tr) - b4 / (Tr * Tr * Tr);
+    const C = c1 - c2 / Tr + c3 / (Tr * Tr * Tr);
+    const D = d1 + d2 / Tr;
+    const expTerm = Math.exp(-gamma / (Vr * Vr));
+    const Z_new = 1
+      + B / Vr
+      + C / (Vr * Vr)
+      + D / (Vr ** 5)
+      + (c4 / (Tr ** 3 * Vr * Vr)) * (beta + gamma / (Vr * Vr)) * expTerm;
+    if (Math.abs(Z_new - Z) < 1e-8) { Z = Z_new; break; }
+    Z = 0.5 * (Z + Z_new);  // damped iteration
+  }
+  return Z;
+}
+
+/**
+ * Lee-Kesler Z-factor for a real component using the Pitzer correlation:
+ *
+ *   Z = Z^(0) + (ω / ω_R) × (Z^(R) − Z^(0))
+ *
+ * where Z^(0) is the simple-fluid Z and Z^(R) is the reference-fluid Z.
+ *
+ * @param T_K   Temperature (K)
+ * @param P_bar Pressure (bar)
+ * @param Tc_K  Critical temperature (K)
+ * @param Pc_bar Critical pressure (bar)
+ * @param omega Acentric factor
+ * @returns     Compressibility factor Z
+ */
+export function lkZFactorComponent(
+  T_K: number,
+  P_bar: number,
+  Tc_K: number,
+  Pc_bar: number,
+  omega: number,
+): number {
+  const Tr = T_K / Tc_K;
+  const Pr = P_bar / Pc_bar;
+  const Z0 = lkZFactor(Tr, Pr, false);
+  const ZR = lkZFactor(Tr, Pr, true);
+  const omega_R = 0.3978;
+  return Z0 + (omega / omega_R) * (ZR - Z0);
+}
+
+/**
+ * Lee-Kesler departure enthalpy (H - H^ig) / RTc in dimensionless form.
+ *
+ * The departure function relates the real-fluid enthalpy to the ideal-gas
+ * enthalpy using the BWR equation:
+ *
+ *   (H - H^ig)^(0 or R) / (R Tc) = Tr(Z-1) − Tr²/Vr[c2−2c3/Tr²]/2
+ *                                   + terms from D and exponential
+ *
+ * @param Tr   Reduced temperature
+ * @param Pr   Reduced pressure
+ * @param ref  true = reference fluid (n-octane), false = simple fluid
+ * @returns    Dimensionless departure enthalpy (H-H^ig)/(R·Tc)
+ */
+export function lkDepartureEnthalpy(Tr: number, Pr: number, ref = false): number {
+  const b1 = ref ? 0.2026579  : 0.1181193;
+  const b2 = ref ? 0.331511   : 0.265728;
+  const b3 = ref ? 0.027655   : 0.154790;
+  const b4 = ref ? 0.203488   : 0.030323;
+  const c1 = ref ? 0.0313422  : 0.0236744;
+  const c2 = ref ? 0.0503323  : 0.0186984;
+  const c3 = ref ? 0.016901   : 0.0;
+  const c4 = ref ? 0.041577   : 0.042724;
+  const d1 = ref ? 0.48736e-4 : 0.155488e-4;
+  const d2 = ref ? 0.0740336e-4 : 0.623689e-4;
+  const beta  = ref ? 1.226   : 0.65392;
+  const gamma = ref ? 0.03754 : 0.060167;
+
+  const Z  = lkZFactor(Tr, Pr, ref);
+  const Vr = Z * Tr / Pr;
+
+  if (Vr <= 0) return 0;
+
+  // dB/dTr = b2/Tr² + 2b3/Tr³ + 3b4/Tr⁴ (×-1 from derivative of B w.r.t. Tr in natural log form)
+  const dBdTr = b2 / (Tr * Tr) + 2 * b3 / (Tr * Tr * Tr) + 3 * b4 / (Tr * Tr * Tr * Tr);
+  const dCdTr = c2 / (Tr * Tr) - 3 * c3 / (Tr * Tr * Tr * Tr);
+  const dDdTr = d2 / (Tr * Tr);
+
+  const expTerm = Math.exp(-gamma / (Vr * Vr));
+  const c4_exp_coeff = c4 / (Tr * Tr * Tr);
+
+  // H departure: (H - H^ig)/(R Tc) = Tr(Z-1) − [dB/dTr / Vr + dC/dTr/(2Vr²) + dD/dTr/(5Vr⁵)]
+  //              − c4/(Tr³ Vr²) × [3(β + γ/Vr²) − 2γ(β/Vr² + γ/Vr⁴)] × exp(−γ/Vr²)
+  const term1 = Tr * (Z - 1);
+  const term2 = -(dBdTr / Vr + dCdTr / (2 * Vr * Vr) + dDdTr / (5 * Vr ** 5));
+  const innerExp = (beta + gamma / (Vr * Vr)) - (gamma / (Vr * Vr)) * (beta + gamma / (Vr * Vr));
+  const term3 = -c4_exp_coeff / (Vr * Vr) * (3 * (beta + gamma / (Vr * Vr))
+    - 2 * gamma / (Vr * Vr) * (beta + gamma / (Vr * Vr))) * expTerm;
+  void innerExp;  // suppress unused variable
+
+  return term1 + term2 + term3;
+}
+
+/**
+ * Lee-Kesler departure entropy (S - S^ig) / R in dimensionless form.
+ *
+ * @param Tr   Reduced temperature
+ * @param Pr   Reduced pressure
+ * @param ref  true = reference fluid, false = simple fluid
+ * @returns    Dimensionless departure entropy (S-S^ig)/R
+ */
+export function lkDepartureEntropy(Tr: number, Pr: number, ref = false): number {
+  const b1 = ref ? 0.2026579  : 0.1181193;
+  const b2 = ref ? 0.331511   : 0.265728;
+  const b3 = ref ? 0.027655   : 0.154790;
+  const b4 = ref ? 0.203488   : 0.030323;
+  const c1 = ref ? 0.0313422  : 0.0236744;
+  const c2 = ref ? 0.0503323  : 0.0186984;
+  const c3 = ref ? 0.016901   : 0.0;
+  const c4 = ref ? 0.041577   : 0.042724;
+  const d1 = ref ? 0.48736e-4 : 0.155488e-4;
+  const d2 = ref ? 0.0740336e-4 : 0.623689e-4;
+  const beta  = ref ? 1.226   : 0.65392;
+  const gamma = ref ? 0.03754 : 0.060167;
+
+  const Z  = lkZFactor(Tr, Pr, ref);
+  const Vr = Z * Tr / Pr;
+
+  if (Vr <= 0) return 0;
+
+  // S departure = (H departure)/(RTc) / Tr  − ln(Z)  (from Gibbs relation: G = H - TS)
+  // S^dep/R = (H^dep)/(R Tc Tr) − ln Z + (ideal-gas mixing + pressure terms)
+  // Using standard LK form:
+  //   S^dep/R = −(Z − 1 − ln Z) + dB/dTr/Vr + dC/dTr/(2Vr²) + dD/dTr/(5Vr⁵)
+  //             + c4 terms
+  const dBdTr = b2 / (Tr * Tr) + 2 * b3 / (Tr * Tr * Tr) + 3 * b4 / (Tr * Tr * Tr * Tr);
+  const dCdTr = c2 / (Tr * Tr) - 3 * c3 / (Tr * Tr * Tr * Tr);
+  const dDdTr = d2 / (Tr * Tr);
+
+  void b1; void c1; void d1; void beta; void gamma; void c4; void c3;
+
+  const expTerm = Math.exp(-gamma / (Vr * Vr));
+  const c4_over_Tr3 = c4 / (Tr ** 3);
+
+  const term1 = -(Z - 1 - Math.log(Z));
+  const term2 = dBdTr / Vr + dCdTr / (2 * Vr * Vr) + dDdTr / (5 * Vr ** 5);
+  const term3 = c4_over_Tr3 / (2 * gamma) * (beta + 1 + (beta + gamma / (Vr * Vr))
+    * (-gamma / (Vr * Vr))) * expTerm;
+
+  void term3;  // suppress unused — simplified version below
+  const S_dep = term1 + term2
+    + c4_over_Tr3 / (2 * gamma) * (1 - (1 + gamma / (Vr * Vr)) * expTerm);
+
+  return S_dep;
+}
+
+/**
+ * Lee-Kesler enthalpy and entropy departures for a real fluid using the
+ * Pitzer three-parameter correlation:
+ *
+ *   Δ = Δ^(0) + (ω / ω_R) × (Δ^(R) − Δ^(0))
+ *
+ * @param T_K    Temperature (K)
+ * @param P_bar  Pressure (bar)
+ * @param Tc_K   Critical temperature (K)
+ * @param Pc_bar Critical pressure (bar)
+ * @param omega  Acentric factor
+ * @returns      { Z, H_dep_RTc, S_dep_R }
+ *               Z = compressibility factor
+ *               H_dep_RTc = (H-H^ig)/(R Tc), dimensionless
+ *               S_dep_R   = (S-S^ig)/R, dimensionless
+ */
+export function lkDepartureFunctions(
+  T_K: number,
+  P_bar: number,
+  Tc_K: number,
+  Pc_bar: number,
+  omega: number,
+): { Z: number; H_dep_RTc: number; S_dep_R: number } {
+  const Tr = T_K / Tc_K;
+  const Pr = P_bar / Pc_bar;
+  const omega_R = 0.3978;
+
+  const Z0 = lkZFactor(Tr, Pr, false);
+  const ZR = lkZFactor(Tr, Pr, true);
+
+  const H0 = lkDepartureEnthalpy(Tr, Pr, false);
+  const HR = lkDepartureEnthalpy(Tr, Pr, true);
+
+  const S0 = lkDepartureEntropy(Tr, Pr, false);
+  const SR = lkDepartureEntropy(Tr, Pr, true);
+
+  const Z = Z0 + (omega / omega_R) * (ZR - Z0);
+  const H_dep = H0 + (omega / omega_R) * (HR - H0);
+  const S_dep = S0 + (omega / omega_R) * (SR - S0);
+
+  return { Z, H_dep_RTc: H_dep, S_dep_R: S_dep };
+}

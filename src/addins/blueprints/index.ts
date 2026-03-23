@@ -775,6 +775,62 @@ export const BLUEPRINT_CATALOG: Blueprint[] = [
     rowCount: 50,
     colCount: 12,
   },
+
+  // ── EoS — Phase Envelope (Session 17) ──────────────────────────────────────
+  {
+    id: "eos-phase-envelope",
+    name: "PR EoS Phase Envelope",
+    category: "EoS",
+    description:
+      "Construct the full P-T phase envelope for a multicomponent mixture using the Peng-Robinson equation of state. Scans bubble-point and dew-point pressures across a temperature range to trace the phase boundary, then identifies the cricondentherm (maximum temperature on the envelope) and cricondenbar (maximum pressure on the envelope). Essential for gas condensate and retrograde-condensate reservoir characterization.",
+    requiredFunctions: [
+      "EoS.PR.PhaseEnvelope",
+      "EoS.PR.Cricondentherm",
+      "EoS.PR.Cricondenbar",
+      "EoS.PR.PhaseEnvelopePoint",
+      "EoS.PR.PhaseEnvelopeDewPoint",
+    ],
+    tags: ["eos", "phase envelope", "cricondentherm", "cricondenbar", "bubble point", "dew point", "pr", "p-t diagram", "gas condensate"],
+    rowCount: 60,
+    colCount: 10,
+  },
+
+  // ── FRAC — TSO Design (Session 17) ─────────────────────────────────────────
+  {
+    id: "frac-tso-design",
+    name: "Tip Screen-Out (TSO) Fracture Design",
+    category: "FRAC",
+    description:
+      "Design a hydraulic fracturing tip screen-out (TSO) treatment to maximize proppant packing and fracture conductivity. Uses PKN geometry with Carter fluid-loss model to predict fracture dimensions at screen-out, then evaluates proppant areal concentration and pack fill fraction. Also includes a refrac candidate scoring worksheet to assess whether the well is a good re-fracturing candidate based on productivity decline, pressure depletion, and skin damage.",
+    requiredFunctions: [
+      "FRAC.TSO.Design",
+      "FRAC.ProppantConcentration",
+      "FRAC.RefracScore",
+      "FRAC.PKN.Length",
+      "FRAC.PKN.Width",
+    ],
+    tags: ["frac", "tso", "tip screen-out", "proppant", "pkn", "fracture design", "conductivity", "refrac", "stimulation"],
+    rowCount: 55,
+    colCount: 10,
+  },
+
+  // ── WPA — Pattern Flood (Session 17) ───────────────────────────────────────
+  {
+    id: "wpa-pattern-flood",
+    name: "Pattern Flood Analysis",
+    category: "WPA",
+    description:
+      "Analyze waterflood or injection pattern efficiency using a suite of allocation and sweep methods. Computes kh-weighted injection allocation for a five-spot pattern, balances injector rates to achieve a target voidage replacement ratio (VRR), estimates volumetric sweep efficiency using the Dykstra-Parsons heterogeneity coefficient and the Koval mobility ratio method, and applies the Stiles (1949) layer-by-layer sweep model for stratified reservoirs. Use alongside the VRR and field production summary blueprints for a complete waterflood management workflow.",
+    requiredFunctions: [
+      "WPA.FiveSpotAllocation",
+      "WPA.PatternFloodBalance",
+      "WPA.DykstraParsonsMobility",
+      "WPA.StilesSweep",
+    ],
+    tags: ["wpa", "waterflood", "pattern flood", "five-spot", "vrr", "voidage replacement", "dykstra-parsons", "stiles", "sweep efficiency", "injection"],
+    rowCount: 50,
+    colCount: 12,
+  },
 ];
 
 // ─── Catalog Accessors ────────────────────────────────────────────────────────

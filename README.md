@@ -2,7 +2,7 @@
 
 > **A comprehensive petroleum engineering function library and Excel add-in for natural gas, oil, CNG, and LNG calculations.**
 
-[![Tests](https://img.shields.io/badge/tests-1837%20passing-brightgreen)](./test)
+[![Tests](https://img.shields.io/badge/tests-1904%20passing-brightgreen)](./test)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -52,7 +52,7 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 
 ## Features
 
-- ✅ **1837 passing unit tests** — every correlation is independently verified
+- ✅ **1904 passing unit tests** — every correlation is independently verified
 - ✅ **33 engineering modules** covering the full production lifecycle
 - ✅ **Field units throughout** — psi, °F, STB, scf, ft, cp, md
 - ✅ **Named after correlation authors** — `P365.PVT.Z.ByDAK` is the Dranchuk-Abou-Kassem method
@@ -1251,7 +1251,40 @@ Production data analytics for reservoir characterization from rate-pressure hist
 | `P365.WPA.DykstraParsonsMobility(M, V_DP)` | Dykstra-Parsons volumetric sweep efficiency (Koval/Stiles approximation) |
 | `P365.WPA.StilesSweep(k_arr, h_arr, M)` | Stiles (1949) layer-by-layer flood sweep efficiency |
 
----
+### VFP Aziz-Govier-Fogarasi (Session 17)
+
+| Function | Description |
+|----------|-------------|
+| `P365.VFP.AzizGovierFogarasi.Gradient(q_oil, q_gas, q_wat, D_in, SG_oil, SG_gas, mu_l, sigma, P_avg, T_avg)` | AGF (1972) two-phase pressure gradient (psi/ft) — bubble/slug/churn/mist regime map |
+| `P365.VFP.AzizGovierFogarasi.BHP(Pwh, q_oil, q_gas, q_wat, D_in, L_ft, SG_oil, SG_gas, mu_l, sigma, T_wh, T_bh)` | AGF bottomhole pressure (psia) via 10-segment gradient integration |
+
+### PTA Buildup Analysis (Session 17)
+
+| Function | Description |
+|----------|-------------|
+| `P365.PTA.MDHAnalysis(dt_hrs, Pws_psi, q, mu, Bo, h, phi, ct, rw, Pwf_s)` | Miller-Dyes-Hutchinson: semi-log slope m, permeability k, skin S, P1hr |
+| `P365.PTA.HornerAnalysis(dt_hrs, Pws_psi, tp_hrs, q, mu, Bo, h, phi, ct, rw, Pwf_s)` | Horner buildup: slope m, k, skin S, extrapolated p* (static reservoir pressure) |
+| `P365.PTA.WellboreStorageDiagnostic(dt_hrs, dp_psi, q, Bo, phi, h, rw, ct)` | Unit-slope wellbore storage: C (bbl/psi), dimensionless C_D, unit-slope end time |
+
+### EoS Lee-Kesler (Session 17)
+
+| Function | Description |
+|----------|-------------|
+| `P365.EoS.LeeKesler.ZFactor(Tr, Pr, ref)` | BWR-type Z-factor: simple fluid (ω=0) or reference fluid (n-octane, ωR=0.3978) |
+| `P365.EoS.LeeKesler.ZFactorComponent(T_K, P_bar, Tc_K, Pc_bar, omega)` | Pitzer three-parameter LK Z for a real component |
+| `P365.EoS.LeeKesler.DepartureEnthalpy(Tr, Pr, ref)` | LK departure enthalpy (H−H^ig)/(R·Tc) dimensionless |
+| `P365.EoS.LeeKesler.DepartureEntropy(Tr, Pr, ref)` | LK departure entropy (S−S^ig)/R dimensionless |
+| `P365.EoS.LeeKesler.DepartureFunctions(T_K, P_bar, Tc_K, Pc_bar, omega)` | Full Pitzer LK: returns {Z, H_dep_RTc, S_dep_R} |
+
+### GEO Extended (Session 17)
+
+| Function | Description |
+|----------|-------------|
+| `P365.GEO.MohrCoulombFailureEnvelope(sigma_n_eff, C0, phi_deg, sigma3_eff)` | Mohr-Coulomb: τ_f, failure angle θ_f, UCS, diff stress at failure |
+| `P365.GEO.ECD(MW_ppg, TVD_ft, Q_gpm, D_hole_in, D_pipe_in, L_ft, mu_p, tau_y)` | Equivalent circulating density (ppg), annular pressure loss (psi), ECD gradient |
+| `P365.GEO.MudWeightWindowECD(PP_psi, FG_psi, TVD_ft, margin, Q, D_h, D_p, L, mu_p, tau_y)` | Safe MW window (min/max/recommended ppg) + ECD stability check |
+
+
 
 ## Development
 
@@ -1261,7 +1294,7 @@ Production data analytics for reservoir characterization from rate-pressure hist
 Petroleum-365/
 ├── src/
 │   ├── index.ts                  ← P365 namespace (all exports)
-│   ├── functions.json            ← UDF registrations (256 entries)
+│   ├── functions.json            ← UDF registrations (269 entries)
 │   └── functions/
 │       ├── pvt/                  ← PVT: gas.ts, oil.ts, water.ts
 │       ├── dca/                  ← Decline curve analysis
@@ -1320,7 +1353,7 @@ Petroleum-365/
 | Command | Description |
 |---------|-------------|
 | `npm install` | Install all dependencies |
-| `npx jest --no-coverage` | Run all 1837 unit tests |
+| `npx jest --no-coverage` | Run all 1904 unit tests |
 | `npx tsc --noEmit` | TypeScript type-check (0 errors expected) |
 | `npm run build` | Build for production |
 

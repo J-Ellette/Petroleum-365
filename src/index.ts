@@ -399,6 +399,10 @@ export const P365 = {
     MultiRateRNP:       PTAExports.ptaMultiRateRNP,
     LogLogDiagnostic:   PTAExports.ptaLogLogDiagnostic,
     Deconvolution:      PTAExports.ptaDeconvolution,
+    // Buildup analysis & wellbore storage (Session 17)
+    MDHAnalysis:              PTAExports.ptaMDHAnalysis,
+    HornerAnalysis:           PTAExports.ptaHornerAnalysis,
+    WellboreStorageDiagnostic: PTAExports.ptaWellboreStorageDiagnostic,
   },
 
   // ─── VFP — Vertical Flow Performance ──────────────────────────────────────
@@ -449,6 +453,10 @@ export const P365 = {
     Orkiszewski: {
       Gradient: VFPExports.orkiszewskiGradient,
       BHP:      VFPExports.orkiszewskiBHP,
+    },
+    AzizGovierFogarasi: {
+      Gradient: VFPExports.azizGovierFogarasiGradient,
+      BHP:      VFPExports.azizGovierFogarasiBHP,
     },
   },
 
@@ -646,6 +654,14 @@ export const P365 = {
       Flash:               SRKExports.srkFlash,
       PenelouxShift:       SRKExports.srkPenelouxShift,
     },
+    // Session 17: Lee-Kesler reference fluid correlations
+    LeeKesler: {
+      ZFactor:            EoSExports.lkZFactor,
+      ZFactorComponent:   EoSExports.lkZFactorComponent,
+      DepartureEnthalpy:  EoSExports.lkDepartureEnthalpy,
+      DepartureEntropy:   EoSExports.lkDepartureEntropy,
+      DepartureFunctions: EoSExports.lkDepartureFunctions,
+    },
   },
 
   // ─── ESP — Electric Submersible Pump ──────────────────────────────────────
@@ -805,6 +821,11 @@ export const P365 = {
 
     // Offshore
     OffshoreOverburden:     GEOExports.geoOffshoreOverburden,
+
+    // Session 17: Mohr-Coulomb failure envelope, ECD, mud weight window
+    MohrCoulombFailureEnvelope: GEOExports.geoMohrCoulombFailureEnvelope,
+    ECD:                        GEOExports.geoECD,
+    MudWeightWindowECD:         GEOExports.geoMudWeightWindowECD,
   },
 
   // ─── SKIN — Composite Skin Factor ─────────────────────────────────────────

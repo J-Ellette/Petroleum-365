@@ -6487,12 +6487,30 @@
       "name": "P365.EoS.PR.PhaseEnvelopePoint",
       "description": "Bubble-point pressure (psia) at a given temperature for PR phase envelope tracing",
       "parameters": [
-        { "name": "T_R", "description": "Temperature (°R)" },
-        { "name": "Tc_R_arr", "description": "Critical temperatures (°R)" },
-        { "name": "Pc_psia_arr", "description": "Critical pressures (psia)" },
-        { "name": "omega_arr", "description": "Acentric factors" },
-        { "name": "z_arr", "description": "Feed mole fractions" },
-        { "name": "kij_arr", "description": "Binary interaction parameters (optional)" }
+        {
+          "name": "T_R",
+          "description": "Temperature (\u00b0R)"
+        },
+        {
+          "name": "Tc_R_arr",
+          "description": "Critical temperatures (\u00b0R)"
+        },
+        {
+          "name": "Pc_psia_arr",
+          "description": "Critical pressures (psia)"
+        },
+        {
+          "name": "omega_arr",
+          "description": "Acentric factors"
+        },
+        {
+          "name": "z_arr",
+          "description": "Feed mole fractions"
+        },
+        {
+          "name": "kij_arr",
+          "description": "Binary interaction parameters (optional)"
+        }
       ]
     },
     {
@@ -6500,55 +6518,139 @@
       "name": "P365.EoS.PR.PhaseEnvelopeDewPoint",
       "description": "Dew-point pressure (psia) at a given temperature for PR phase envelope tracing",
       "parameters": [
-        { "name": "T_R", "description": "Temperature (°R)" },
-        { "name": "Tc_R_arr", "description": "Critical temperatures (°R)" },
-        { "name": "Pc_psia_arr", "description": "Critical pressures (psia)" },
-        { "name": "omega_arr", "description": "Acentric factors" },
-        { "name": "z_arr", "description": "Feed mole fractions" },
-        { "name": "kij_arr", "description": "Binary interaction parameters (optional)" }
+        {
+          "name": "T_R",
+          "description": "Temperature (\u00b0R)"
+        },
+        {
+          "name": "Tc_R_arr",
+          "description": "Critical temperatures (\u00b0R)"
+        },
+        {
+          "name": "Pc_psia_arr",
+          "description": "Critical pressures (psia)"
+        },
+        {
+          "name": "omega_arr",
+          "description": "Acentric factors"
+        },
+        {
+          "name": "z_arr",
+          "description": "Feed mole fractions"
+        },
+        {
+          "name": "kij_arr",
+          "description": "Binary interaction parameters (optional)"
+        }
       ]
     },
     {
       "id": "P365.EoS.PR.PHASEENVELOPE",
       "name": "P365.EoS.PR.PhaseEnvelope",
-      "description": "Full P-T phase envelope for a multi-component mixture using PR EoS — returns array of {T_R, Pb_psia, Pd_psia}",
+      "description": "Full P-T phase envelope for a multi-component mixture using PR EoS \u2014 returns array of {T_R, Pb_psia, Pd_psia}",
       "parameters": [
-        { "name": "T_min_R", "description": "Minimum temperature for scan (°R)" },
-        { "name": "T_max_R", "description": "Maximum temperature for scan (°R)" },
-        { "name": "nT", "description": "Number of temperature steps (default 30)" },
-        { "name": "Tc_R_arr", "description": "Critical temperatures (°R)" },
-        { "name": "Pc_psia_arr", "description": "Critical pressures (psia)" },
-        { "name": "omega_arr", "description": "Acentric factors" },
-        { "name": "z_arr", "description": "Feed mole fractions" },
-        { "name": "kij_arr", "description": "Binary interaction parameters (optional)" }
+        {
+          "name": "T_min_R",
+          "description": "Minimum temperature for scan (\u00b0R)"
+        },
+        {
+          "name": "T_max_R",
+          "description": "Maximum temperature for scan (\u00b0R)"
+        },
+        {
+          "name": "nT",
+          "description": "Number of temperature steps (default 30)"
+        },
+        {
+          "name": "Tc_R_arr",
+          "description": "Critical temperatures (\u00b0R)"
+        },
+        {
+          "name": "Pc_psia_arr",
+          "description": "Critical pressures (psia)"
+        },
+        {
+          "name": "omega_arr",
+          "description": "Acentric factors"
+        },
+        {
+          "name": "z_arr",
+          "description": "Feed mole fractions"
+        },
+        {
+          "name": "kij_arr",
+          "description": "Binary interaction parameters (optional)"
+        }
       ]
     },
     {
       "id": "P365.EoS.PR.CRICONDENTHERM",
       "name": "P365.EoS.PR.Cricondentherm",
-      "description": "Cricondentherm — maximum temperature on the PR phase envelope (binary search)",
+      "description": "Cricondentherm \u2014 maximum temperature on the PR phase envelope (binary search)",
       "parameters": [
-        { "name": "T_min_R", "description": "Lower bound for search (°R)" },
-        { "name": "T_max_R", "description": "Upper bound for search (°R)" },
-        { "name": "Tc_R_arr", "description": "Critical temperatures (°R)" },
-        { "name": "Pc_psia_arr", "description": "Critical pressures (psia)" },
-        { "name": "omega_arr", "description": "Acentric factors" },
-        { "name": "z_arr", "description": "Feed mole fractions" },
-        { "name": "kij_arr", "description": "Binary interaction parameters (optional)" }
+        {
+          "name": "T_min_R",
+          "description": "Lower bound for search (\u00b0R)"
+        },
+        {
+          "name": "T_max_R",
+          "description": "Upper bound for search (\u00b0R)"
+        },
+        {
+          "name": "Tc_R_arr",
+          "description": "Critical temperatures (\u00b0R)"
+        },
+        {
+          "name": "Pc_psia_arr",
+          "description": "Critical pressures (psia)"
+        },
+        {
+          "name": "omega_arr",
+          "description": "Acentric factors"
+        },
+        {
+          "name": "z_arr",
+          "description": "Feed mole fractions"
+        },
+        {
+          "name": "kij_arr",
+          "description": "Binary interaction parameters (optional)"
+        }
       ]
     },
     {
       "id": "P365.EoS.PR.CRICONDENBAR",
       "name": "P365.EoS.PR.Cricondenbar",
-      "description": "Cricondenbar — maximum pressure on the PR phase envelope (golden-section search)",
+      "description": "Cricondenbar \u2014 maximum pressure on the PR phase envelope (golden-section search)",
       "parameters": [
-        { "name": "T_min_R", "description": "Lower bound for scan (°R)" },
-        { "name": "T_max_R", "description": "Upper bound for scan (°R)" },
-        { "name": "Tc_R_arr", "description": "Critical temperatures (°R)" },
-        { "name": "Pc_psia_arr", "description": "Critical pressures (psia)" },
-        { "name": "omega_arr", "description": "Acentric factors" },
-        { "name": "z_arr", "description": "Feed mole fractions" },
-        { "name": "kij_arr", "description": "Binary interaction parameters (optional)" }
+        {
+          "name": "T_min_R",
+          "description": "Lower bound for scan (\u00b0R)"
+        },
+        {
+          "name": "T_max_R",
+          "description": "Upper bound for scan (\u00b0R)"
+        },
+        {
+          "name": "Tc_R_arr",
+          "description": "Critical temperatures (\u00b0R)"
+        },
+        {
+          "name": "Pc_psia_arr",
+          "description": "Critical pressures (psia)"
+        },
+        {
+          "name": "omega_arr",
+          "description": "Acentric factors"
+        },
+        {
+          "name": "z_arr",
+          "description": "Feed mole fractions"
+        },
+        {
+          "name": "kij_arr",
+          "description": "Binary interaction parameters (optional)"
+        }
       ]
     },
     {
@@ -6556,26 +6658,65 @@
       "name": "P365.PTA.MultiRateRNP",
       "description": "Rate-normalized pressure (RNP) for multi-rate production history using superposition in time",
       "parameters": [
-        { "name": "t_hrs", "description": "Current time (hours)" },
-        { "name": "q_changes", "description": "Array of {t_start_hrs, q_STBd} rate-change records" },
-        { "name": "k_mD", "description": "Permeability (mD)" },
-        { "name": "h_ft", "description": "Net pay (ft)" },
-        { "name": "phi", "description": "Porosity (fraction)" },
-        { "name": "mu_cp", "description": "Viscosity (cp)" },
-        { "name": "ct_psi", "description": "Total compressibility (psia⁻¹)" },
-        { "name": "rw_ft", "description": "Wellbore radius (ft)" },
-        { "name": "Bo_resbbl", "description": "FVF (res bbl/STB)" },
-        { "name": "S", "description": "Skin factor (default 0)" }
+        {
+          "name": "t_hrs",
+          "description": "Current time (hours)"
+        },
+        {
+          "name": "q_changes",
+          "description": "Array of {t_start_hrs, q_STBd} rate-change records"
+        },
+        {
+          "name": "k_mD",
+          "description": "Permeability (mD)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay (ft)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Viscosity (cp)"
+        },
+        {
+          "name": "ct_psi",
+          "description": "Total compressibility (psia\u207b\u00b9)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "Bo_resbbl",
+          "description": "FVF (res bbl/STB)"
+        },
+        {
+          "name": "S",
+          "description": "Skin factor (default 0)"
+        }
       ]
     },
     {
       "id": "P365.PTA.LOGLOGDIAG",
       "name": "P365.PTA.LogLogDiagnostic",
-      "description": "Log-log diagnostic data: ΔP and Bourdet derivative ΔP' for pressure-transient log-log plot",
+      "description": "Log-log diagnostic data: \u0394P and Bourdet derivative \u0394P' for pressure-transient log-log plot",
       "parameters": [
-        { "name": "dt_hrs", "description": "Elapsed time array (hours)" },
-        { "name": "dp_psi", "description": "Pressure response array ΔP (psi)" },
-        { "name": "L", "description": "Bourdet smoothing parameter (fraction of log-cycle, default 0)" }
+        {
+          "name": "dt_hrs",
+          "description": "Elapsed time array (hours)"
+        },
+        {
+          "name": "dp_psi",
+          "description": "Pressure response array \u0394P (psi)"
+        },
+        {
+          "name": "L",
+          "description": "Bourdet smoothing parameter (fraction of log-cycle, default 0)"
+        }
       ]
     },
     {
@@ -6583,70 +6724,157 @@
       "name": "P365.PTA.Deconvolution",
       "description": "Simplified von Schroeter-Hollender deconvolution: unit-rate pressure response from variable-rate data with Tikhonov regularization",
       "parameters": [
-        { "name": "dt_hrs", "description": "Elapsed time array (hours)" },
-        { "name": "dp_psi", "description": "Observed pressure differences (psi)" },
-        { "name": "q_STBd", "description": "Rate array (STB/d)" },
-        { "name": "lambda", "description": "Regularization parameter (default 1e-3)" }
+        {
+          "name": "dt_hrs",
+          "description": "Elapsed time array (hours)"
+        },
+        {
+          "name": "dp_psi",
+          "description": "Observed pressure differences (psi)"
+        },
+        {
+          "name": "q_STBd",
+          "description": "Rate array (STB/d)"
+        },
+        {
+          "name": "lambda",
+          "description": "Regularization parameter (default 1e-3)"
+        }
       ]
     },
     {
       "id": "P365.FRAC.TSODESIGN",
       "name": "P365.FRAC.TSODesign",
-      "description": "Tip screen-out (TSO) fracture design — estimates fracture dimensions and proppant packing at screenout",
+      "description": "Tip screen-out (TSO) fracture design \u2014 estimates fracture dimensions and proppant packing at screenout",
       "parameters": [
-        { "name": "qi_bpm", "description": "Injection rate (bbl/min)" },
-        { "name": "h_ft", "description": "Fracture height (ft)" },
-        { "name": "E_prime_psi", "description": "Plane-strain modulus E' (psi)" },
-        { "name": "mu_cp", "description": "Fracturing fluid viscosity (cp)" },
-        { "name": "CL_ftSqrtMin", "description": "Carter leakoff coefficient (ft/√min)" },
-        { "name": "Vpad_bbl", "description": "Pad volume (bbl)" },
-        { "name": "conc_ppg", "description": "Proppant concentration in slurry (lbm/gal)" }
+        {
+          "name": "qi_bpm",
+          "description": "Injection rate (bbl/min)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Fracture height (ft)"
+        },
+        {
+          "name": "E_prime_psi",
+          "description": "Plane-strain modulus E' (psi)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Fracturing fluid viscosity (cp)"
+        },
+        {
+          "name": "CL_ftSqrtMin",
+          "description": "Carter leakoff coefficient (ft/\u221amin)"
+        },
+        {
+          "name": "Vpad_bbl",
+          "description": "Pad volume (bbl)"
+        },
+        {
+          "name": "conc_ppg",
+          "description": "Proppant concentration in slurry (lbm/gal)"
+        }
       ]
     },
     {
       "id": "P365.FRAC.PROPPANTCONC",
       "name": "P365.FRAC.ProppantConcentration",
-      "description": "Proppant areal concentration (lbm/ft²) and fill fraction in the fracture during pumping",
+      "description": "Proppant areal concentration (lbm/ft\u00b2) and fill fraction in the fracture during pumping",
       "parameters": [
-        { "name": "qi_bpm", "description": "Injection rate (bbl/min)" },
-        { "name": "conc_ppg", "description": "Surface proppant concentration (lbm/gal)" },
-        { "name": "t_pump_min", "description": "Pumping time (min)" },
-        { "name": "L_ft", "description": "Fracture half-length (ft)" },
-        { "name": "h_ft", "description": "Fracture height (ft)" },
-        { "name": "rho_prop_pcf", "description": "Proppant bulk density (lbm/ft³)" }
+        {
+          "name": "qi_bpm",
+          "description": "Injection rate (bbl/min)"
+        },
+        {
+          "name": "conc_ppg",
+          "description": "Surface proppant concentration (lbm/gal)"
+        },
+        {
+          "name": "t_pump_min",
+          "description": "Pumping time (min)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Fracture half-length (ft)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Fracture height (ft)"
+        },
+        {
+          "name": "rho_prop_pcf",
+          "description": "Proppant bulk density (lbm/ft\u00b3)"
+        }
       ]
     },
     {
       "id": "P365.FRAC.REFRACSCORE",
       "name": "P365.FRAC.RefracScore",
-      "description": "Re-fracturing candidate score (0–100) based on PI decline, pressure retention, skin, and well age",
+      "description": "Re-fracturing candidate score (0\u2013100) based on PI decline, pressure retention, skin, and well age",
       "parameters": [
-        { "name": "PI_initial", "description": "Original productivity index (STB/d/psi)" },
-        { "name": "PI_current", "description": "Current productivity index (STB/d/psi)" },
-        { "name": "P_si_psia", "description": "Current shut-in pressure (psia)" },
-        { "name": "P_i_psia", "description": "Initial reservoir pressure (psia)" },
-        { "name": "skin", "description": "Current skin factor" },
-        { "name": "age_yrs", "description": "Well age (years)" }
+        {
+          "name": "PI_initial",
+          "description": "Original productivity index (STB/d/psi)"
+        },
+        {
+          "name": "PI_current",
+          "description": "Current productivity index (STB/d/psi)"
+        },
+        {
+          "name": "P_si_psia",
+          "description": "Current shut-in pressure (psia)"
+        },
+        {
+          "name": "P_i_psia",
+          "description": "Initial reservoir pressure (psia)"
+        },
+        {
+          "name": "skin",
+          "description": "Current skin factor"
+        },
+        {
+          "name": "age_yrs",
+          "description": "Well age (years)"
+        }
       ]
     },
     {
       "id": "P365.WPA.FIVESPOTALLOC",
       "name": "P365.WPA.FiveSpotAllocation",
-      "description": "Five-spot pattern injection allocation by kh connectivity — distributes injection proportionally to kh",
+      "description": "Five-spot pattern injection allocation by kh connectivity \u2014 distributes injection proportionally to kh",
       "parameters": [
-        { "name": "q_inj_STBd", "description": "Total injection rate for the pattern (STB/d)" },
-        { "name": "kh_prod", "description": "kh values for each producer (mD·ft)" }
+        {
+          "name": "q_inj_STBd",
+          "description": "Total injection rate for the pattern (STB/d)"
+        },
+        {
+          "name": "kh_prod",
+          "description": "kh values for each producer (mD\u00b7ft)"
+        }
       ]
     },
     {
       "id": "P365.WPA.PATTERNFLOODBAL",
       "name": "P365.WPA.PatternFloodBalance",
-      "description": "Pattern flood injection balancing — computes injector rates to achieve target VRR",
+      "description": "Pattern flood injection balancing \u2014 computes injector rates to achieve target VRR",
       "parameters": [
-        { "name": "producers", "description": "Producer voidage rates (res bbl/d)" },
-        { "name": "injectorWeights", "description": "Connectivity weights for each injector" },
-        { "name": "target_VRR", "description": "Target voidage replacement ratio" },
-        { "name": "Bw_inj", "description": "Injection water FVF (default 1.0)" }
+        {
+          "name": "producers",
+          "description": "Producer voidage rates (res bbl/d)"
+        },
+        {
+          "name": "injectorWeights",
+          "description": "Connectivity weights for each injector"
+        },
+        {
+          "name": "target_VRR",
+          "description": "Target voidage replacement ratio"
+        },
+        {
+          "name": "Bw_inj",
+          "description": "Injection water FVF (default 1.0)"
+        }
       ]
     },
     {
@@ -6654,8 +6882,14 @@
       "name": "P365.WPA.DykstraParsonsMobility",
       "description": "Dykstra-Parsons volumetric sweep efficiency for a stratified reservoir flood",
       "parameters": [
-        { "name": "M", "description": "Mobility ratio at flood front" },
-        { "name": "V_DP", "description": "Dykstra-Parsons variation coefficient [0, 1)" }
+        {
+          "name": "M",
+          "description": "Mobility ratio at flood front"
+        },
+        {
+          "name": "V_DP",
+          "description": "Dykstra-Parsons variation coefficient [0, 1)"
+        }
       ]
     },
     {
@@ -6663,9 +6897,477 @@
       "name": "P365.WPA.StilesSweep",
       "description": "Stiles (1949) layer-by-layer flood sweep efficiency for a stratified reservoir",
       "parameters": [
-        { "name": "k_arr", "description": "Layer permeabilities (mD)" },
-        { "name": "h_arr", "description": "Layer thicknesses (ft)" },
-        { "name": "M", "description": "Mobility ratio at flood front" }
+        {
+          "name": "k_arr",
+          "description": "Layer permeabilities (mD)"
+        },
+        {
+          "name": "h_arr",
+          "description": "Layer thicknesses (ft)"
+        },
+        {
+          "name": "M",
+          "description": "Mobility ratio at flood front"
+        }
+      ]
+    },
+    {
+      "id": "P365.VFP.AzizGovierFogarasi.Gradient",
+      "name": "P365.VFP.AzizGovierFogarasi.Gradient",
+      "description": "Aziz-Govier-Fogarasi (1972) two-phase pressure gradient (psi/ft). Uses dimensionless velocity numbers and the AGF flow-pattern map to identify bubble, slug, churn, or mist flow and compute the pressure gradient.",
+      "parameters": [
+        {
+          "name": "q_oil_bpd",
+          "description": "Oil flow rate (bbl/d)"
+        },
+        {
+          "name": "q_gas_Mscfd",
+          "description": "Gas rate (Mscf/d)"
+        },
+        {
+          "name": "q_wat_bpd",
+          "description": "Water rate (bbl/d)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inside diameter (in)"
+        },
+        {
+          "name": "SG_oil",
+          "description": "Oil specific gravity (water=1)"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity (air=1)"
+        },
+        {
+          "name": "mu_l_cp",
+          "description": "Liquid viscosity (cp)"
+        },
+        {
+          "name": "sigma_dyn_cm",
+          "description": "Surface tension (dyne/cm)"
+        },
+        {
+          "name": "P_avg_psia",
+          "description": "Average pressure (psia)"
+        },
+        {
+          "name": "T_avg_F",
+          "description": "Average temperature (\u00b0F)"
+        }
+      ]
+    },
+    {
+      "id": "P365.VFP.AzizGovierFogarasi.BHP",
+      "name": "P365.VFP.AzizGovierFogarasi.BHP",
+      "description": "Aziz-Govier-Fogarasi (1972) bottomhole pressure (psia). Integrates AGF two-phase gradient over tubing length with linear temperature profile.",
+      "parameters": [
+        {
+          "name": "Pwh_psia",
+          "description": "Wellhead pressure (psia)"
+        },
+        {
+          "name": "q_oil_bpd",
+          "description": "Oil rate (bbl/d)"
+        },
+        {
+          "name": "q_gas_Mscfd",
+          "description": "Gas rate (Mscf/d)"
+        },
+        {
+          "name": "q_wat_bpd",
+          "description": "Water rate (bbl/d)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inside diameter (in)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Tubing length (ft)"
+        },
+        {
+          "name": "SG_oil",
+          "description": "Oil specific gravity"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "mu_l_cp",
+          "description": "Liquid viscosity (cp)"
+        },
+        {
+          "name": "sigma_dyn_cm",
+          "description": "Surface tension (dyne/cm)"
+        },
+        {
+          "name": "T_wh_F",
+          "description": "Wellhead temperature (\u00b0F)"
+        },
+        {
+          "name": "T_bh_F",
+          "description": "Bottomhole temperature (\u00b0F)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PTA.MDHAnalysis",
+      "name": "P365.PTA.MDHAnalysis",
+      "description": "Miller-Dyes-Hutchinson (MDH) pressure buildup analysis. Fits the semi-log straight line to compute permeability, skin, and P1hr from shut-in time vs. pressure data.",
+      "parameters": [
+        {
+          "name": "dt_hrs",
+          "description": "Shut-in time array (hours)"
+        },
+        {
+          "name": "Pws_psi",
+          "description": "Shut-in pressure array (psia)"
+        },
+        {
+          "name": "q_STBd",
+          "description": "Pre-shut-in flow rate (STB/d)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Fluid viscosity (cp)"
+        },
+        {
+          "name": "Bo_RBSTB",
+          "description": "Formation volume factor (RB/STB)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay thickness (ft)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "ct_psi1",
+          "description": "Total compressibility (1/psi)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "Pwf_s_psi",
+          "description": "Flowing pressure at shut-in (psia)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PTA.HornerAnalysis",
+      "name": "P365.PTA.HornerAnalysis",
+      "description": "Horner pressure buildup analysis. Fits Pws vs. log[(tp+\u0394t)/\u0394t] to compute permeability, skin, and p* (static reservoir pressure).",
+      "parameters": [
+        {
+          "name": "dt_hrs",
+          "description": "Shut-in time array (hours)"
+        },
+        {
+          "name": "Pws_psi",
+          "description": "Shut-in pressure array (psia)"
+        },
+        {
+          "name": "tp_hrs",
+          "description": "Producing time before shut-in (hours)"
+        },
+        {
+          "name": "q_STBd",
+          "description": "Pre-shut-in flow rate (STB/d)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Fluid viscosity (cp)"
+        },
+        {
+          "name": "Bo_RBSTB",
+          "description": "Formation volume factor (RB/STB)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay thickness (ft)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "ct_psi1",
+          "description": "Total compressibility (1/psi)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "Pwf_s_psi",
+          "description": "Flowing pressure at shut-in (psia)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PTA.WellboreStorageDiagnostic",
+      "name": "P365.PTA.WellboreStorageDiagnostic",
+      "description": "Wellbore storage log-log diagnostic. Identifies the unit-slope region to estimate the wellbore storage coefficient C (bbl/psi) and dimensionless storage CD.",
+      "parameters": [
+        {
+          "name": "dt_hrs",
+          "description": "Elapsed time array (hours)"
+        },
+        {
+          "name": "dp_psi",
+          "description": "Pressure change array (psi)"
+        },
+        {
+          "name": "q_STBd",
+          "description": "Flow rate (STB/d)"
+        },
+        {
+          "name": "Bo_RBSTB",
+          "description": "Formation volume factor (RB/STB)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay thickness (ft)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "ct_psi1",
+          "description": "Total compressibility (1/psi)"
+        }
+      ]
+    },
+    {
+      "id": "P365.EoS.LeeKesler.ZFactor",
+      "name": "P365.EoS.LeeKesler.ZFactor",
+      "description": "Lee-Kesler (1975) BWR-type Z-factor for simple fluid (\u03c9=0) or reference fluid (n-octane). Used as basis for the three-parameter Pitzer correlation.",
+      "parameters": [
+        {
+          "name": "Tr",
+          "description": "Reduced temperature T/Tc"
+        },
+        {
+          "name": "Pr",
+          "description": "Reduced pressure P/Pc"
+        },
+        {
+          "name": "ref",
+          "description": "false=simple fluid, true=reference fluid (n-octane)"
+        }
+      ]
+    },
+    {
+      "id": "P365.EoS.LeeKesler.ZFactorComponent",
+      "name": "P365.EoS.LeeKesler.ZFactorComponent",
+      "description": "Lee-Kesler Z-factor for a real component using Z = Z^(0) + (\u03c9/\u03c9R)(Z^(R)\u2212Z^(0)).",
+      "parameters": [
+        {
+          "name": "T_K",
+          "description": "Temperature (K)"
+        },
+        {
+          "name": "P_bar",
+          "description": "Pressure (bar)"
+        },
+        {
+          "name": "Tc_K",
+          "description": "Critical temperature (K)"
+        },
+        {
+          "name": "Pc_bar",
+          "description": "Critical pressure (bar)"
+        },
+        {
+          "name": "omega",
+          "description": "Acentric factor"
+        }
+      ]
+    },
+    {
+      "id": "P365.EoS.LeeKesler.DepartureEnthalpy",
+      "name": "P365.EoS.LeeKesler.DepartureEnthalpy",
+      "description": "Lee-Kesler departure enthalpy (H\u2212H^ig)/(R\u00b7Tc) in dimensionless form for simple or reference fluid.",
+      "parameters": [
+        {
+          "name": "Tr",
+          "description": "Reduced temperature"
+        },
+        {
+          "name": "Pr",
+          "description": "Reduced pressure"
+        },
+        {
+          "name": "ref",
+          "description": "false=simple fluid, true=reference fluid"
+        }
+      ]
+    },
+    {
+      "id": "P365.EoS.LeeKesler.DepartureEntropy",
+      "name": "P365.EoS.LeeKesler.DepartureEntropy",
+      "description": "Lee-Kesler departure entropy (S\u2212S^ig)/R in dimensionless form.",
+      "parameters": [
+        {
+          "name": "Tr",
+          "description": "Reduced temperature"
+        },
+        {
+          "name": "Pr",
+          "description": "Reduced pressure"
+        },
+        {
+          "name": "ref",
+          "description": "false=simple fluid, true=reference fluid"
+        }
+      ]
+    },
+    {
+      "id": "P365.EoS.LeeKesler.DepartureFunctions",
+      "name": "P365.EoS.LeeKesler.DepartureFunctions",
+      "description": "Lee-Kesler Z, departure enthalpy, and departure entropy for a real component using the Pitzer three-parameter correlation. Returns { Z, H_dep_RTc, S_dep_R }.",
+      "parameters": [
+        {
+          "name": "T_K",
+          "description": "Temperature (K)"
+        },
+        {
+          "name": "P_bar",
+          "description": "Pressure (bar)"
+        },
+        {
+          "name": "Tc_K",
+          "description": "Critical temperature (K)"
+        },
+        {
+          "name": "Pc_bar",
+          "description": "Critical pressure (bar)"
+        },
+        {
+          "name": "omega",
+          "description": "Acentric factor"
+        }
+      ]
+    },
+    {
+      "id": "P365.GEO.MohrCoulombFailureEnvelope",
+      "name": "P365.GEO.MohrCoulombFailureEnvelope",
+      "description": "Mohr-Coulomb shear failure envelope. Computes shear strength at a given normal stress, failure plane angle, UCS, and differential stress at failure for a rock with cohesion C0 and friction angle \u03c6.",
+      "parameters": [
+        {
+          "name": "sigma_n_eff_psi",
+          "description": "Effective normal stress (psi)"
+        },
+        {
+          "name": "C0_psi",
+          "description": "Cohesion (psi)"
+        },
+        {
+          "name": "frictionAngle_deg",
+          "description": "Internal friction angle (degrees)"
+        },
+        {
+          "name": "sigma3_eff_psi",
+          "description": "Minimum effective principal stress (psi, optional)"
+        }
+      ]
+    },
+    {
+      "id": "P365.GEO.ECD",
+      "name": "P365.GEO.ECD",
+      "description": "Equivalent Circulating Density (ECD) using Bingham plastic annular pressure loss model. Returns ECD (ppg), annular pressure loss (psi), and ECD gradient (psi/ft).",
+      "parameters": [
+        {
+          "name": "MW_ppg",
+          "description": "Mud weight (ppg)"
+        },
+        {
+          "name": "TVD_ft",
+          "description": "True vertical depth (ft)"
+        },
+        {
+          "name": "Q_gpm",
+          "description": "Circulation rate (gal/min)"
+        },
+        {
+          "name": "D_hole_in",
+          "description": "Hole diameter (in)"
+        },
+        {
+          "name": "D_pipe_in",
+          "description": "Drill pipe OD (in)"
+        },
+        {
+          "name": "L_annulus_ft",
+          "description": "Annular length (ft)"
+        },
+        {
+          "name": "mu_p_cp",
+          "description": "Plastic viscosity (cp)"
+        },
+        {
+          "name": "tau_y_lb",
+          "description": "Yield point (lb/100ft2)"
+        }
+      ]
+    },
+    {
+      "id": "P365.GEO.MudWeightWindowECD",
+      "name": "P365.GEO.MudWeightWindowECD",
+      "description": "Safe drilling mud weight window including ECD check. Returns minimum/maximum MW (ppg), recommended MW, ECD, and stability flag.",
+      "parameters": [
+        {
+          "name": "PP_psi",
+          "description": "Pore pressure (psi)"
+        },
+        {
+          "name": "FG_psi",
+          "description": "Fracture gradient pressure (psi)"
+        },
+        {
+          "name": "TVD_ft",
+          "description": "True vertical depth (ft)"
+        },
+        {
+          "name": "margin_ppg",
+          "description": "Safety margin (ppg)"
+        },
+        {
+          "name": "Q_gpm",
+          "description": "Circulation rate (gal/min)"
+        },
+        {
+          "name": "D_hole_in",
+          "description": "Hole diameter (in)"
+        },
+        {
+          "name": "D_pipe_in",
+          "description": "Drill pipe OD (in)"
+        },
+        {
+          "name": "L_annulus_ft",
+          "description": "Annular length (ft)"
+        },
+        {
+          "name": "mu_p_cp",
+          "description": "Plastic viscosity (cp)"
+        },
+        {
+          "name": "tau_y_lb",
+          "description": "Yield point (lb/100ft2)"
+        }
       ]
     }
   ]
