@@ -6481,6 +6481,192 @@
           "description": "Gamma distribution shape parameter (default 1.5)"
         }
       ]
+    },
+    {
+      "id": "P365.EoS.PR.PHASEENVPOINT",
+      "name": "P365.EoS.PR.PhaseEnvelopePoint",
+      "description": "Bubble-point pressure (psia) at a given temperature for PR phase envelope tracing",
+      "parameters": [
+        { "name": "T_R", "description": "Temperature (°R)" },
+        { "name": "Tc_R_arr", "description": "Critical temperatures (°R)" },
+        { "name": "Pc_psia_arr", "description": "Critical pressures (psia)" },
+        { "name": "omega_arr", "description": "Acentric factors" },
+        { "name": "z_arr", "description": "Feed mole fractions" },
+        { "name": "kij_arr", "description": "Binary interaction parameters (optional)" }
+      ]
+    },
+    {
+      "id": "P365.EoS.PR.PHASEENVDEW",
+      "name": "P365.EoS.PR.PhaseEnvelopeDewPoint",
+      "description": "Dew-point pressure (psia) at a given temperature for PR phase envelope tracing",
+      "parameters": [
+        { "name": "T_R", "description": "Temperature (°R)" },
+        { "name": "Tc_R_arr", "description": "Critical temperatures (°R)" },
+        { "name": "Pc_psia_arr", "description": "Critical pressures (psia)" },
+        { "name": "omega_arr", "description": "Acentric factors" },
+        { "name": "z_arr", "description": "Feed mole fractions" },
+        { "name": "kij_arr", "description": "Binary interaction parameters (optional)" }
+      ]
+    },
+    {
+      "id": "P365.EoS.PR.PHASEENVELOPE",
+      "name": "P365.EoS.PR.PhaseEnvelope",
+      "description": "Full P-T phase envelope for a multi-component mixture using PR EoS — returns array of {T_R, Pb_psia, Pd_psia}",
+      "parameters": [
+        { "name": "T_min_R", "description": "Minimum temperature for scan (°R)" },
+        { "name": "T_max_R", "description": "Maximum temperature for scan (°R)" },
+        { "name": "nT", "description": "Number of temperature steps (default 30)" },
+        { "name": "Tc_R_arr", "description": "Critical temperatures (°R)" },
+        { "name": "Pc_psia_arr", "description": "Critical pressures (psia)" },
+        { "name": "omega_arr", "description": "Acentric factors" },
+        { "name": "z_arr", "description": "Feed mole fractions" },
+        { "name": "kij_arr", "description": "Binary interaction parameters (optional)" }
+      ]
+    },
+    {
+      "id": "P365.EoS.PR.CRICONDENTHERM",
+      "name": "P365.EoS.PR.Cricondentherm",
+      "description": "Cricondentherm — maximum temperature on the PR phase envelope (binary search)",
+      "parameters": [
+        { "name": "T_min_R", "description": "Lower bound for search (°R)" },
+        { "name": "T_max_R", "description": "Upper bound for search (°R)" },
+        { "name": "Tc_R_arr", "description": "Critical temperatures (°R)" },
+        { "name": "Pc_psia_arr", "description": "Critical pressures (psia)" },
+        { "name": "omega_arr", "description": "Acentric factors" },
+        { "name": "z_arr", "description": "Feed mole fractions" },
+        { "name": "kij_arr", "description": "Binary interaction parameters (optional)" }
+      ]
+    },
+    {
+      "id": "P365.EoS.PR.CRICONDENBAR",
+      "name": "P365.EoS.PR.Cricondenbar",
+      "description": "Cricondenbar — maximum pressure on the PR phase envelope (golden-section search)",
+      "parameters": [
+        { "name": "T_min_R", "description": "Lower bound for scan (°R)" },
+        { "name": "T_max_R", "description": "Upper bound for scan (°R)" },
+        { "name": "Tc_R_arr", "description": "Critical temperatures (°R)" },
+        { "name": "Pc_psia_arr", "description": "Critical pressures (psia)" },
+        { "name": "omega_arr", "description": "Acentric factors" },
+        { "name": "z_arr", "description": "Feed mole fractions" },
+        { "name": "kij_arr", "description": "Binary interaction parameters (optional)" }
+      ]
+    },
+    {
+      "id": "P365.PTA.MULTIRATERNP",
+      "name": "P365.PTA.MultiRateRNP",
+      "description": "Rate-normalized pressure (RNP) for multi-rate production history using superposition in time",
+      "parameters": [
+        { "name": "t_hrs", "description": "Current time (hours)" },
+        { "name": "q_changes", "description": "Array of {t_start_hrs, q_STBd} rate-change records" },
+        { "name": "k_mD", "description": "Permeability (mD)" },
+        { "name": "h_ft", "description": "Net pay (ft)" },
+        { "name": "phi", "description": "Porosity (fraction)" },
+        { "name": "mu_cp", "description": "Viscosity (cp)" },
+        { "name": "ct_psi", "description": "Total compressibility (psia⁻¹)" },
+        { "name": "rw_ft", "description": "Wellbore radius (ft)" },
+        { "name": "Bo_resbbl", "description": "FVF (res bbl/STB)" },
+        { "name": "S", "description": "Skin factor (default 0)" }
+      ]
+    },
+    {
+      "id": "P365.PTA.LOGLOGDIAG",
+      "name": "P365.PTA.LogLogDiagnostic",
+      "description": "Log-log diagnostic data: ΔP and Bourdet derivative ΔP' for pressure-transient log-log plot",
+      "parameters": [
+        { "name": "dt_hrs", "description": "Elapsed time array (hours)" },
+        { "name": "dp_psi", "description": "Pressure response array ΔP (psi)" },
+        { "name": "L", "description": "Bourdet smoothing parameter (fraction of log-cycle, default 0)" }
+      ]
+    },
+    {
+      "id": "P365.PTA.DECONVOLUTION",
+      "name": "P365.PTA.Deconvolution",
+      "description": "Simplified von Schroeter-Hollender deconvolution: unit-rate pressure response from variable-rate data with Tikhonov regularization",
+      "parameters": [
+        { "name": "dt_hrs", "description": "Elapsed time array (hours)" },
+        { "name": "dp_psi", "description": "Observed pressure differences (psi)" },
+        { "name": "q_STBd", "description": "Rate array (STB/d)" },
+        { "name": "lambda", "description": "Regularization parameter (default 1e-3)" }
+      ]
+    },
+    {
+      "id": "P365.FRAC.TSODESIGN",
+      "name": "P365.FRAC.TSODesign",
+      "description": "Tip screen-out (TSO) fracture design — estimates fracture dimensions and proppant packing at screenout",
+      "parameters": [
+        { "name": "qi_bpm", "description": "Injection rate (bbl/min)" },
+        { "name": "h_ft", "description": "Fracture height (ft)" },
+        { "name": "E_prime_psi", "description": "Plane-strain modulus E' (psi)" },
+        { "name": "mu_cp", "description": "Fracturing fluid viscosity (cp)" },
+        { "name": "CL_ftSqrtMin", "description": "Carter leakoff coefficient (ft/√min)" },
+        { "name": "Vpad_bbl", "description": "Pad volume (bbl)" },
+        { "name": "conc_ppg", "description": "Proppant concentration in slurry (lbm/gal)" }
+      ]
+    },
+    {
+      "id": "P365.FRAC.PROPPANTCONC",
+      "name": "P365.FRAC.ProppantConcentration",
+      "description": "Proppant areal concentration (lbm/ft²) and fill fraction in the fracture during pumping",
+      "parameters": [
+        { "name": "qi_bpm", "description": "Injection rate (bbl/min)" },
+        { "name": "conc_ppg", "description": "Surface proppant concentration (lbm/gal)" },
+        { "name": "t_pump_min", "description": "Pumping time (min)" },
+        { "name": "L_ft", "description": "Fracture half-length (ft)" },
+        { "name": "h_ft", "description": "Fracture height (ft)" },
+        { "name": "rho_prop_pcf", "description": "Proppant bulk density (lbm/ft³)" }
+      ]
+    },
+    {
+      "id": "P365.FRAC.REFRACSCORE",
+      "name": "P365.FRAC.RefracScore",
+      "description": "Re-fracturing candidate score (0–100) based on PI decline, pressure retention, skin, and well age",
+      "parameters": [
+        { "name": "PI_initial", "description": "Original productivity index (STB/d/psi)" },
+        { "name": "PI_current", "description": "Current productivity index (STB/d/psi)" },
+        { "name": "P_si_psia", "description": "Current shut-in pressure (psia)" },
+        { "name": "P_i_psia", "description": "Initial reservoir pressure (psia)" },
+        { "name": "skin", "description": "Current skin factor" },
+        { "name": "age_yrs", "description": "Well age (years)" }
+      ]
+    },
+    {
+      "id": "P365.WPA.FIVESPOTALLOC",
+      "name": "P365.WPA.FiveSpotAllocation",
+      "description": "Five-spot pattern injection allocation by kh connectivity — distributes injection proportionally to kh",
+      "parameters": [
+        { "name": "q_inj_STBd", "description": "Total injection rate for the pattern (STB/d)" },
+        { "name": "kh_prod", "description": "kh values for each producer (mD·ft)" }
+      ]
+    },
+    {
+      "id": "P365.WPA.PATTERNFLOODBAL",
+      "name": "P365.WPA.PatternFloodBalance",
+      "description": "Pattern flood injection balancing — computes injector rates to achieve target VRR",
+      "parameters": [
+        { "name": "producers", "description": "Producer voidage rates (res bbl/d)" },
+        { "name": "injectorWeights", "description": "Connectivity weights for each injector" },
+        { "name": "target_VRR", "description": "Target voidage replacement ratio" },
+        { "name": "Bw_inj", "description": "Injection water FVF (default 1.0)" }
+      ]
+    },
+    {
+      "id": "P365.WPA.DYKSTRAPARSONS",
+      "name": "P365.WPA.DykstraParsonsMobility",
+      "description": "Dykstra-Parsons volumetric sweep efficiency for a stratified reservoir flood",
+      "parameters": [
+        { "name": "M", "description": "Mobility ratio at flood front" },
+        { "name": "V_DP", "description": "Dykstra-Parsons variation coefficient [0, 1)" }
+      ]
+    },
+    {
+      "id": "P365.WPA.STILESSWEEP",
+      "name": "P365.WPA.StilesSweep",
+      "description": "Stiles (1949) layer-by-layer flood sweep efficiency for a stratified reservoir",
+      "parameters": [
+        { "name": "k_arr", "description": "Layer permeabilities (mD)" },
+        { "name": "h_arr", "description": "Layer thicknesses (ft)" },
+        { "name": "M", "description": "Mobility ratio at flood front" }
+      ]
     }
   ]
 }

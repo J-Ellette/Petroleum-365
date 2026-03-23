@@ -782,3 +782,55 @@ Good stopping point: VFP extended with three classic empirical correlations (Poe
 - Weymouth equation for natural gas distribution
 - Velocity check: < 40 ft/s recommended
 - Blue cells = inputs · Green cells = results
+
+---
+
+### Session 16 — EoS Phase Envelope + PTA Multi-Rate/Deconvolution + FRAC TSO + WPA Pattern Floods + Taskpane UI
+**Status:** Complete
+
+#### Scope
+- EoS PR: Phase envelope tracing (bubble/dew scan), cricondentherm, cricondenbar
+- PTA extended: Multi-rate superposition RNP, log-log diagnostic plot (Bourdet derivative), simplified deconvolution (von Schroeter-Hollender/Tikhonov regularization)
+- FRAC extended: TSO design (tip screenout — fracture dimensions/packing at screenout), proppant concentration profile, refrac candidate scoring
+- WPA extended: Five-spot pattern injection allocation (kh-weighted), pattern flood balancing (target VRR), Dykstra-Parsons mobility sweep, Stiles layer sweep
+- Taskpane UI: Two new tabs — SRK Flash calculator (Wilson K / Rachford-Rice flash display), Gas Condensate PVT calculator (wellstream γ, Bco, density, viscosity)
+
+#### Completed
+- [x] Extended EoS module (src/functions/eos/index.ts) with 5 new functions:
+  - [x] `prPhaseEnvelopePoint(T_R, Tc, Pc, omega, z, kij)` — bubble-point pressure at T for envelope scan
+  - [x] `prPhaseEnvelopeDewPoint(T_R, ...)` — dew-point pressure at T for envelope scan
+  - [x] `prPhaseEnvelope(T_min, T_max, nT, ...)` — full P-T phase envelope array ({T_R, Pb_psia, Pd_psia}×nT)
+  - [x] `prCricondentherm(T_min, T_max, ...)` — maximum temperature on envelope (binary-search refinement)
+  - [x] `prCricondenbar(T_min, T_max, ...)` — maximum pressure on envelope (golden-section search)
+- [x] Extended PTA module (src/functions/pta/index.ts) with 3 new functions:
+  - [x] `ptaMultiRateRNP(t_hrs, q_changes, k, h, phi, mu, ct, rw, Bo, S)` — rate-normalized pressure with superposition
+  - [x] `ptaLogLogDiagnostic(dt_hrs, dp_psi, L)` — log-log ΔP and Bourdet derivative ΔP' (with optional L-smoothing)
+  - [x] `ptaDeconvolution(dt_hrs, dp_psi, q_STBd, lambda)` — simplified deconvolution (rate-normalized + Tikhonov regularization)
+- [x] Extended FRAC module (src/functions/frac/index.ts) with 3 new functions:
+  - [x] `fracTSODesign(qi, h, E', mu, CL, Vpad, conc)` — TSO design: L_so, w_avg, A_so, t_so, packingFraction (PKN + Carter leakoff)
+  - [x] `fracProppantConcentration(qi, conc, t_pump, L, h, rho_prop)` — Ca (lbm/ft²), mass pumped, fill fraction
+  - [x] `fracRefracScore(PI_i, PI_c, P_si, P_i, skin, age)` — weighted score 0–100 with recommendation string
+- [x] Extended WPA module (src/functions/wpa/index.ts) with 4 new functions:
+  - [x] `wpaFiveSpotAllocation(q_inj, kh_prod)` — kh-weighted injection allocation for 5-spot pattern
+  - [x] `wpaPatternFloodBalance(producers, injWeights, target_VRR, Bw)` — compute injector rates for target VRR
+  - [x] `wpaDykstraParsonsMobility(M, V_DP)` — Koval/Stiles volumetric sweep (1−V_DP)/(1+V_DP(M−1))
+  - [x] `wpaStilesSweep(k_arr, h_arr, M)` — layer-by-layer Stiles (1949) sweep efficiency
+- [x] Taskpane UI (src/taskpane/taskpane.html) — 2 new tabs:
+  - [x] **⚗ Flash** — SRK Flash calculator: T/P inputs, 3-component table (Tc/Pc/ω/z), Wilson K + Rachford-Rice flash, vapor/liquid fractions + compositions
+  - [x] **🛢 GC PVT** — Gas Condensate PVT: wellstream γ, Standing FVF, Beggs-Robinson + Chew-Connally viscosity, condensate density
+- [x] Updated src/index.ts: EoS.PR +5, PTA +3, FRAC +3, WPA +4 new namespace entries
+- [x] Expanded functions.json from 241 → 256 UDF registrations (+15 entries)
+- [x] Written 102 new Jest unit tests (1837 total, all passing — up from 1735)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+- [x] Updated copilot.md and README.md for Session 16 (33 modules, 1837 tests, 256 UDFs)
+
+#### Stopping Point — Session 16
+Good stopping point: EoS extended with full phase envelope tracing (bubble/dew scan, cricondentherm, cricondenbar); PTA extended with multi-rate superposition RNP, log-log diagnostic plot (centered Bourdet derivative with L-smoothing), and simplified Tikhonov deconvolution; FRAC extended with TSO design (PKN + Carter leakoff), proppant areal concentration, and refrac candidate scoring (weighted scorecard); WPA extended with five-spot kh-weighted allocation, pattern flood VRR balancing, Dykstra-Parsons sweep (Koval formula), and Stiles layer sweep; Taskpane UI gained two new interactive tabs (SRK Flash calculator, Gas Condensate PVT). 1837 tests passing. 256 UDFs. 33 modules.
+
+#### Next Session — Session 17 (Planned)
+- [ ] Multi-phase flow: Aziz-Govier-Fogarasi mechanistic correlation
+- [ ] PTA extended: pressure derivative normalization, MDH/Horner p* comparison, wellbore storage correction
+- [ ] EoS: Lee-Kesler reference fluid correlations (departure functions for enthalpy/entropy)
+- [ ] GEO extended: shear failure Mohr-Coulomb, mud weight window with ECD
+- [ ] Blueprints: Phase Envelope blueprint, TSO Design blueprint, Pattern Flood blueprint
+- [ ] Taskpane: function browser category filtering enhancements

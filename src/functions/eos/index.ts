@@ -742,3 +742,231 @@ export function prStabilityTest(
 
 // ─── SRK Equation of State ──────────────────────────────────────────────────
 export * from './srk';
+
+// ─── Phase Envelope Tracing ───────────────────────────────────────────────────
+
+/**
+ * Compute bubble-point pressure at a given temperature for phase envelope tracing.
+ *
+ * Thin wrapper around prBubblePoint; returns only the pressure (psia) so it can
+ * be called in a scan across temperatures.  Returns NaN when the mixture has no
+ * liquid phase at that temperature (above cricondentherm or below 0 K).
+ *
+ * @param T_R         Temperature (°R)
+ * @param Tc_R_arr    Critical temperatures (°R)
+ * @param Pc_psia_arr Critical pressures (psia)
+ * @param omega_arr   Acentric factors
+ * @param z_arr       Feed mole fractions (sum to 1)
+ * @param kij_arr     Binary interaction parameters (optional)
+ * @returns           Bubble-point pressure (psia), or NaN if no solution
+ */
+export function prPhaseEnvelopePoint(
+  T_R: number,
+  Tc_R_arr: number[],
+  Pc_psia_arr: number[],
+  omega_arr: number[],
+  z_arr: number[],
+  kij_arr?: number[][]
+): number {
+  try {
+    const { Pb_psia } = prBubblePoint(T_R, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr);
+    if (!isFinite(Pb_psia) || Pb_psia <= 0) return NaN;
+    return Pb_psia;
+  } catch {
+    return NaN;
+  }
+}
+
+/**
+ * Dew-point pressure at a given temperature for phase envelope tracing.
+ *
+ * @param T_R         Temperature (°R)
+ * @param Tc_R_arr    Critical temperatures (°R)
+ * @param Pc_psia_arr Critical pressures (psia)
+ * @param omega_arr   Acentric factors
+ * @param z_arr       Feed mole fractions (sum to 1)
+ * @param kij_arr     Binary interaction parameters (optional)
+ * @returns           Dew-point pressure (psia), or NaN if no solution
+ */
+export function prPhaseEnvelopeDewPoint(
+  T_R: number,
+  Tc_R_arr: number[],
+  Pc_psia_arr: number[],
+  omega_arr: number[],
+  z_arr: number[],
+  kij_arr?: number[][]
+): number {
+  try {
+    const { Pd_psia } = prDewPoint(T_R, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr);
+    if (!isFinite(Pd_psia) || Pd_psia <= 0) return NaN;
+    return Pd_psia;
+  } catch {
+    return NaN;
+  }
+}
+
+/**
+ * Trace the full P-T phase envelope for a multi-component mixture.
+ *
+ * Scans temperatures from T_min_R to T_max_R, computing both bubble-point
+ * (lower portion) and dew-point (upper portion) pressures at each step.
+ * The resulting arrays form the two branches of the phase envelope.
+ *
+ * @param T_min_R     Minimum temperature for scan (°R)
+ * @param T_max_R     Maximum temperature for scan (°R)
+ * @param nT          Number of temperature steps (default 30)
+ * @param Tc_R_arr    Critical temperatures (°R)
+ * @param Pc_psia_arr Critical pressures (psia)
+ * @param omega_arr   Acentric factors
+ * @param z_arr       Feed mole fractions (sum to 1)
+ * @param kij_arr     Binary interaction parameters (optional)
+ * @returns           Array of { T_R, Pb_psia, Pd_psia } — NaN where no solution
+ */
+export function prPhaseEnvelope(
+  T_min_R: number,
+  T_max_R: number,
+  nT: number,
+  Tc_R_arr: number[],
+  Pc_psia_arr: number[],
+  omega_arr: number[],
+  z_arr: number[],
+  kij_arr?: number[][]
+): { T_R: number; Pb_psia: number; Pd_psia: number }[] {
+  if (nT < 2) nT = 2;
+  const dT = (T_max_R - T_min_R) / (nT - 1);
+  const result: { T_R: number; Pb_psia: number; Pd_psia: number }[] = [];
+
+  for (let i = 0; i < nT; i++) {
+    const T = T_min_R + i * dT;
+    const Pb = prPhaseEnvelopePoint(T, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr);
+    const Pd = prPhaseEnvelopeDewPoint(T, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr);
+    result.push({ T_R: T, Pb_psia: Pb, Pd_psia: Pd });
+  }
+
+  return result;
+}
+
+/**
+ * Estimate the cricondentherm — maximum temperature on the phase envelope.
+ *
+ * Scans dew-point pressures over a temperature grid; returns the temperature
+ * at which the dew-point solution disappears (last valid dew-point T).
+ *
+ * Algorithm: binary-search refinement after a coarse grid scan.
+ *
+ * @param T_min_R     Lower bound for search (°R)
+ * @param T_max_R     Upper bound for search (°R)
+ * @param Tc_R_arr    Critical temperatures (°R)
+ * @param Pc_psia_arr Critical pressures (psia)
+ * @param omega_arr   Acentric factors
+ * @param z_arr       Feed mole fractions (sum to 1)
+ * @param kij_arr     Binary interaction parameters (optional)
+ * @returns           { T_cricondentherm_R: number; P_cricondentherm_psia: number }
+ */
+export function prCricondentherm(
+  T_min_R: number,
+  T_max_R: number,
+  Tc_R_arr: number[],
+  Pc_psia_arr: number[],
+  omega_arr: number[],
+  z_arr: number[],
+  kij_arr?: number[][]
+): { T_cricondentherm_R: number; P_cricondentherm_psia: number } {
+  // Coarse scan to bracket the cricondentherm
+  const N = 40;
+  const dT = (T_max_R - T_min_R) / N;
+  let T_last = T_min_R;
+  let P_last = NaN;
+
+  for (let i = 0; i <= N; i++) {
+    const T = T_min_R + i * dT;
+    const Pd = prPhaseEnvelopeDewPoint(T, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr);
+    if (isFinite(Pd) && Pd > 0) {
+      T_last = T;
+      P_last = Pd;
+    }
+  }
+
+  // Refine with bisection between T_last and T_last + dT
+  let lo = T_last;
+  let hi = Math.min(T_last + dT * 2, T_max_R);
+  for (let i = 0; i < 30; i++) {
+    const mid = (lo + hi) / 2;
+    const Pd = prPhaseEnvelopeDewPoint(mid, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr);
+    if (isFinite(Pd) && Pd > 0) {
+      lo = mid;
+      P_last = Pd;
+    } else {
+      hi = mid;
+    }
+  }
+
+  return {
+    T_cricondentherm_R: lo,
+    P_cricondentherm_psia: isFinite(P_last) ? P_last : NaN,
+  };
+}
+
+/**
+ * Estimate the cricondenbar — maximum pressure on the phase envelope.
+ *
+ * Scans bubble-point pressures over a temperature grid and returns the
+ * temperature/pressure at which bubble-point pressure is maximized.
+ *
+ * @param T_min_R     Lower bound for scan (°R)
+ * @param T_max_R     Upper bound for scan (°R)
+ * @param Tc_R_arr    Critical temperatures (°R)
+ * @param Pc_psia_arr Critical pressures (psia)
+ * @param omega_arr   Acentric factors
+ * @param z_arr       Feed mole fractions (sum to 1)
+ * @param kij_arr     Binary interaction parameters (optional)
+ * @returns           { T_cricondenbar_R: number; P_cricondenbar_psia: number }
+ */
+export function prCricondenbar(
+  T_min_R: number,
+  T_max_R: number,
+  Tc_R_arr: number[],
+  Pc_psia_arr: number[],
+  omega_arr: number[],
+  z_arr: number[],
+  kij_arr?: number[][]
+): { T_cricondenbar_R: number; P_cricondenbar_psia: number } {
+  const N = 50;
+  const dT = (T_max_R - T_min_R) / N;
+  let T_best = T_min_R;
+  let P_best = -Infinity;
+
+  for (let i = 0; i <= N; i++) {
+    const T = T_min_R + i * dT;
+    // The cricondenbar lies near the maximum of the bubble-point curve
+    const Pb = prPhaseEnvelopePoint(T, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr);
+    const Pd = prPhaseEnvelopeDewPoint(T, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr);
+    const P_env = isFinite(Pb) ? Pb : (isFinite(Pd) ? Pd : -Infinity);
+    if (P_env > P_best) {
+      P_best = P_env;
+      T_best = T;
+    }
+  }
+
+  // Golden-section refinement ±2 dT around T_best
+  let lo = Math.max(T_min_R, T_best - 2 * dT);
+  let hi = Math.min(T_max_R, T_best + 2 * dT);
+  const phi = (Math.sqrt(5) - 1) / 2;
+
+  for (let i = 0; i < 40; i++) {
+    const c = hi - phi * (hi - lo);
+    const d = lo + phi * (hi - lo);
+    const Pc = prPhaseEnvelopePoint(c, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr);
+    const Pd2 = prPhaseEnvelopePoint(d, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr);
+    if ((isFinite(Pc) ? Pc : 0) < (isFinite(Pd2) ? Pd2 : 0)) lo = c;
+    else hi = d;
+  }
+
+  const T_cbar = (lo + hi) / 2;
+  const P_cbar = prPhaseEnvelopePoint(T_cbar, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr);
+
+  return {
+    T_cricondenbar_R: T_cbar,
+    P_cricondenbar_psia: isFinite(P_cbar) ? P_cbar : P_best,
+  };
+}

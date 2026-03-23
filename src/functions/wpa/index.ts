@@ -381,3 +381,166 @@ export function wpaFieldPI(piValues: number[], skinValues: number[]): number {
   const BASE_LOG = 7.0;
   return piValues.reduce((sum, pi, i) => sum + pi / (1 + skinValues[i] / BASE_LOG), 0);
 }
+
+// ─── Pattern Flood Injection Allocation ───────────────────────────────────────
+
+/**
+ * Five-spot pattern injection allocation by kh connectivity.
+ *
+ * In a regular 5-spot flood, one injector is surrounded by four producers.
+ * Injection is allocated to each producer based on its kh (transmissibility)
+ * fraction in the pattern.  This generalizes to irregular kh by weighting.
+ *
+ * @param q_inj_STBd   Total injection rate for the pattern (STB/d or Mscf/d)
+ * @param kh_prod      kh values for each producer in the pattern (mD·ft)
+ *                     Typically 4 values for a standard 5-spot.
+ * @returns            { alloc_STBd: number[], fractions: number[] } per producer
+ */
+export function wpaFiveSpotAllocation(
+  q_inj_STBd: number,
+  kh_prod: number[]
+): { alloc_STBd: number[]; fractions: number[] } {
+  if (kh_prod.length === 0) throw new Error("kh_prod must not be empty");
+  const sumKh = kh_prod.reduce((s, v) => s + v, 0);
+  if (sumKh <= 0) throw new Error("Sum of kh values must be positive");
+
+  const fractions = kh_prod.map(kh => kh / sumKh);
+  const alloc_STBd = fractions.map(f => f * q_inj_STBd);
+
+  return { alloc_STBd, fractions };
+}
+
+/**
+ * Pattern flood injection balancing — compute required injection rates
+ * for each injector to achieve a target voidage replacement ratio (VRR).
+ *
+ * The balancing allocates injection proportionally to the voidage each
+ * injector is responsible for (based on kh or connectivity weights).
+ *
+ * @param producers       Array of producer voidage rates (res bbl/d)
+ * @param injectorWeights Relative connectivity weights for each injector (dimensionless)
+ * @param target_VRR      Target voidage replacement ratio (1.0 = balanced)
+ * @param Bw_inj          Water FVF for injection (res bbl/surface bbl)
+ * @returns               { inj_rates_STBd: number[], total_VRR: number }
+ */
+export function wpaPatternFloodBalance(
+  producers: number[],
+  injectorWeights: number[],
+  target_VRR: number,
+  Bw_inj = 1.0
+): { inj_rates_STBd: number[]; total_VRR: number } {
+  if (injectorWeights.length === 0) throw new Error("injectorWeights must not be empty");
+  if (Bw_inj <= 0) throw new Error("Bw_inj must be positive");
+
+  const totalVoidage = producers.reduce((s, v) => s + v, 0);  // res bbl/d
+  const totalInjRequired = totalVoidage * target_VRR / Bw_inj;  // surface STB/d
+
+  const sumW = injectorWeights.reduce((s, w) => s + w, 0);
+  if (sumW <= 0) throw new Error("Sum of injector weights must be positive");
+
+  const inj_rates_STBd = injectorWeights.map(w => (w / sumW) * totalInjRequired);
+  const totalInjRes = inj_rates_STBd.reduce((s, q) => s + q * Bw_inj, 0);
+  const total_VRR = totalVoidage > 0 ? totalInjRes / totalVoidage : 0;
+
+  return { inj_rates_STBd, total_VRR };
+}
+
+/**
+ * Dykstra-Parsons mobility ratio displacement efficiency.
+ *
+ * Estimates the volumetric sweep efficiency for a stratified reservoir
+ * flood using the Dykstra-Parsons (1950) method.
+ *
+ * For a mobility ratio M and variation coefficient V_DP:
+ *   E_sweep = f(M, V_DP)
+ *
+ * Uses the Stiles-weighted Koval (1963) approximation:
+ *   E_V = (1 − V_DP) / (1 + V_DP · (M − 1))
+ *
+ * Physical behavior:
+ *   - Favorable mobility (M < 1) → higher sweep (≥ unit-ratio case)
+ *   - Adverse mobility (M > 1) → lower sweep
+ *   - Higher V_DP (more heterogeneous) → lower sweep
+ *
+ * @param M         Mobility ratio = (kro·μw) / (krw·μo) at flood-front
+ * @param V_DP      Dykstra-Parsons variation coefficient [0, 1); typical 0.3–0.7
+ * @returns         Volumetric sweep efficiency fraction [0, 1]
+ */
+export function wpaDykstraParsonsMobility(M: number, V_DP: number): number {
+  if (M <= 0) throw new Error("Mobility ratio M must be positive");
+  if (V_DP < 0 || V_DP >= 1) throw new Error("V_DP must be in [0, 1)");
+
+  // Koval (1963) / Stiles weighted approximation (physically correct):
+  //   E_V = (1 − V_DP) / (1 + V_DP · (M − 1))
+  //   For M=1: E = (1-V_DP) / 1  (piston-like, heterogeneity only)
+  //   For M<1: denominator < 1 → E > (1−V_DP)
+  //   For M>1: denominator > 1 → E < (1−V_DP)
+  const numerator   = 1 - V_DP;
+  const denominator = 1 + V_DP * (M - 1);
+  const E = denominator > 0 ? numerator / denominator : 0;
+
+  return Math.max(0, Math.min(1, E));
+}
+
+/**
+ * Stiles method layer-by-layer flood sweep efficiency.
+ *
+ * Computes waterflood sweep efficiency for a layered reservoir using
+ * the Stiles (1949) capacity factor method.
+ *
+ * For n layers ordered by decreasing permeability (k_1 ≥ k_2 ≥ ... ≥ k_n),
+ * each with thickness h_i, the fractional flow at water breakthrough in
+ * layer j is computed stepwise.
+ *
+ * @param k_arr      Permeability of each layer (mD), sorted descending preferred
+ * @param h_arr      Thickness of each layer (ft), same length as k_arr
+ * @param M          Mobility ratio at flood front
+ * @returns          { E_sweep, breakthrough_order: number[] }
+ *                   E_sweep is fraction of pore volume swept at "economic limit"
+ *                   (all layers flooded), breakthrough_order is layer indices
+ */
+export function wpaStilesSweep(
+  k_arr: number[],
+  h_arr: number[],
+  M: number
+): { E_sweep: number; layer_fractions: number[] } {
+  const n = k_arr.length;
+  if (h_arr.length !== n) throw new Error("k_arr and h_arr must have the same length");
+  if (M <= 0) throw new Error("Mobility ratio M must be positive");
+
+  // Sort layers by decreasing permeability
+  const layers = k_arr.map((k, i) => ({ k, h: h_arr[i], idx: i }))
+    .sort((a, b) => b.k - a.k);
+
+  const kTotal = layers.reduce((s, l) => s + l.k * l.h, 0);
+  const hTotal = layers.reduce((s, l) => s + l.h, 0);
+
+  if (kTotal <= 0 || hTotal <= 0) throw new Error("kTotal and hTotal must be positive");
+
+  // Stiles layer sweep fractions
+  const layer_fractions: number[] = new Array(n).fill(0);
+  let kh_swept = 0;
+  let h_swept = 0;
+
+  for (let j = 0; j < n; j++) {
+    const { k, h, idx } = layers[j];
+    kh_swept += k * h;
+    h_swept  += h;
+
+    // Fractional recovery at BT of layer j (Stiles 1949, simplified form):
+    // Assumption: piston-like displacement in each layer; recovery scales with
+    // the ratio of flooded capacity (kh) to total capacity, adjusted for mobility.
+    // Full Stiles method requires iterative flood-front tracking per layer;
+    // this uses the simplified capacity-factor form: E_j = (C·M + (1−C)) / M
+    // where C = kh fraction of flooded layers.
+    const C = kh_swept / kTotal;           // capacity fraction of flooded layers
+    const H = h_swept / hTotal;            // thickness fraction of flooded layers (retained for reference)
+    const E_j = (C * M + (1 - C)) / M;    // simplified Stiles sweep fraction
+    layer_fractions[idx] = Math.min(1, Math.max(0, E_j));
+    void H;  // H retained for documentation; full Stiles uses H for F_w calculation
+  }
+
+  // Overall E_sweep = weighted average
+  const E_sweep = layer_fractions.reduce((s, f, i) => s + f * h_arr[i] / hTotal, 0);
+  return { E_sweep: Math.min(1, Math.max(0, E_sweep)), layer_fractions };
+}

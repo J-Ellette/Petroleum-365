@@ -395,6 +395,10 @@ export const P365 = {
       Permeability:       PTAExports.pulseTestPermeability,
       Storativity:        PTAExports.pulseTestStorativity,
     },
+    // Multi-rate superposition & diagnostics (Session 16)
+    MultiRateRNP:       PTAExports.ptaMultiRateRNP,
+    LogLogDiagnostic:   PTAExports.ptaLogLogDiagnostic,
+    Deconvolution:      PTAExports.ptaDeconvolution,
   },
 
   // ─── VFP — Vertical Flow Performance ──────────────────────────────────────
@@ -540,6 +544,11 @@ export const P365 = {
       Closure:       FRACExports.fracGDerivedClosure,
       Leakoff:       FRACExports.fracNolteLeakoff,
     },
+
+    // Session 16: TSO design, proppant concentration, refrac scoring
+    TSODesign:              FRACExports.fracTSODesign,
+    ProppantConcentration:  FRACExports.fracProppantConcentration,
+    RefracScore:            FRACExports.fracRefracScore,
   },
 
   // ─── FPP — Field Production Profile ───────────────────────────────────────
@@ -620,6 +629,12 @@ export const P365 = {
       Flash:              EoSExports.prFlash,
       WilsonK:            EoSExports.prWilsonK,
       StabilityTest:      EoSExports.prStabilityTest,
+      // Session 16: Phase envelope tracing
+      PhaseEnvelopePoint:      EoSExports.prPhaseEnvelopePoint,
+      PhaseEnvelopeDewPoint:   EoSExports.prPhaseEnvelopeDewPoint,
+      PhaseEnvelope:           EoSExports.prPhaseEnvelope,
+      Cricondentherm:          EoSExports.prCricondentherm,
+      Cricondenbar:            EoSExports.prCricondenbar,
     },
     SRK: {
       AB:                  SRKExports.srkAB,
@@ -1002,6 +1017,11 @@ export const P365 = {
     // Field summary
     FieldSummary:           WPAExports.wpaFieldSummary,
     FieldPI:                WPAExports.wpaFieldPI,
+    // Session 16: Pattern flood injection allocation
+    FiveSpotAllocation:       WPAExports.wpaFiveSpotAllocation,
+    PatternFloodBalance:      WPAExports.wpaPatternFloodBalance,
+    DykstraParsonsMobility:   WPAExports.wpaDykstraParsonsMobility,
+    StilesSweep:              WPAExports.wpaStilesSweep,
   },
 
   // ─── RTA — Rate-Transient Analysis ─────────────────────────────────────────
