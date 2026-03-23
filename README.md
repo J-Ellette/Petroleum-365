@@ -96,8 +96,11 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 | 27 | **Spline** | Interpolation | Linear, natural cubic spline, monotone PCHIP, 2-D bilinear, inverse lookup, spline derivative/integral |
 | 28 | **ECO** | Economic Analysis | NPV, IRR, MIRR, payout, economic limit, EUR at limit, WI/NRI, royalty stacking, price escalation, inflation adjustment, after-tax NPV, LOE/BOE, recycle ratio, F&D cost |
 | 29 | **WPA** | Well Production Allocation | Proportional proration, PI/AOF-weighted, capacity curtailment, meter reconciliation, voidage replacement (VRR), field summary |
-| 30 | **Blueprints** | Blueprint Manager Catalog | 45+ structured blueprint templates with category/search/install metadata (Spline, ECO, WPA categories added Session 12) |
-| 31 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions; torque, thermal conductivity, specific heat, mass flow rate added Session 12 |
+| 30 | **RTA** | Rate-Transient Analysis | Material balance time, pseudo-pressure/pseudo-time, rate-normalized pressure (RNP), flowing material balance (FMB) for gas and oil, Blasingame b-plot diagnostic, type-curve normalization, permeability/skin from IARF RNP slope, PSS kh estimation |
+| 31 | **EoS** (ext.) | Phase Equilibrium | Wilson K-value initial guess, Michelsen (1982) tangent-plane distance (TPD) stability test |
+| 32 | **PTA** (ext.) | Multi-Well Testing | Interference transient pressure (line-source Ei), permeability/storativity inversion, pulse test amplitude/permeability/storativity |
+| 33 | **Blueprints** | Blueprint Manager Catalog | 50+ structured blueprint templates; RTA, EoS stability, PTA interference/pulse added Session 14 |
+| 34 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions |
 
 ---
 
@@ -1089,6 +1092,81 @@ Multi-well field-level proration, injection distribution, and voidage replacemen
 
 ---
 
+### RTA — Rate-Transient Analysis (Session 14)
+
+Production data analytics for reservoir characterization from rate-pressure history.
+
+**Material Balance Time**
+| Function | Description |
+|----------|-------------|
+| `P365.RTA.MaterialBalanceTime(Gp_Mscf, q_Mscf_d)` | Gas well material balance time tc = Gp/q (days) |
+| `P365.RTA.MaterialBalanceTimeOil(Np_STB, q_STB_d)` | Oil well material balance time tc = Np/q (days) |
+
+**Pseudo-Pressure and Pseudo-Time**
+| Function | Description |
+|----------|-------------|
+| `P365.RTA.PseudoPressure(p_arr, muZ_arr, p_base, p_eval)` | Real-gas pseudo-pressure m(p) by trapezoidal integration (psia²/cp) |
+| `P365.RTA.PseudoPressureDiff(p_arr, muZ_arr, p_base, p_i, p_wf)` | Δm(p) = m(pi) − m(pwf) (psia²/cp) |
+| `P365.RTA.PseudoTime(t_arr, muCt_arr, muCt_i, t_eval)` | Real-gas pseudo-time ta (days) |
+
+**Rate-Normalized Pressure**
+| Function | Description |
+|----------|-------------|
+| `P365.RTA.RNP(delta_mp, q_Mscf_d)` | Gas RNP = Δm(p)/q (psia²·d/(cp·Mscf)) |
+| `P365.RTA.RNPOil(pi_psia, pwf_psia, q_STB_d)` | Oil RNP = (pi−pwf)/q (psia·d/STB) |
+
+**Flowing Material Balance (FMB)**
+| Function | Description |
+|----------|-------------|
+| `P365.RTA.FMBGas(Gp_arr, RNP_arr, q_arr)` | FMB regression for gas: OGIP, slope, intercept, R² |
+| `P365.RTA.FMBOil(Np_arr, RNP_arr, q_arr)` | FMB regression for oil: OOIP, slope, intercept, R² |
+| `P365.RTA.RecoveryFactorFMB(Gp_Mscf, OGIP_Mscf)` | Recovery factor RF = Gp/OGIP (fraction) |
+
+**b-Plot Diagnostic and Type Curves**
+| Function | Description |
+|----------|-------------|
+| `P365.RTA.BPlot(t_arr, q_arr)` | Blasingame loss-ratio b and bDot at each time step |
+| `P365.RTA.BlassingameDimRate(q, B, mu, k, h, pi, pwf, re, rw)` | Dimensionless decline rate q_Dd |
+| `P365.RTA.BlassingameDimTime(k, t, phi, mu, ct, re)` | Dimensionless decline time t_Dd |
+| `P365.RTA.ArpsBExponent(t1, q1, t2, q2, t3, q3)` | Arps b-factor from three-point finite differences |
+
+**Permeability and Skin**
+| Function | Description |
+|----------|-------------|
+| `P365.RTA.PermeabilityFromRNP(slope_RNP, T_R, h_ft)` | IARF permeability from m* = 1637T/(kh) (mD) |
+| `P365.RTA.SkinFromRNP(RNP_1hr, m_star, k, phi, mu, ct, rw)` | Skin from RNP straight-line (Horner style) |
+| `P365.RTA.KhFromPSSRNP(RNP_PSS, T_R, re_ft, rw_ft, S)` | kh product from PSS RNP (mD·ft) |
+
+---
+
+### PTA Extensions — Interference and Pulse Tests (Session 14)
+
+**Interference Test**
+| Function | Description |
+|----------|-------------|
+| `P365.PTA.Interference.TransientPressure(q, mu, Bo, k, h, phi, ct, r, t)` | Pressure drop at observation well (line-source Ei) (psia) |
+| `P365.PTA.Interference.Permeability(q, mu, Bo, h, phi, ct, r, t, dp)` | Permeability from observed dp by bisection (mD) |
+| `P365.PTA.Interference.Storativity(k, mu, r, t, x_ei)` | Storativity φct from Ei argument (psia⁻¹) |
+
+**Pulse Test**
+| Function | Description |
+|----------|-------------|
+| `P365.PTA.PulseTest.Amplitude(q, mu, Bo, k, h, phi, ct, r, t_pulse, t_lag)` | Expected pulse response amplitude (psia) |
+| `P365.PTA.PulseTest.Permeability(q, mu, Bo, h, phi, ct, r, t_pulse, t_lag, dp)` | Permeability from pulse amplitude by bisection (mD) |
+| `P365.PTA.PulseTest.Storativity(k, mu, r, t_lag, x_L)` | Storativity from lag time (Johnson-Greenkorn-Woods) |
+
+---
+
+### EoS Extensions — Phase Stability (Session 14)
+
+**Wilson K-Values and Michelsen Stability**
+| Function | Description |
+|----------|-------------|
+| `P365.EoS.PR.WilsonK(T_R, P_psia, Tc_arr, Pc_arr, omega_arr)` | Wilson equation K-value initial guesses |
+| `P365.EoS.PR.StabilityTest(T_R, P_psia, z, Tc, Pc, omega, kij)` | Michelsen (1982) TPD stability test; returns {stable, sumW_L, sumW_V, tpdL, tpdV, iterations} |
+
+---
+
 ## Development
 
 ### Project Structure
@@ -1097,7 +1175,7 @@ Multi-well field-level proration, injection distribution, and voidage replacemen
 Petroleum-365/
 ├── src/
 │   ├── index.ts                  ← P365 namespace (all exports)
-│   ├── functions.json            ← UDF registrations (161 entries)
+│   ├── functions.json            ← UDF registrations (221 entries)
 │   └── functions/
 │       ├── pvt/                  ← PVT: gas.ts, oil.ts, water.ts
 │       ├── dca/                  ← Decline curve analysis
@@ -1127,6 +1205,7 @@ Petroleum-365/
 │       ├── spline/               ← Spline interpolation: cubic, PCHIP, bilinear (Session 11)
 │       ├── eco/                  ← Economic analysis: NPV/IRR/payout/economic limit (Session 11)
 │       ├── wpa/                  ← Well production allocation & VRR (Session 11)
+│       ├── rta/                  ← Rate-transient analysis: FMB, b-plot, RNP, type curves (Session 14)
 │       ├── pipe/                 ← Pipe sizing
 │       └── utilities/            ← Unit converter
 ├── src/addins/

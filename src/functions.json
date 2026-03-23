@@ -5122,6 +5122,705 @@
         "type": "number",
         "dimensionality": "matrix"
       }
+    },
+    {
+      "id": "P365.RTA.MATERIALBALANCETIME",
+      "name": "P365.RTA.MaterialBalanceTime",
+      "description": "Calculate material balance time for a gas well: tc = Gp / q",
+      "parameters": [
+        {
+          "name": "Gp_Mscf",
+          "description": "Cumulative gas production (Mscf)"
+        },
+        {
+          "name": "q_Mscf_d",
+          "description": "Current gas rate (Mscf/d)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.MATERIALBALANCETIME.OIL",
+      "name": "P365.RTA.MaterialBalanceTimeOil",
+      "description": "Calculate material balance time for an oil well: tc = Np / q",
+      "parameters": [
+        {
+          "name": "Np_STB",
+          "description": "Cumulative oil production (STB)"
+        },
+        {
+          "name": "q_STB_d",
+          "description": "Current oil rate (STB/d)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.PSEUDOPRESSURE",
+      "name": "P365.RTA.PseudoPressure",
+      "description": "Real-gas pseudo-pressure m(p) by trapezoidal integration (psia^2/cp)",
+      "parameters": [
+        {
+          "name": "p_arr",
+          "description": "Pressure array (psia)"
+        },
+        {
+          "name": "muZ_arr",
+          "description": "Product mu_g*Z at each pressure (cp)"
+        },
+        {
+          "name": "p_base",
+          "description": "Base pressure for integration (psia)"
+        },
+        {
+          "name": "p_eval",
+          "description": "Evaluation pressure (psia)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.PSEUDOPRESSUREDIFF",
+      "name": "P365.RTA.PseudoPressureDiff",
+      "description": "Real-gas pseudo-pressure difference Delta-m(p) = m(pi) - m(pwf)",
+      "parameters": [
+        {
+          "name": "p_arr",
+          "description": "Pressure array (psia)"
+        },
+        {
+          "name": "muZ_arr",
+          "description": "Product mu_g*Z at each pressure (cp)"
+        },
+        {
+          "name": "p_base",
+          "description": "Base pressure (psia)"
+        },
+        {
+          "name": "p_i",
+          "description": "Initial reservoir pressure (psia)"
+        },
+        {
+          "name": "p_wf",
+          "description": "Flowing wellbore pressure (psia)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.PSEUDOTIME",
+      "name": "P365.RTA.PseudoTime",
+      "description": "Real-gas pseudo-time t_a = muGi*cti * integral(dt/(mu_g*ct)) (days)",
+      "parameters": [
+        {
+          "name": "t_arr",
+          "description": "Time array (days)"
+        },
+        {
+          "name": "muCt_arr",
+          "description": "Product mu_g*ct at each step (cp/psia)"
+        },
+        {
+          "name": "muCt_i",
+          "description": "Initial mu_gi*cti (cp/psia)"
+        },
+        {
+          "name": "t_eval",
+          "description": "Evaluation time (days)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.RNP",
+      "name": "P365.RTA.RNP",
+      "description": "Rate-normalized pressure for gas well: RNP = Delta-m(p) / q (psia^2*d/(cp*Mscf))",
+      "parameters": [
+        {
+          "name": "delta_mp",
+          "description": "Pseudo-pressure difference (psia^2/cp)"
+        },
+        {
+          "name": "q_Mscf_d",
+          "description": "Gas rate (Mscf/d)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.RNP.OIL",
+      "name": "P365.RTA.RNPOil",
+      "description": "Rate-normalized pressure for oil well: RNP = (pi - pwf) / q (psia*d/STB)",
+      "parameters": [
+        {
+          "name": "pi_psia",
+          "description": "Initial reservoir pressure (psia)"
+        },
+        {
+          "name": "pwf_psia",
+          "description": "Flowing wellbore pressure (psia)"
+        },
+        {
+          "name": "q_STB_d",
+          "description": "Oil rate (STB/d)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.FMB.GAS",
+      "name": "P365.RTA.FMBGas",
+      "description": "Flowing Material Balance for gas wells: estimates OGIP from RNP vs. material balance time regression",
+      "parameters": [
+        {
+          "name": "Gp_arr",
+          "description": "Cumulative gas production at each point (Mscf)"
+        },
+        {
+          "name": "RNP_arr",
+          "description": "Rate-normalized pseudo-pressure at each point"
+        },
+        {
+          "name": "q_arr",
+          "description": "Gas rates at each point (Mscf/d)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.FMB.OIL",
+      "name": "P365.RTA.FMBOil",
+      "description": "Flowing Material Balance for oil wells: estimates OOIP from RNP vs. material balance time regression",
+      "parameters": [
+        {
+          "name": "Np_arr",
+          "description": "Cumulative oil production at each point (STB)"
+        },
+        {
+          "name": "RNP_arr",
+          "description": "Rate-normalized pressure at each point"
+        },
+        {
+          "name": "q_arr",
+          "description": "Oil rates at each point (STB/d)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.BPLOT",
+      "name": "P365.RTA.BPlot",
+      "description": "Blasingame loss-ratio b-plot diagnostic. Returns array of {t, b, bDot} for flow regime identification",
+      "parameters": [
+        {
+          "name": "t_arr",
+          "description": "Time array (days)"
+        },
+        {
+          "name": "q_arr",
+          "description": "Rate array (Mscf/d or STB/d)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.BLASSINGAME.DIMRATE",
+      "name": "P365.RTA.BlassingameDimRate",
+      "description": "Blasingame dimensionless decline rate q_Dd for type-curve matching",
+      "parameters": [
+        {
+          "name": "q_STB_d",
+          "description": "Flow rate (STB/d)"
+        },
+        {
+          "name": "B_res",
+          "description": "Formation volume factor (res bbl/STB)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Viscosity (cp)"
+        },
+        {
+          "name": "k_mD",
+          "description": "Permeability (mD)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay thickness (ft)"
+        },
+        {
+          "name": "pi_psia",
+          "description": "Initial pressure (psia)"
+        },
+        {
+          "name": "pwf_psia",
+          "description": "Flowing wellbore pressure (psia)"
+        },
+        {
+          "name": "re_ft",
+          "description": "Drainage radius (ft)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.BLASSINGAME.DIMTIME",
+      "name": "P365.RTA.BlassingameDimTime",
+      "description": "Blasingame dimensionless decline time t_Dd = 0.00633*k*t/(phi*mu*ct*re^2)",
+      "parameters": [
+        {
+          "name": "k_mD",
+          "description": "Permeability (mD)"
+        },
+        {
+          "name": "t_days",
+          "description": "Producing time (days)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Viscosity (cp)"
+        },
+        {
+          "name": "ct_psi",
+          "description": "Total compressibility (psia^-1)"
+        },
+        {
+          "name": "re_ft",
+          "description": "Drainage radius (ft)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.RECOVERYFACTOR.FMB",
+      "name": "P365.RTA.RecoveryFactorFMB",
+      "description": "Gas recovery factor from flowing material balance: RF = Gp / OGIP",
+      "parameters": [
+        {
+          "name": "Gp_Mscf",
+          "description": "Cumulative gas production (Mscf)"
+        },
+        {
+          "name": "OGIP_Mscf",
+          "description": "Original gas in place from FMB (Mscf)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.PERMEABILITY.RNP",
+      "name": "P365.RTA.PermeabilityFromRNP",
+      "description": "Permeability from IARF slope of RNP vs. log10(tc) line: k = 1637*T / (m* * h) (mD)",
+      "parameters": [
+        {
+          "name": "slope_RNP",
+          "description": "Slope of RNP vs. log10(tc) (psia^2*d/(cp*Mscf per log-cycle))"
+        },
+        {
+          "name": "T_R",
+          "description": "Reservoir temperature (degR)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay thickness (ft)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.SKIN.RNP",
+      "name": "P365.RTA.SkinFromRNP",
+      "description": "Skin factor from RNP straight-line analysis using 1.151 method",
+      "parameters": [
+        {
+          "name": "RNP_1hr",
+          "description": "RNP at tc = 1 hour from IARF line"
+        },
+        {
+          "name": "m_star",
+          "description": "Slope of RNP vs. log10(tc)"
+        },
+        {
+          "name": "k_mD",
+          "description": "Permeability (mD)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Initial gas viscosity (cp)"
+        },
+        {
+          "name": "ct_psi",
+          "description": "Total compressibility (psia^-1)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.ARPS.BEXPONENT",
+      "name": "P365.RTA.ArpsBExponent",
+      "description": "Estimate Arps b-factor from three rate-time points using finite differences on ln(q)",
+      "parameters": [
+        {
+          "name": "t1_days",
+          "description": "Time of first observation (days)"
+        },
+        {
+          "name": "q1",
+          "description": "Rate at t1"
+        },
+        {
+          "name": "t2_days",
+          "description": "Time of second observation (days)"
+        },
+        {
+          "name": "q2",
+          "description": "Rate at t2"
+        },
+        {
+          "name": "t3_days",
+          "description": "Time of third observation (days)"
+        },
+        {
+          "name": "q3",
+          "description": "Rate at t3"
+        }
+      ]
+    },
+    {
+      "id": "P365.RTA.KH.PSS",
+      "name": "P365.RTA.KhFromPSSRNP",
+      "description": "kh product from PSS rate-normalized pressure for a gas well (mD*ft)",
+      "parameters": [
+        {
+          "name": "RNP_PSS",
+          "description": "RNP at PSS conditions (psia^2*d/(cp*Mscf))"
+        },
+        {
+          "name": "T_R",
+          "description": "Reservoir temperature (degR)"
+        },
+        {
+          "name": "re_ft",
+          "description": "Drainage radius (ft)"
+        },
+        {
+          "name": "rw_ft",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "S",
+          "description": "Skin factor (dimensionless)"
+        }
+      ]
+    },
+    {
+      "id": "P365.EOS.PR.WILSONK",
+      "name": "P365.EoS.PR.WilsonK",
+      "description": "Wilson K-values as initial guess: Ki = (Pci/P) * exp(5.373*(1+omega_i)*(1-Tci/T))",
+      "parameters": [
+        {
+          "name": "T_R",
+          "description": "Temperature (degR)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "Tc_R_arr",
+          "description": "Critical temperatures array (degR)"
+        },
+        {
+          "name": "Pc_psia_arr",
+          "description": "Critical pressures array (psia)"
+        },
+        {
+          "name": "omega_arr",
+          "description": "Acentric factors array"
+        }
+      ]
+    },
+    {
+      "id": "P365.EOS.PR.STABILITYTEST",
+      "name": "P365.EoS.PR.StabilityTest",
+      "description": "Michelsen (1982) tangent-plane distance stability test. Returns {stable, sumW_L, sumW_V, tpdL, tpdV, iterations}",
+      "parameters": [
+        {
+          "name": "T_R",
+          "description": "Temperature (degR)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "z_arr",
+          "description": "Feed composition (mole fractions)"
+        },
+        {
+          "name": "Tc_R_arr",
+          "description": "Critical temperatures (degR)"
+        },
+        {
+          "name": "Pc_psia_arr",
+          "description": "Critical pressures (psia)"
+        },
+        {
+          "name": "omega_arr",
+          "description": "Acentric factors"
+        },
+        {
+          "name": "kij_arr",
+          "description": "Binary interaction parameters (n x n matrix, optional)"
+        },
+        {
+          "name": "maxIter",
+          "description": "Maximum iterations (default 100, optional)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PTA.INTERFERENCE.PRESSURE",
+      "name": "P365.PTA.Interference.TransientPressure",
+      "description": "Pressure drop at observation well r due to production at active well (line-source Ei solution) (psia)",
+      "parameters": [
+        {
+          "name": "q_STB_d",
+          "description": "Production rate at active well (STB/d)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Viscosity (cp)"
+        },
+        {
+          "name": "Bo_resbbl",
+          "description": "FVF (res bbl/STB)"
+        },
+        {
+          "name": "k_mD",
+          "description": "Permeability (mD)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay thickness (ft)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "ct_psi",
+          "description": "Total compressibility (psia^-1)"
+        },
+        {
+          "name": "r_ft",
+          "description": "Distance to observation well (ft)"
+        },
+        {
+          "name": "t_hrs",
+          "description": "Producing time (hours)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PTA.INTERFERENCE.PERM",
+      "name": "P365.PTA.Interference.Permeability",
+      "description": "Estimate permeability from interference test pressure response by bisection (mD)",
+      "parameters": [
+        {
+          "name": "q_STB_d",
+          "description": "Production rate (STB/d)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Viscosity (cp)"
+        },
+        {
+          "name": "Bo_resbbl",
+          "description": "FVF (res bbl/STB)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay thickness (ft)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "ct_psi",
+          "description": "Total compressibility (psia^-1)"
+        },
+        {
+          "name": "r_ft",
+          "description": "Well spacing (ft)"
+        },
+        {
+          "name": "t_hrs",
+          "description": "Test time (hours)"
+        },
+        {
+          "name": "dp_psia",
+          "description": "Observed pressure drop (psia)"
+        },
+        {
+          "name": "k_guess",
+          "description": "Initial permeability guess (mD, optional)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PTA.INTERFERENCE.STORATIVITY",
+      "name": "P365.PTA.Interference.Storativity",
+      "description": "Estimate storativity (phi*ct) from interference test: phi*ct = x * k * t / (948 * mu * r^2)",
+      "parameters": [
+        {
+          "name": "k_mD",
+          "description": "Permeability (mD)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Viscosity (cp)"
+        },
+        {
+          "name": "r_ft",
+          "description": "Well spacing (ft)"
+        },
+        {
+          "name": "t_hrs",
+          "description": "Observation time (hours)"
+        },
+        {
+          "name": "x_ei",
+          "description": "Ei argument value at observation point"
+        }
+      ]
+    },
+    {
+      "id": "P365.PTA.PULSE.AMPLITUDE",
+      "name": "P365.PTA.PulseTest.Amplitude",
+      "description": "Pulse test pressure response amplitude using Ei superposition (psia)",
+      "parameters": [
+        {
+          "name": "q_STB_d",
+          "description": "Pulse rate (STB/d)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Viscosity (cp)"
+        },
+        {
+          "name": "Bo_resbbl",
+          "description": "FVF (res bbl/STB)"
+        },
+        {
+          "name": "k_mD",
+          "description": "Permeability (mD)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay thickness (ft)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "ct_psi",
+          "description": "Total compressibility (psia^-1)"
+        },
+        {
+          "name": "r_ft",
+          "description": "Well spacing (ft)"
+        },
+        {
+          "name": "t_pulse_hrs",
+          "description": "Pulse duration (hours)"
+        },
+        {
+          "name": "t_lag_hrs",
+          "description": "Lag time to peak response (hours)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PTA.PULSE.PERM",
+      "name": "P365.PTA.PulseTest.Permeability",
+      "description": "Estimate permeability from pulse test amplitude by bisection (mD)",
+      "parameters": [
+        {
+          "name": "q_STB_d",
+          "description": "Pulse rate (STB/d)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Viscosity (cp)"
+        },
+        {
+          "name": "Bo_resbbl",
+          "description": "FVF (res bbl/STB)"
+        },
+        {
+          "name": "h_ft",
+          "description": "Net pay thickness (ft)"
+        },
+        {
+          "name": "phi",
+          "description": "Porosity (fraction)"
+        },
+        {
+          "name": "ct_psi",
+          "description": "Total compressibility (psia^-1)"
+        },
+        {
+          "name": "r_ft",
+          "description": "Well spacing (ft)"
+        },
+        {
+          "name": "t_pulse_hrs",
+          "description": "Pulse duration (hours)"
+        },
+        {
+          "name": "t_lag_hrs",
+          "description": "Lag time (hours)"
+        },
+        {
+          "name": "dp_psia",
+          "description": "Observed amplitude (psia)"
+        },
+        {
+          "name": "k_guess",
+          "description": "Initial guess (mD, optional)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PTA.PULSE.STORATIVITY",
+      "name": "P365.PTA.PulseTest.Storativity",
+      "description": "Estimate storativity from pulse test lag time: phi*ct = 948*k*t_L/(mu*r^2*x_L)",
+      "parameters": [
+        {
+          "name": "k_mD",
+          "description": "Permeability (mD)"
+        },
+        {
+          "name": "mu_cp",
+          "description": "Viscosity (cp)"
+        },
+        {
+          "name": "r_ft",
+          "description": "Well spacing (ft)"
+        },
+        {
+          "name": "t_lag_hrs",
+          "description": "Lag time to peak response (hours)"
+        },
+        {
+          "name": "x_L",
+          "description": "Dimensionless lag time (default 0.28 for first odd pulse, optional)"
+        }
+      ]
     }
   ]
 }

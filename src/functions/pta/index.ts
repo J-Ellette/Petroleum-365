@@ -633,3 +633,294 @@ export function wellboreStorageCoefficientCD(
 ): number {
   return (5.615 * C) / (2 * Math.PI * phi * ct * h * rw * rw);
 }
+
+// ─── Multi-Well Interference Test ─────────────────────────────────────────────
+
+/**
+ * Calculate pressure response at an observation well due to production at an
+ * active well (interference test, line-source solution).
+ *
+ * The pressure drop at distance r from the active well after time t:
+ *   delta_p(r,t) = 70.6 * q * mu * Bo / (k * h) * [-Ei(-r^2 / (0.000264 * k * t / (phi * mu * ct)))]
+ *
+ * where Ei(-x) < 0 for x > 0; applies when tD > 25 (valid IARF).
+ *
+ * @param q_STB_d   Production rate at active well (STB/d)
+ * @param mu_cp     Reservoir fluid viscosity (cp)
+ * @param Bo_resbbl Formation volume factor (res bbl/STB)
+ * @param k_mD      Permeability (mD)
+ * @param h_ft      Net pay thickness (ft)
+ * @param phi       Porosity (fraction)
+ * @param ct_psi    Total compressibility (psia^-1)
+ * @param r_ft      Distance from active well to observation well (ft)
+ * @param t_hrs     Producing time (hours)
+ * @returns         Pressure drop at observation well (psia)
+ */
+export function interferenceTransientPressure(
+  q_STB_d: number,
+  mu_cp: number,
+  Bo_resbbl: number,
+  k_mD: number,
+  h_ft: number,
+  phi: number,
+  ct_psi: number,
+  r_ft: number,
+  t_hrs: number
+): number {
+  if (k_mD <= 0 || h_ft <= 0) throw new Error("k and h must be positive");
+  if (phi <= 0 || phi > 1) throw new Error("Porosity must be between 0 and 1");
+  if (r_ft <= 0 || t_hrs <= 0) throw new Error("r and t must be positive");
+
+  const x = 948 * phi * mu_cp * ct_psi * r_ft * r_ft / (k_mD * t_hrs);
+  // The existing ei() function computes Ei(x) for x < 0 (i.e., -E1(-x)).
+  // We need Ei(-x) for x > 0, so call ei(-x) which gives Ei(-x) < 0.
+  const eiMinusX = ei(-x); // Ei(-x) < 0 for x > 0
+  const prefix = 70.6 * q_STB_d * mu_cp * Bo_resbbl / (k_mD * h_ft);
+  return -prefix * eiMinusX; // -prefix * negative = positive pressure drop
+}
+
+/**
+ * Estimate permeability from interference test data (type curve or semilog).
+ *
+ * Using the active well production rate and pressure response at the
+ * observation well, solve the line-source equation for k:
+ *
+ *   k = 70.6 * q * mu * Bo / (h * delta_p) * [-Ei(-r^2 / (0.000264 k t / phi mu ct))]
+ *
+ * This function uses an iterative approach to solve for k.
+ *
+ * @param q_STB_d     Production rate at active well (STB/d)
+ * @param mu_cp       Viscosity (cp)
+ * @param Bo_resbbl   FVF (res bbl/STB)
+ * @param h_ft        Net pay thickness (ft)
+ * @param phi         Porosity (fraction)
+ * @param ct_psi      Total compressibility (psia^-1)
+ * @param r_ft        Well spacing (ft)
+ * @param t_hrs       Time of observation (hours)
+ * @param dp_psia     Observed pressure drop at observation well (psia)
+ * @param k_guess     Initial k guess (mD)
+ * @param maxIter     Max iterations
+ * @returns           Estimated permeability (mD)
+ */
+export function interferencePermeability(
+  q_STB_d: number,
+  mu_cp: number,
+  Bo_resbbl: number,
+  h_ft: number,
+  phi: number,
+  ct_psi: number,
+  r_ft: number,
+  t_hrs: number,
+  dp_psia: number,
+  k_guess = 10,
+  maxIter = 80
+): number {
+  if (dp_psia <= 0) throw new Error("Pressure drop must be positive");
+
+  // Bisection search: dp is a monotonically increasing function of k
+  // (higher k → more communication → larger dp at observation well)
+  // Find bracket [k_lo, k_hi] where dp_calc crosses dp_psia
+
+  // Establish lower bracket (dp_calc < dp_psia)
+  let k_lo = k_guess * 0.001;
+  for (let i = 0; i < 30; i++) {
+    const dp = interferenceTransientPressure(q_STB_d, mu_cp, Bo_resbbl, k_lo, h_ft, phi, ct_psi, r_ft, t_hrs);
+    if (dp < dp_psia) break;
+    k_lo *= 0.1;
+  }
+  // Establish upper bracket (dp_calc > dp_psia)
+  let k_hi = k_guess * 1000;
+  for (let i = 0; i < 30; i++) {
+    const dp = interferenceTransientPressure(q_STB_d, mu_cp, Bo_resbbl, k_hi, h_ft, phi, ct_psi, r_ft, t_hrs);
+    if (dp > dp_psia) break;
+    k_hi *= 10;
+  }
+
+  // Bisect
+  for (let i = 0; i < maxIter; i++) {
+    const k_mid = Math.sqrt(k_lo * k_hi); // geometric midpoint for permeability
+    const dp_mid = interferenceTransientPressure(q_STB_d, mu_cp, Bo_resbbl, k_mid, h_ft, phi, ct_psi, r_ft, t_hrs);
+    if (Math.abs(dp_mid / dp_psia - 1) < 1e-6) return k_mid;
+    if (dp_mid < dp_psia) k_lo = k_mid;
+    else k_hi = k_mid;
+  }
+  return Math.sqrt(k_lo * k_hi);
+}
+
+/**
+ * Estimate storativity (phi * ct) from interference test using peak time or
+ * Theis curve matching.
+ *
+ * Using the line-source solution at a known time and pressure response:
+ *   phi * ct = 948 * k * t_peak / (mu * r^2) * (1 / x_peak)
+ *
+ * where x_peak ≈ 0.5625 for -Ei(-x) peak response.
+ *
+ * For a simpler approach: if k is known, use the time of peak dp rise
+ * (inflection point in semi-log plot) to estimate storativity.
+ *
+ * @param k_mD    Permeability from interference (mD)
+ * @param mu_cp   Viscosity (cp)
+ * @param r_ft    Well spacing (ft)
+ * @param t_hrs   Time at which dp was observed (hours)
+ * @param x_ei    Argument of Ei function at observation point (dimensionless)
+ * @returns       Storativity phi * ct (fraction/psia)
+ */
+export function interferenceStorativity(
+  k_mD: number,
+  mu_cp: number,
+  r_ft: number,
+  t_hrs: number,
+  x_ei: number
+): number {
+  if (k_mD <= 0 || mu_cp <= 0 || r_ft <= 0 || t_hrs <= 0) {
+    throw new Error("All parameters must be positive");
+  }
+  // x = 948 * phi * mu * ct * r^2 / (k * t) -> phi*ct = x * k * t / (948 * mu * r^2)
+  return x_ei * k_mD * t_hrs / (948 * mu_cp * r_ft * r_ft);
+}
+
+// ─── Pulse Test Analysis ──────────────────────────────────────────────────────
+
+/**
+ * Calculate the expected pulse response amplitude for a pulse test.
+ *
+ * The pulse test consists of alternating production/injection periods at the
+ * active well and measuring pressure response at the observation well.
+ *
+ * Pressure amplitude (Johnson, Greenkorn & Woods, 1966):
+ *   delta_p_pulse = (70.6 * q * mu * Bo / (k * h)) * F'(r, t_L, t_p)
+ *
+ * For the first odd pulse, the dimensionless amplitude F' depends on:
+ *   tL_D = 0.000264 * k * t_L / (phi * mu * ct * r^2)
+ *   tCycle_D = 0.000264 * k * t_cycle / (phi * mu * ct * r^2)
+ *
+ * Simplified approximation (after Kamal & Bigham, 1975):
+ *   F' ~ 0.0250 * (tL_D / tCycle_D) * exp(-2.303)
+ *
+ * This function uses the exact Ei superposition for the first pulse.
+ *
+ * @param q_STB_d    Pulse rate (STB/d; positive = production)
+ * @param mu_cp      Viscosity (cp)
+ * @param Bo_resbbl  FVF (res bbl/STB)
+ * @param k_mD       Permeability (mD)
+ * @param h_ft       Net pay thickness (ft)
+ * @param phi        Porosity (fraction)
+ * @param ct_psi     Total compressibility (psia^-1)
+ * @param r_ft       Well spacing (ft)
+ * @param t_pulse_hrs Pulse duration (hours)
+ * @param t_lag_hrs  Time from end of pulse to peak response (hours)
+ * @returns          Pulse response amplitude (psia)
+ */
+export function pulseTestAmplitude(
+  q_STB_d: number,
+  mu_cp: number,
+  Bo_resbbl: number,
+  k_mD: number,
+  h_ft: number,
+  phi: number,
+  ct_psi: number,
+  r_ft: number,
+  t_pulse_hrs: number,
+  t_lag_hrs: number
+): number {
+  // Total time from start = t_pulse + t_lag
+  const t_total = t_pulse_hrs + t_lag_hrs;
+  // Superposition: dp(t_total) - dp(t_lag) using line source
+  const dp_total = interferenceTransientPressure(q_STB_d, mu_cp, Bo_resbbl, k_mD, h_ft, phi, ct_psi, r_ft, t_total);
+  const dp_lag   = interferenceTransientPressure(q_STB_d, mu_cp, Bo_resbbl, k_mD, h_ft, phi, ct_psi, r_ft, t_lag_hrs);
+  return Math.abs(dp_total - dp_lag);
+}
+
+/**
+ * Estimate permeability from pulse test data using Johnson-Greenkorn-Woods correlation.
+ *
+ * For the first odd pulse:
+ *   k = phi * mu * ct * r^2 / (0.000264 * t_L) * F(R)
+ *
+ * where F(R) is the dimensionless time function and R = t_p / t_L (pulse ratio).
+ * Approximate relation (Kamal & Bigham, 1975):
+ *   k * h = 70.6 * q * mu * Bo * (t_L / delta_p) * G(R)
+ *
+ * Simplified: use the line-source model with superposition for first pulse.
+ *
+ * @param q_STB_d    Pulse rate (STB/d)
+ * @param mu_cp      Viscosity (cp)
+ * @param Bo_resbbl  FVF (res bbl/STB)
+ * @param h_ft       Net pay thickness (ft)
+ * @param phi        Porosity (fraction)
+ * @param ct_psi     Total compressibility (psia^-1)
+ * @param r_ft       Well spacing (ft)
+ * @param t_pulse_hrs Pulse duration (hours)
+ * @param t_lag_hrs  Lag time to peak response (hours)
+ * @param dp_psia    Observed pulse response amplitude (psia)
+ * @param k_guess    Initial guess for k (mD)
+ * @returns          Estimated permeability (mD)
+ */
+export function pulseTestPermeability(
+  q_STB_d: number,
+  mu_cp: number,
+  Bo_resbbl: number,
+  h_ft: number,
+  phi: number,
+  ct_psi: number,
+  r_ft: number,
+  t_pulse_hrs: number,
+  t_lag_hrs: number,
+  dp_psia: number,
+  k_guess = 10
+): number {
+  if (dp_psia <= 0) throw new Error("Pressure response must be positive");
+
+  // Bisection search for k — pulse amplitude is monotonically increasing with k
+  let k_lo = k_guess * 0.001;
+  for (let i = 0; i < 30; i++) {
+    const dp = pulseTestAmplitude(q_STB_d, mu_cp, Bo_resbbl, k_lo, h_ft, phi, ct_psi, r_ft, t_pulse_hrs, t_lag_hrs);
+    if (dp < dp_psia) break;
+    k_lo *= 0.1;
+  }
+  let k_hi = k_guess * 1000;
+  for (let i = 0; i < 30; i++) {
+    const dp = pulseTestAmplitude(q_STB_d, mu_cp, Bo_resbbl, k_hi, h_ft, phi, ct_psi, r_ft, t_pulse_hrs, t_lag_hrs);
+    if (dp > dp_psia) break;
+    k_hi *= 10;
+  }
+
+  for (let i = 0; i < 80; i++) {
+    const k_mid = Math.sqrt(k_lo * k_hi);
+    const dp_mid = pulseTestAmplitude(q_STB_d, mu_cp, Bo_resbbl, k_mid, h_ft, phi, ct_psi, r_ft, t_pulse_hrs, t_lag_hrs);
+    if (Math.abs(dp_mid / dp_psia - 1) < 1e-6) return k_mid;
+    if (dp_mid < dp_psia) k_lo = k_mid;
+    else k_hi = k_mid;
+  }
+  return Math.sqrt(k_lo * k_hi);
+}
+
+/**
+ * Estimate storativity from pulse test lag time.
+ *
+ * The lag time t_L (from end of pulse to peak response) relates to storativity:
+ *   phi * ct = 948 * k * t_L / (mu * r^2 * x_L)
+ *
+ * where x_L is the dimensionless lag time argument (typically 0.28 for first pulse).
+ * Approximate: phi*ct = k * t_L / (940 * mu * r^2) for typical field conditions.
+ *
+ * @param k_mD       Permeability (mD)
+ * @param mu_cp      Viscosity (cp)
+ * @param r_ft       Well spacing (ft)
+ * @param t_lag_hrs  Lag time (hours)
+ * @param x_L        Dimensionless lag time (default 0.28 for first odd pulse)
+ * @returns          Storativity phi * ct (fraction/psia)
+ */
+export function pulseTestStorativity(
+  k_mD: number,
+  mu_cp: number,
+  r_ft: number,
+  t_lag_hrs: number,
+  x_L = 0.28
+): number {
+  if (k_mD <= 0 || mu_cp <= 0 || r_ft <= 0 || t_lag_hrs <= 0) {
+    throw new Error("All parameters must be positive");
+  }
+  return 948 * k_mD * t_lag_hrs / (mu_cp * r_ft * r_ft * x_L);
+}

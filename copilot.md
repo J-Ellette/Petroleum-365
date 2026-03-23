@@ -660,12 +660,37 @@ Good stopping point: ECO extended with WI/NRI/royalty stacking, price escalation
 #### Stopping Point — Session 13
 Good stopping point: VFP extended with three mechanistic correlations (Ansari/MB/HK); GEO extended with elastic moduli conversions and full Kirsch 3D wellbore stress state; Nodal extended with multi-string VLP and artificial lift overlay (ESP/GL/RP); PVT extended with gas-oil/brine IFT (Baker-Swerdloff/Macleod-Sugden/Jennings-Patzek) and EoS tuning helpers (Peneloux shift, volume-shift regression, Chueh-Prausnitz kij); ECO extended with Latin hypercube sampling and Monte Carlo NPV simulation; Netlify deployment manifest added. 1583 tests passing. 196 UDFs.
 
-#### Next Session — Session 14 (Planned)
-- [ ] Production data analytics: Flowing material balance (FMB), rate-transient analysis (RTA) b-plot
-- [ ] EoS full flash workflow: stability test (Michelsen), successive substitution, Newton convergence
-- [ ] Multi-well interference test (cross-well PTA, pulse testing)
-- [ ] Reservoir drive mechanisms dashboard blueprint
-- [ ] GitHub Pages alternative deployment configuration
+### Session 14 — RTA + EoS Stability + PTA Interference + Blueprint Expansion
+
+#### Scope
+- RTA module (new): material balance time, pseudo-pressure, pseudo-time, RNP, flowing material balance (FMB), Blasingame b-plot, type-curve parameters, permeability/skin from RNP, PSS kh estimation
+- EoS extended: Wilson K-value initial guess, Michelsen (1982) tangent-plane distance (TPD) stability test
+- PTA extended: multi-well interference test (line-source Ei), interference permeability/storativity inversion, pulse test amplitude/permeability/storativity
+- Blueprints expanded: FMB, b-plot diagnostic, permeability/skin from RNP, interference test, pulse test, EoS stability+flash
+- functions.json: 221 entries (196→221)
+- Tests: 1655 total (1583→1655)
+
+#### Deliverables
+- [x] src/functions/rta/index.ts — full RTA module (17 functions)
+- [x] src/functions/eos/index.ts — Wilson K-value + Michelsen stability test
+- [x] src/functions/pta/index.ts — interference test + pulse test (6 functions)
+- [x] src/addins/blueprints/index.ts — 6 new blueprints, RTA category added
+- [x] src/index.ts — RTA namespace + EoS.PR.WilsonK/StabilityTest + PTA.Interference/PulseTest
+- [x] src/functions.json — 25 new UDF registrations (196→221)
+- [x] test/rta/rta.test.ts — 35 RTA tests
+- [x] test/eos/eos_stability.test.ts — 13 EoS stability tests
+- [x] test/pta/pta_interference.test.ts — 24 PTA interference/pulse tests
+- [x] Updated copilot.md for Session 14 (32 modules, 1655 tests, 221 UDFs)
+
+#### Stopping Point — Session 14
+Good stopping point: new RTA module with complete rate-transient analysis toolkit (material balance time, pseudo-pressure/time, RNP, FMB for gas and oil, Blasingame b-plot diagnostic, type-curve normalization, permeability/skin from IARF slope, PSS kh estimation, Arps b-exponent); EoS extended with Wilson K-values and Michelsen (1982) stability test using successive substitution; PTA extended with multi-well interference test (line-source Ei) and pulse test analysis (amplitude, permeability inversion by bisection, storativity from lag time); 6 new blueprints added. 1655 tests passing. 221 UDFs. 32 modules.
+
+#### Next Session — Session 15 (Planned)
+- [ ] Multiphase flow extended: Duns-Ros correlation, Orkiszewski, Ansari extended
+- [ ] PVT extended: gas condensate properties, wet gas corrections, Whitson split
+- [ ] EoS: SRK equation of state, volume translation, Peneloux correction
+- [ ] Completion quality: perforation skin (Karakas-Tariq), partial penetration, damaged zone
+- [ ] GitHub Pages deployment configuration (gh-pages branch)
 
 ## Function Naming Convention
 `P365.[Category].[Property].[Qualifier].By[Author]`
@@ -700,6 +725,7 @@ Good stopping point: VFP extended with three mechanistic correlations (Ansari/MB
 | Spline | Interpolation (linear, natural cubic spline, monotone PCHIP, 2-D bilinear, inverse lookup) |
 | ECO | Economic Analysis (NPV, IRR, MIRR, payout, economic limit, EUR at limit, profitability index, break-even) |
 | WPA | Well Production Allocation (proportional proration, PI/AOF-weighted, curtailment, VRR, field summary) |
+| RTA | Rate-Transient Analysis (FMB, b-plot, material balance time, pseudo-pressure, pseudo-time, RNP, Blasingame type curves) |
 
 ## Key Engineering Details (from P365.md)
 - Pipe material roughness: Bare Steel 0.000150 ft · Coated Steel 0.000100 ft · PE 0.000005 ft
