@@ -5821,6 +5821,666 @@
           "description": "Dimensionless lag time (default 0.28 for first odd pulse, optional)"
         }
       ]
+    },
+    {
+      "id": "P365.VFP.PC.GRADIENT",
+      "name": "P365.VFP.PoettmannCarpenter.Gradient",
+      "description": "Poettmann-Carpenter (1952) homogeneous multiphase pressure gradient (psi/ft) for oil wells",
+      "parameters": [
+        {
+          "name": "q_oil_bpd",
+          "description": "Oil rate (bbl/d)"
+        },
+        {
+          "name": "q_gas_Mscfd",
+          "description": "Free gas rate (Mscf/d)"
+        },
+        {
+          "name": "q_wat_bpd",
+          "description": "Water rate (bbl/d)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inside diameter (in)"
+        },
+        {
+          "name": "SG_oil",
+          "description": "Oil specific gravity (water=1)"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity (air=1)"
+        },
+        {
+          "name": "P_avg_psia",
+          "description": "Average pressure (psia)"
+        },
+        {
+          "name": "T_avg_F",
+          "description": "Average temperature (\u00b0F)"
+        }
+      ]
+    },
+    {
+      "id": "P365.VFP.PC.BHP",
+      "name": "P365.VFP.PoettmannCarpenter.BHP",
+      "description": "Poettmann-Carpenter (1952) bottomhole pressure (psia) integrating over 10 segments",
+      "parameters": [
+        {
+          "name": "Pwh_psia",
+          "description": "Wellhead pressure (psia)"
+        },
+        {
+          "name": "q_oil_bpd",
+          "description": "Oil rate (bbl/d)"
+        },
+        {
+          "name": "q_gas_Mscfd",
+          "description": "Free gas rate (Mscf/d)"
+        },
+        {
+          "name": "q_wat_bpd",
+          "description": "Water rate (bbl/d)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inside diameter (in)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Tubing length (ft)"
+        },
+        {
+          "name": "SG_oil",
+          "description": "Oil specific gravity"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "T_wh_F",
+          "description": "Wellhead temperature (\u00b0F)"
+        },
+        {
+          "name": "T_bh_F",
+          "description": "Bottomhole temperature (\u00b0F)"
+        }
+      ]
+    },
+    {
+      "id": "P365.VFP.DR.GRADIENT",
+      "name": "P365.VFP.DunsRos.Gradient",
+      "description": "Duns-Ros (1963) multiphase pressure gradient (psi/ft) \u2014 three flow regions: bubble/slug/mist",
+      "parameters": [
+        {
+          "name": "q_oil_bpd",
+          "description": "Oil rate (bbl/d)"
+        },
+        {
+          "name": "q_gas_Mscfd",
+          "description": "Free gas rate (Mscf/d)"
+        },
+        {
+          "name": "q_wat_bpd",
+          "description": "Water rate (bbl/d)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inside diameter (in)"
+        },
+        {
+          "name": "SG_oil",
+          "description": "Oil specific gravity"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "mu_l_cp",
+          "description": "Liquid viscosity (cp)"
+        },
+        {
+          "name": "sigma_lbf_ft",
+          "description": "Surface tension (lbf/ft)"
+        },
+        {
+          "name": "P_avg_psia",
+          "description": "Average pressure (psia)"
+        },
+        {
+          "name": "T_avg_F",
+          "description": "Average temperature (\u00b0F)"
+        }
+      ]
+    },
+    {
+      "id": "P365.VFP.DR.BHP",
+      "name": "P365.VFP.DunsRos.BHP",
+      "description": "Duns-Ros (1963) bottomhole pressure (psia)",
+      "parameters": [
+        {
+          "name": "Pwh_psia",
+          "description": "Wellhead pressure (psia)"
+        },
+        {
+          "name": "q_oil_bpd",
+          "description": "Oil rate (bbl/d)"
+        },
+        {
+          "name": "q_gas_Mscfd",
+          "description": "Free gas rate (Mscf/d)"
+        },
+        {
+          "name": "q_wat_bpd",
+          "description": "Water rate (bbl/d)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inside diameter (in)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Tubing length (ft)"
+        },
+        {
+          "name": "SG_oil",
+          "description": "Oil specific gravity"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "mu_l_cp",
+          "description": "Liquid viscosity (cp)"
+        },
+        {
+          "name": "sigma_lbf_ft",
+          "description": "Surface tension (lbf/ft)"
+        },
+        {
+          "name": "T_wh_F",
+          "description": "Wellhead temperature (\u00b0F)"
+        },
+        {
+          "name": "T_bh_F",
+          "description": "Bottomhole temperature (\u00b0F)"
+        }
+      ]
+    },
+    {
+      "id": "P365.VFP.ORKI.GRADIENT",
+      "name": "P365.VFP.Orkiszewski.Gradient",
+      "description": "Orkiszewski (1967) composite multiphase pressure gradient (psi/ft) \u2014 Griffith-Wallis bubble/slug + Duns-Ros mist",
+      "parameters": [
+        {
+          "name": "q_oil_bpd",
+          "description": "Oil rate (bbl/d)"
+        },
+        {
+          "name": "q_gas_Mscfd",
+          "description": "Free gas rate (Mscf/d)"
+        },
+        {
+          "name": "q_wat_bpd",
+          "description": "Water rate (bbl/d)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inside diameter (in)"
+        },
+        {
+          "name": "SG_oil",
+          "description": "Oil specific gravity"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "mu_l_cp",
+          "description": "Liquid viscosity (cp)"
+        },
+        {
+          "name": "sigma_lbf_ft",
+          "description": "Surface tension (lbf/ft)"
+        },
+        {
+          "name": "P_avg_psia",
+          "description": "Average pressure (psia)"
+        },
+        {
+          "name": "T_avg_F",
+          "description": "Average temperature (\u00b0F)"
+        }
+      ]
+    },
+    {
+      "id": "P365.VFP.ORKI.BHP",
+      "name": "P365.VFP.Orkiszewski.BHP",
+      "description": "Orkiszewski (1967) bottomhole pressure (psia)",
+      "parameters": [
+        {
+          "name": "Pwh_psia",
+          "description": "Wellhead pressure (psia)"
+        },
+        {
+          "name": "q_oil_bpd",
+          "description": "Oil rate (bbl/d)"
+        },
+        {
+          "name": "q_gas_Mscfd",
+          "description": "Free gas rate (Mscf/d)"
+        },
+        {
+          "name": "q_wat_bpd",
+          "description": "Water rate (bbl/d)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing inside diameter (in)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Tubing length (ft)"
+        },
+        {
+          "name": "SG_oil",
+          "description": "Oil specific gravity"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "mu_l_cp",
+          "description": "Liquid viscosity (cp)"
+        },
+        {
+          "name": "sigma_lbf_ft",
+          "description": "Surface tension (lbf/ft)"
+        },
+        {
+          "name": "T_wh_F",
+          "description": "Wellhead temperature (\u00b0F)"
+        },
+        {
+          "name": "T_bh_F",
+          "description": "Bottomhole temperature (\u00b0F)"
+        }
+      ]
+    },
+    {
+      "id": "P365.EOS.SRK.AB",
+      "name": "P365.EoS.SRK.AB",
+      "description": "Soave-Redlich-Kwong (1972) pure-component attraction parameter a (psia\u00b7ft\u2076/lbmol\u00b2) and co-volume b (ft\u00b3/lbmol) at (T,P)",
+      "parameters": [
+        {
+          "name": "Tc_R",
+          "description": "Critical temperature (\u00b0R)"
+        },
+        {
+          "name": "Pc_psia",
+          "description": "Critical pressure (psia)"
+        },
+        {
+          "name": "omega",
+          "description": "Acentric factor (-)"
+        },
+        {
+          "name": "T_R",
+          "description": "Temperature (\u00b0R)"
+        }
+      ]
+    },
+    {
+      "id": "P365.EOS.SRK.ZFACTOR",
+      "name": "P365.EoS.SRK.ZFactor",
+      "description": "Soave-Redlich-Kwong (1972) compressibility factor Z for a pure component",
+      "parameters": [
+        {
+          "name": "Tc_R",
+          "description": "Critical temperature (\u00b0R)"
+        },
+        {
+          "name": "Pc_psia",
+          "description": "Critical pressure (psia)"
+        },
+        {
+          "name": "omega",
+          "description": "Acentric factor"
+        },
+        {
+          "name": "T_R",
+          "description": "Temperature (\u00b0R)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "phase",
+          "description": "'vapor' or 'liquid' (default 'vapor')"
+        }
+      ]
+    },
+    {
+      "id": "P365.EOS.SRK.FUGACITY",
+      "name": "P365.EoS.SRK.FugacityCoefficient",
+      "description": "SRK fugacity coefficient \u03c6 for a pure component given Z, A, B: ln \u03c6 = (Z-1) - ln(Z-B) - (A/B)\u00b7ln(1+B/Z)",
+      "parameters": [
+        {
+          "name": "Z",
+          "description": "Compressibility factor (-)"
+        },
+        {
+          "name": "A",
+          "description": "Dimensionless attraction parameter"
+        },
+        {
+          "name": "B",
+          "description": "Dimensionless co-volume parameter"
+        }
+      ]
+    },
+    {
+      "id": "P365.EOS.SRK.MIXAB",
+      "name": "P365.EoS.SRK.MixAB",
+      "description": "SRK mixture dimensionless A and B parameters using van der Waals mixing rules",
+      "parameters": [
+        {
+          "name": "Tcs_R",
+          "description": "Critical temperatures array (\u00b0R)"
+        },
+        {
+          "name": "Pcs_psia",
+          "description": "Critical pressures array (psia)"
+        },
+        {
+          "name": "omegas",
+          "description": "Acentric factors array"
+        },
+        {
+          "name": "zs",
+          "description": "Mole fractions array"
+        },
+        {
+          "name": "T_R",
+          "description": "Temperature (\u00b0R)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "kijs",
+          "description": "Binary interaction parameters N\u00d7N (optional)"
+        }
+      ]
+    },
+    {
+      "id": "P365.EOS.SRK.BUBBLEPOINT",
+      "name": "P365.EoS.SRK.BubblePoint",
+      "description": "SRK bubble-point pressure (psia) for a feed composition at temperature T via successive substitution",
+      "parameters": [
+        {
+          "name": "Tcs_R",
+          "description": "Critical temperatures array (\u00b0R)"
+        },
+        {
+          "name": "Pcs_psia",
+          "description": "Critical pressures array (psia)"
+        },
+        {
+          "name": "omegas",
+          "description": "Acentric factors array"
+        },
+        {
+          "name": "zs",
+          "description": "Overall mole fractions"
+        },
+        {
+          "name": "T_R",
+          "description": "Temperature (\u00b0R)"
+        },
+        {
+          "name": "P_guess",
+          "description": "Initial pressure guess (psia, default 500)"
+        },
+        {
+          "name": "kijs",
+          "description": "Binary interaction parameters (optional)"
+        }
+      ]
+    },
+    {
+      "id": "P365.EOS.SRK.DEWPOINT",
+      "name": "P365.EoS.SRK.DewPoint",
+      "description": "SRK dew-point pressure (psia) for a feed composition at temperature T via successive substitution",
+      "parameters": [
+        {
+          "name": "Tcs_R",
+          "description": "Critical temperatures array (\u00b0R)"
+        },
+        {
+          "name": "Pcs_psia",
+          "description": "Critical pressures array (psia)"
+        },
+        {
+          "name": "omegas",
+          "description": "Acentric factors array"
+        },
+        {
+          "name": "zs",
+          "description": "Overall mole fractions"
+        },
+        {
+          "name": "T_R",
+          "description": "Temperature (\u00b0R)"
+        },
+        {
+          "name": "P_guess",
+          "description": "Initial pressure guess (psia, default 1000)"
+        },
+        {
+          "name": "kijs",
+          "description": "Binary interaction parameters (optional)"
+        }
+      ]
+    },
+    {
+      "id": "P365.EOS.SRK.FLASH",
+      "name": "P365.EoS.SRK.Flash",
+      "description": "SRK two-phase isothermal flash \u2014 returns vapour fraction, liquid/vapour compositions x[], y[], and Z-factors",
+      "parameters": [
+        {
+          "name": "Tcs_R",
+          "description": "Critical temperatures array (\u00b0R)"
+        },
+        {
+          "name": "Pcs_psia",
+          "description": "Critical pressures array (psia)"
+        },
+        {
+          "name": "omegas",
+          "description": "Acentric factors array"
+        },
+        {
+          "name": "zs",
+          "description": "Overall mole fractions"
+        },
+        {
+          "name": "T_R",
+          "description": "Temperature (\u00b0R)"
+        },
+        {
+          "name": "P_psia",
+          "description": "Pressure (psia)"
+        },
+        {
+          "name": "kijs",
+          "description": "Binary interaction parameters (optional)"
+        }
+      ]
+    },
+    {
+      "id": "P365.EOS.SRK.PENELOUX",
+      "name": "P365.EoS.SRK.PenelouxShift",
+      "description": "Peneloux (1982) volume shift correction: \u03a3 zi\u00b7ci (ft\u00b3/lbmol) \u2014 subtract from SRK molar volume to correct liquid density",
+      "parameters": [
+        {
+          "name": "Tcs_R",
+          "description": "Critical temperatures array (\u00b0R)"
+        },
+        {
+          "name": "Pcs_psia",
+          "description": "Critical pressures array (psia)"
+        },
+        {
+          "name": "omegas",
+          "description": "Acentric factors array"
+        },
+        {
+          "name": "zs",
+          "description": "Mole fractions array"
+        },
+        {
+          "name": "ZRA_i",
+          "description": "Rackett compressibility factors (optional, estimated from Yamada-Gunn if absent)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PVT.COND.WELLSTREAM",
+      "name": "P365.PVT.Condensate.WellstreamGravity",
+      "description": "Recombined wellstream specific gravity (air=1) from separator gas gravity, condensate gravity, and CGR",
+      "parameters": [
+        {
+          "name": "gammaG_sp",
+          "description": "Separator gas specific gravity (air=1)"
+        },
+        {
+          "name": "gammaC",
+          "description": "Condensate specific gravity (water=1)"
+        },
+        {
+          "name": "CGR_stb_MMscf",
+          "description": "Condensate-gas ratio (STB/MMscf)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PVT.COND.WETGAS",
+      "name": "P365.PVT.Condensate.WetGasCorrectedGravity",
+      "description": "Correct separator gas gravity for NGL content using Standing (1977) wet-gas correction",
+      "parameters": [
+        {
+          "name": "gammaG_sp",
+          "description": "Separator gas specific gravity (air=1)"
+        },
+        {
+          "name": "API_cond",
+          "description": "Condensate API gravity"
+        },
+        {
+          "name": "T_sp_F",
+          "description": "Separator temperature (\u00b0F)"
+        },
+        {
+          "name": "P_sp_psia",
+          "description": "Separator pressure (psia)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PVT.COND.FVF",
+      "name": "P365.PVT.Condensate.FVF",
+      "description": "Condensate formation volume factor (RB/STB) using Standing (1947) correlation for gas condensate",
+      "parameters": [
+        {
+          "name": "Rsp_scf_stb",
+          "description": "Solution GOR at separator (scf/STB)"
+        },
+        {
+          "name": "gammaG",
+          "description": "Gas specific gravity (air=1)"
+        },
+        {
+          "name": "gammaC",
+          "description": "Condensate specific gravity (water=1)"
+        },
+        {
+          "name": "T_F",
+          "description": "Reservoir temperature (\u00b0F)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PVT.COND.DENSITY",
+      "name": "P365.PVT.Condensate.Density",
+      "description": "Condensate density at reservoir conditions (lb/ft\u00b3)",
+      "parameters": [
+        {
+          "name": "gammaC",
+          "description": "Condensate specific gravity"
+        },
+        {
+          "name": "Rsp_scf_stb",
+          "description": "Solution GOR (scf/STB)"
+        },
+        {
+          "name": "gammaG",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "Bco_RB_STB",
+          "description": "Condensate FVF (RB/STB)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PVT.COND.VISCOSITY",
+      "name": "P365.PVT.Condensate.Viscosity",
+      "description": "Condensate viscosity (cp) at reservoir conditions \u2014 Beggs-Robinson dead oil corrected by Chew-Connally for dissolved gas",
+      "parameters": [
+        {
+          "name": "API_cond",
+          "description": "Condensate API gravity"
+        },
+        {
+          "name": "T_F",
+          "description": "Reservoir temperature (\u00b0F)"
+        },
+        {
+          "name": "Rsp_scf_stb",
+          "description": "Solution GOR (scf/STB)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PVT.COND.WHITSON",
+      "name": "P365.PVT.Condensate.WhitsonC7PlusSplit",
+      "description": "Whitson (1983) C7+ gamma-distribution split into nComp pseudocomponents \u2014 returns {Mw, gamma, Tc_R, Pc_psia, omega, z_frac} array",
+      "parameters": [
+        {
+          "name": "M_C7plus",
+          "description": "C7+ average molecular weight (lbm/lbmol)"
+        },
+        {
+          "name": "gamma_C7plus",
+          "description": "C7+ specific gravity (water=1)"
+        },
+        {
+          "name": "nComp",
+          "description": "Number of pseudocomponents (1-10, default 3)"
+        },
+        {
+          "name": "alpha",
+          "description": "Gamma distribution shape parameter (default 1.5)"
+        }
+      ]
     }
   ]
 }

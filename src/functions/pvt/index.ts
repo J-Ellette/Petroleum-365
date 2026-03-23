@@ -6,3 +6,6 @@
 export * from "./gas";
 export * from "./oil";
 export * from "./water";
+
+// ─── Gas Condensate Properties ──────────────────────────────────────────────
+export * from './condensate';

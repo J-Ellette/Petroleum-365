@@ -992,3 +992,522 @@ export function hasanKabirBHP(
   }
   return P;
 }
+
+// ─── Poettmann-Carpenter (1952) ───────────────────────────────────────────────
+//  Classic empirical model for multiphase vertical flow in oil wells.
+//  No liquid holdup assumed — mixture is treated as a homogeneous fluid.
+//  Friction factor read from a log-log chart (approximated with a curve-fit).
+//
+//  Reference: Poettmann & Carpenter, "The Multiphase Flow of Gas, Oil, and Water
+//  Through Vertical Flow Strings with Application to the Design of Gas-Lift
+//  Installations", Drilling and Production Practice, API, 1952.
+
+/**
+ * Compute the Poettmann-Carpenter empirical friction factor from chart data.
+ * @param rho_m  No-slip mixture density (lb/ft³)
+ * @param v_m    Mixture velocity (ft/s)
+ * @param D_ft   Pipe inside diameter (ft)
+ * @returns      Dimensionless friction factor f_PC
+ */
+function poettmannCarpenterFriction(rho_m: number, v_m: number, D_ft: number): number {
+  // Mass flux parameter ρ·v·D in lb/(ft·s) — basis for chart lookup.
+  const x = rho_m * v_m * D_ft;
+  // Curve-fit to original Poettmann-Carpenter chart (Brill & Mukherjee 1999):
+  //   f_PC = 10^(1.444 − 2.5 · log10(ρ·v·D))  (approximately valid for x ≈ 0.1–1000)
+  const logX = Math.log10(Math.max(x, 1e-6));
+  return Math.pow(10, 1.444 - 2.5 * logX);
+}
+
+/**
+ * Poettmann-Carpenter (1952) multiphase pressure gradient (psi/ft).
+ *
+ * Homogeneous (no-slip) model suitable for high-rate wells where liquid holdup
+ * is negligible or unknown.  Computes a single-segment average gradient.
+ *
+ * @param q_oil_bpd    Oil rate (bbl/d)
+ * @param q_gas_Mscfd  Gas rate (Mscf/d)
+ * @param q_wat_bpd    Water rate (bbl/d)
+ * @param D_in         Tubing inside diameter (in)
+ * @param SG_oil       Oil specific gravity (water = 1.0)
+ * @param SG_gas       Gas specific gravity (air = 1.0)
+ * @param P_avg_psia   Average pressure (psia)
+ * @param T_avg_F      Average temperature (°F)
+ * @param GOR          Producing GOR (scf/STB) — used to determine in-situ gas fraction
+ * @returns            Pressure gradient (psi/ft), positive = increasing downward
+ */
+export function poettmannCarpenterGradient(
+  q_oil_bpd: number,
+  q_gas_Mscfd: number,
+  q_wat_bpd: number,
+  D_in: number,
+  SG_oil: number,
+  SG_gas: number,
+  P_avg_psia: number,
+  T_avg_F: number,
+): number {
+  const D_ft = D_in / 12;
+  const A_ft2 = PI_CONST * D_ft * D_ft / 4;
+  const T_R = T_avg_F + 459.67;
+
+  // In-situ volumetric rates (ft³/s)
+  const Bg_ft3_scf = 0.02827 * T_R / P_avg_psia;                    // ft³/scf at P,T (no Z correction — PC model)
+  const q_l_ft3s = (q_oil_bpd + q_wat_bpd) * 5.615 / 86400;        // ft³/s (liquid at surface ≈ in-situ for incompressible)
+  const q_g_ft3s = (q_gas_Mscfd * 1000) * Bg_ft3_scf / 86400;      // ft³/s (gas at P,T)
+
+  const q_m_ft3s = q_l_ft3s + q_g_ft3s;
+  if (q_m_ft3s <= 0) return 0;
+
+  // No-slip mixture density (lb/ft³)
+  const rho_oil = SG_oil * 62.4;                       // lb/ft³
+  const rho_wat = 62.4;                                // lb/ft³
+  const rho_gas = SG_gas * 29 * P_avg_psia / (10.7316 * T_R);  // lb/ft³ (ideal gas)
+
+  const q_l_total = q_oil_bpd + q_wat_bpd;
+  const rho_liq  = q_l_total > 0
+    ? (rho_oil * q_oil_bpd + rho_wat * q_wat_bpd) / q_l_total
+    : rho_oil;
+
+  const rho_m = (rho_liq * q_l_ft3s + rho_gas * q_g_ft3s) / q_m_ft3s;
+  const v_m   = q_m_ft3s / A_ft2;
+
+  const f_PC  = poettmannCarpenterFriction(rho_m, v_m, D_ft);
+
+  // Gradient: gravity + friction  (no acceleration term in original PC model)
+  const grad_grav = rho_m / 144;                                    // psi/ft
+  const grad_fric = f_PC * rho_m * rho_m * v_m * v_m
+                    / (7.413e10 * Math.pow(D_ft, 5) * 86400 * 86400 * 144);
+  return grad_grav + grad_fric;
+}
+
+/**
+ * Poettmann-Carpenter (1952) bottomhole pressure (psia).
+ *
+ * Integrates the gradient in 10 equal segments using average pressure
+ * at each step (iterative).
+ *
+ * @param Pwh_psia     Wellhead (tubing) pressure (psia)
+ * @param q_oil_bpd    Oil rate (bbl/d)
+ * @param q_gas_Mscfd  Gas rate (Mscf/d)
+ * @param q_wat_bpd    Water rate (bbl/d)
+ * @param D_in         Tubing inside diameter (in)
+ * @param L_ft         Tubing length (ft)
+ * @param SG_oil       Oil specific gravity
+ * @param SG_gas       Gas specific gravity
+ * @param T_wh_F       Wellhead temperature (°F)
+ * @param T_bh_F       Bottomhole temperature (°F)
+ * @returns            BHP (psia)
+ */
+export function poettmannCarpenterBHP(
+  Pwh_psia: number,
+  q_oil_bpd: number,
+  q_gas_Mscfd: number,
+  q_wat_bpd: number,
+  D_in: number,
+  L_ft: number,
+  SG_oil: number,
+  SG_gas: number,
+  T_wh_F: number,
+  T_bh_F: number,
+): number {
+  const nSeg = 10;
+  let P = Pwh_psia;
+  const dL = L_ft / nSeg;
+  for (let i = 0; i < nSeg; i++) {
+    const T_F = T_wh_F + (T_bh_F - T_wh_F) * (i + 0.5) / nSeg;
+    const grad = poettmannCarpenterGradient(
+      q_oil_bpd, q_gas_Mscfd, q_wat_bpd, D_in,
+      SG_oil, SG_gas, P, T_F,
+    );
+    P += grad * dL;
+  }
+  return P;
+}
+
+// ─── Duns-Ros (1963) ─────────────────────────────────────────────────────────
+//  Empirical correlation for vertical multiphase flow in oil wells.
+//  Uses dimensionless velocity, diameter, and viscosity numbers.
+//  Three flow regions: I (bubble/slug), II (slug-to-mist transition), III (mist).
+//
+//  Reference: Duns, H. and Ros, N.C.J., "Vertical Flow of Gas and Liquid Mixtures
+//  in Wells", Proc. 6th World Petroleum Congress, Section II, Paper 22-PD6, 1963.
+
+/**
+ * Duns-Ros dimensionless liquid velocity number.
+ * NLv = v_sl · (ρ_l / (g · σ))^0.25
+ *
+ * @param v_sl     Superficial liquid velocity (ft/s)
+ * @param rho_l    Liquid density (lb/ft³)
+ * @param sigma    Liquid-gas surface tension (lbf/ft)
+ * @returns        NLv (dimensionless)
+ */
+function dunsRosNLv(v_sl: number, rho_l: number, sigma: number): number {
+  return v_sl * Math.pow(rho_l / (G_FT_S2 * sigma), 0.25);
+}
+
+/**
+ * Duns-Ros dimensionless gas velocity number.
+ * NGv = v_sg · (ρ_l / (g · σ))^0.25
+ */
+function dunsRosNGv(v_sg: number, rho_l: number, sigma: number): number {
+  return v_sg * Math.pow(rho_l / (G_FT_S2 * sigma), 0.25);
+}
+
+/**
+ * Duns-Ros pipe diameter number.
+ * Nd = D · (ρ_l · g / σ)^0.5
+ */
+function dunsRosNd(D_ft: number, rho_l: number, sigma: number): number {
+  return D_ft * Math.pow(rho_l * G_FT_S2 / sigma, 0.5);
+}
+
+/**
+ * Duns-Ros liquid viscosity number.
+ * NL = μ_l · (g / (ρ_l · σ^3))^0.25
+ *
+ * @param mu_l  Liquid viscosity (cp)
+ */
+function dunsRosNL(mu_l: number, rho_l: number, sigma: number): number {
+  const mu_lbft = mu_l * 6.72e-4;   // cp → lb/(ft·s)
+  return mu_lbft * Math.pow(G_FT_S2 / (rho_l * Math.pow(sigma, 3)), 0.25);
+}
+
+/**
+ * Duns-Ros (1963) multiphase pressure gradient (psi/ft).
+ *
+ * Implements the three-region flow correlation:
+ *   Region I  (bubble/slug):   NGv < NGv_I
+ *   Region II (slug/mist):     NGv_I ≤ NGv ≤ NGv_II
+ *   Region III (mist):         NGv > NGv_II
+ *
+ * @param q_oil_bpd    Oil rate (bbl/d)
+ * @param q_gas_Mscfd  Free gas rate (Mscf/d)
+ * @param q_wat_bpd    Water rate (bbl/d)
+ * @param D_in         Tubing inside diameter (in)
+ * @param SG_oil       Oil specific gravity (water = 1.0)
+ * @param SG_gas       Gas specific gravity (air = 1.0)
+ * @param mu_l_cp      Liquid viscosity (cp)
+ * @param sigma_lbf_ft Liquid-gas surface tension (lbf/ft)
+ * @param P_avg_psia   Average pressure (psia)
+ * @param T_avg_F      Average temperature (°F)
+ * @returns            Pressure gradient (psi/ft), positive = downward
+ */
+export function dunsRosGradient(
+  q_oil_bpd: number,
+  q_gas_Mscfd: number,
+  q_wat_bpd: number,
+  D_in: number,
+  SG_oil: number,
+  SG_gas: number,
+  mu_l_cp: number,
+  sigma_lbf_ft: number,
+  P_avg_psia: number,
+  T_avg_F: number,
+): number {
+  const D_ft  = D_in / 12;
+  const A_ft2 = PI_CONST * D_ft * D_ft / 4;
+  const T_R   = T_avg_F + 459.67;
+
+  // In-situ volumetric flow rates (ft³/s)
+  const Bg = 0.02827 * T_R / P_avg_psia;               // gas FVF (ft³/scf, ideal)
+  const q_l_ft3s = (q_oil_bpd + q_wat_bpd) * 5.615 / 86400;
+  const q_g_ft3s = (q_gas_Mscfd * 1000) * Bg / 86400;
+
+  // Superficial velocities (ft/s)
+  const v_sl = q_l_ft3s / A_ft2;
+  const v_sg = q_g_ft3s / A_ft2;
+  const v_m  = v_sl + v_sg;
+  if (v_m <= 0) return 0;
+
+  // Fluid densities
+  const rho_oil = SG_oil * 62.4;
+  const rho_wat = 62.4;
+  const rho_gas = SG_gas * 0.0764 * P_avg_psia / 14.7 * 520 / T_R;  // lb/ft³
+  const q_l_total = q_oil_bpd + q_wat_bpd;
+  const rho_l = q_l_total > 0
+    ? (rho_oil * q_oil_bpd + rho_wat * q_wat_bpd) / q_l_total
+    : rho_oil;
+
+  const sigma = Math.max(sigma_lbf_ft, 1e-6);
+
+  // Dimensionless numbers
+  const NLv = dunsRosNLv(v_sl, rho_l, sigma);
+  const NGv = dunsRosNGv(v_sg, rho_l, sigma);
+  const Nd  = dunsRosNd(D_ft, rho_l, sigma);
+  const NL  = dunsRosNL(mu_l_cp, rho_l, sigma);
+
+  // Flow regime boundaries (simplified Duns-Ros Fig. 1):
+  const NGv_I  = 0.5 + 2.5 * NLv;          // Region I / II boundary ≈ bubble→slug
+  const NGv_II = 13.0 + 1.5 * NLv;         // Region II / III boundary ≈ slug→mist
+
+  let HL: number;      // liquid holdup (fraction)
+  let f_DR: number;    // Darcy friction factor
+
+  if (NGv <= NGv_I) {
+    // ── Region I: bubble/slug flow ────────────────────────────────────────────
+    // Slip velocity correlation (Duns-Ros F-coefficients from Table 1):
+    // S = F1 + NLv · F2 + F3 · NLv / (1 + F4·NLv²)
+    // For NL < 0.002 (typical light oils/water):
+    const F1 = 0.029 * Nd + 0.430;
+    const F2 = (0.789 * Math.pow(Nd, 0.3)) / (1 + NL);
+    const F3 = 0.0;
+    const F4 = 0.0;
+    const S  = F1 + NLv * F2 + F3 * NLv / (1 + F4 * NLv * NLv);
+    // Bubble rise velocity (ft/s) from slip
+    const v_s = S * Math.pow(sigma * G_FT_S2 / rho_l, 0.25);
+    // Holdup from continuity: v_sg = HL_g * v_m + HL_g * v_s → solve for HL
+    //   HL = 1 - HL_g ; v_sg = HL_g * (v_m + v_s) → HL_g = v_sg/(v_m + v_s)
+    const HL_g = v_sg / (v_m + Math.max(v_s, 0));
+    HL = Math.max(0, Math.min(1, 1 - HL_g));
+    // Friction factor: Moody with liquid viscosity
+    const Re_l = rho_l * v_m * D_ft / (mu_l_cp * 6.72e-4);
+    f_DR = moodyFriction(Re_l, 0.00015, D_ft);
+
+  } else if (NGv > NGv_II) {
+    // ── Region III: mist flow ─────────────────────────────────────────────────
+    // No liquid holdup — all liquid entrained in gas core
+    HL = 0;
+    const rho_m_mist = rho_gas + (rho_l - rho_gas) * v_sl / v_m;   // no-slip in mist
+    const mu_g = 0.01 + 0.0001 * SG_gas;   // approximate gas viscosity (cp)
+    const Re_g = rho_m_mist * v_m * D_ft / (mu_g * 6.72e-4);
+    f_DR = moodyFriction(Re_g, 0.00015, D_ft);
+
+  } else {
+    // ── Region II: slug/transition ────────────────────────────────────────────
+    // Linearly interpolate holdup between Region I (at NGv_I) and Region III (at NGv_II)
+    const t = (NGv - NGv_I) / (NGv_II - NGv_I);
+    // Region I holdup at NGv = NGv_I
+    const F1 = 0.029 * Nd + 0.430;
+    const F2 = (0.789 * Math.pow(Nd, 0.3)) / (1 + NL);
+    const S_I = F1 + NLv * F2;
+    const v_s_I = S_I * Math.pow(sigma * G_FT_S2 / rho_l, 0.25);
+    const v_sg_I = NGv_I * Math.pow(G_FT_S2 * sigma / rho_l, 0.25);
+    const v_m_I  = v_sl + v_sg_I;
+    const HL_g_I = v_sg_I / (v_m_I + Math.max(v_s_I, 0));
+    const HL_I   = Math.max(0, Math.min(1, 1 - HL_g_I));
+    HL = HL_I * (1 - t);  // linearly blend to 0
+    const Re_t = rho_l * v_m * D_ft / (mu_l_cp * 6.72e-4);
+    f_DR = moodyFriction(Re_t, 0.00015, D_ft);
+  }
+
+  // Mixture density with holdup
+  const rho_s = rho_l * HL + rho_gas * (1 - HL);
+
+  // Gravity gradient (psi/ft)
+  const grad_grav = rho_s / 144;
+
+  // Friction gradient (psi/ft): use no-slip mixture density for friction
+  const rho_ns = rho_l * (v_sl / v_m) + rho_gas * (v_sg / v_m);
+  const grad_fric = f_DR * rho_ns * v_m * v_m / (2 * G_FT_S2 * D_ft * 144);
+
+  return grad_grav + grad_fric;
+}
+
+/**
+ * Duns-Ros (1963) bottomhole pressure (psia).
+ *
+ * @param Pwh_psia      Wellhead pressure (psia)
+ * @param q_oil_bpd     Oil rate (bbl/d)
+ * @param q_gas_Mscfd   Free gas rate (Mscf/d)
+ * @param q_wat_bpd     Water rate (bbl/d)
+ * @param D_in          Tubing inside diameter (in)
+ * @param L_ft          Tubing length (ft)
+ * @param SG_oil        Oil specific gravity
+ * @param SG_gas        Gas specific gravity
+ * @param mu_l_cp       Liquid viscosity (cp)
+ * @param sigma_lbf_ft  Surface tension (lbf/ft)
+ * @param T_wh_F        Wellhead temperature (°F)
+ * @param T_bh_F        Bottomhole temperature (°F)
+ * @returns             BHP (psia)
+ */
+export function dunsRosBHP(
+  Pwh_psia: number,
+  q_oil_bpd: number,
+  q_gas_Mscfd: number,
+  q_wat_bpd: number,
+  D_in: number,
+  L_ft: number,
+  SG_oil: number,
+  SG_gas: number,
+  mu_l_cp: number,
+  sigma_lbf_ft: number,
+  T_wh_F: number,
+  T_bh_F: number,
+): number {
+  const nSeg = 10;
+  let P = Pwh_psia;
+  const dL = L_ft / nSeg;
+  for (let i = 0; i < nSeg; i++) {
+    const T_F = T_wh_F + (T_bh_F - T_wh_F) * (i + 0.5) / nSeg;
+    const grad = dunsRosGradient(
+      q_oil_bpd, q_gas_Mscfd, q_wat_bpd, D_in,
+      SG_oil, SG_gas, mu_l_cp, sigma_lbf_ft, P, T_F,
+    );
+    P += grad * dL;
+  }
+  return P;
+}
+
+// ─── Orkiszewski (1967) ───────────────────────────────────────────────────────
+//  Composite multiphase flow correlation using Griffith-Wallis (1961) for bubble
+//  and slug flow, and Duns-Ros (1963) for mist flow.
+//
+//  Reference: Orkiszewski, J., "Predicting Two-Phase Pressure Drops in Vertical
+//  Pipes", J. Petroleum Technology, June 1967, pp. 829–838.
+
+/**
+ * Griffith-Wallis slug bubble-rise velocity (ft/s).
+ * v_b = 0.8 × √(g·D)   (Taylor bubble velocity in slug)
+ */
+function griffithWallisSlugVelocity(D_ft: number): number {
+  return 0.8 * Math.sqrt(G_FT_S2 * D_ft);
+}
+
+/**
+ * Orkiszewski (1967) multiphase pressure gradient (psi/ft).
+ *
+ * Flow regime classification (after Griffith & Wallis 1961):
+ *   Bubble:  λ_g < L_B  (gas voidage fraction below bubble/slug boundary)
+ *   Slug:    L_B ≤ λ_g < L_S
+ *   Mist:    λ_g ≥ L_S  (delegated to Duns-Ros mist model)
+ *
+ * @param q_oil_bpd    Oil rate (bbl/d)
+ * @param q_gas_Mscfd  Free gas rate (Mscf/d)
+ * @param q_wat_bpd    Water rate (bbl/d)
+ * @param D_in         Tubing inside diameter (in)
+ * @param SG_oil       Oil specific gravity
+ * @param SG_gas       Gas specific gravity
+ * @param mu_l_cp      Liquid viscosity (cp)
+ * @param sigma_lbf_ft Liquid-gas surface tension (lbf/ft)
+ * @param P_avg_psia   Average pressure (psia)
+ * @param T_avg_F      Average temperature (°F)
+ * @returns            Pressure gradient (psi/ft)
+ */
+export function orkiszewskiGradient(
+  q_oil_bpd: number,
+  q_gas_Mscfd: number,
+  q_wat_bpd: number,
+  D_in: number,
+  SG_oil: number,
+  SG_gas: number,
+  mu_l_cp: number,
+  sigma_lbf_ft: number,
+  P_avg_psia: number,
+  T_avg_F: number,
+): number {
+  const D_ft  = D_in / 12;
+  const A_ft2 = PI_CONST * D_ft * D_ft / 4;
+  const T_R   = T_avg_F + 459.67;
+
+  // In-situ flow rates
+  const Bg        = 0.02827 * T_R / P_avg_psia;
+  const q_l_ft3s  = (q_oil_bpd + q_wat_bpd) * 5.615 / 86400;
+  const q_g_ft3s  = (q_gas_Mscfd * 1000) * Bg / 86400;
+  const v_sl      = q_l_ft3s / A_ft2;
+  const v_sg      = q_g_ft3s / A_ft2;
+  const v_m       = v_sl + v_sg;
+  if (v_m <= 0) return 0;
+
+  // Liquid input ratio (no-slip gas void fraction)
+  const lambda_g  = v_sg / v_m;
+
+  // Fluid properties
+  const rho_oil = SG_oil * 62.4;
+  const rho_wat = 62.4;
+  const rho_gas = SG_gas * 0.0764 * P_avg_psia / 14.7 * 520 / T_R;
+  const q_l_total = q_oil_bpd + q_wat_bpd;
+  const rho_l = q_l_total > 0
+    ? (rho_oil * q_oil_bpd + rho_wat * q_wat_bpd) / q_l_total
+    : rho_oil;
+
+  // ── Flow regime boundaries (Orkiszewski 1967, Table 1) ──────────────────────
+  // Bubble/slug boundary: v_sg < v_sb (bubble limit)
+  const v_b  = griffithWallisSlugVelocity(D_ft);          // Taylor bubble velocity
+  const L_B  = 1 - Math.min(0.25, 0.1333 * D_ft);        // λ_g < L_B → bubble
+  // Mist boundary: λ_g ≥ L_S
+  const L_S  = (v_b >= 1.15 * v_m) ? 0.9 : 0.65;         // adjusted mist boundary
+
+  let HL: number;
+  let f_orki: number;
+
+  if (lambda_g < L_B) {
+    // ── Bubble flow: Griffith-Wallis (1961) bubble model ──────────────────────
+    // Liquid holdup: solve v_sg = (1-HL) × (v_m + v_b) → HL = 1 - v_sg/(v_m+v_b)
+    HL = Math.max(0, Math.min(1, 1 - v_sg / (v_m + v_b)));
+    const Re = rho_l * v_m * D_ft / (mu_l_cp * 6.72e-4);
+    f_orki = moodyFriction(Re, 0.00015, D_ft);
+
+  } else if (lambda_g < L_S) {
+    // ── Slug flow: Griffith-Wallis (1961) slug model ──────────────────────────
+    // Slug unit: gas bubble rises at v_b; liquid fills slug body.
+    // Liquid velocity in slug body: v_sl_body = v_m - v_sg_bubble
+    // Taylor bubble void in slug body: α_b = v_sg / (v_b + v_m × (1-delta_b))
+    // Simplified: HL = v_sl / (v_m + v_b)  (Griffith-Wallis Eq. 7)
+    HL = Math.max(0, Math.min(0.99, v_sl / (v_m + v_b)));
+    // Friction: liquid film around slug controls
+    const Re_slug = rho_l * v_m * D_ft / (mu_l_cp * 6.72e-4);
+    f_orki = moodyFriction(Re_slug, 0.00015, D_ft);
+
+  } else {
+    // ── Mist flow: use Duns-Ros Region III approach ────────────────────────────
+    HL = 0;
+    const mu_g_cp = 0.01 + 0.0001 * SG_gas;
+    const rho_ns  = rho_l * v_sl / v_m + rho_gas * v_sg / v_m;
+    const Re_mist = rho_ns * v_m * D_ft / (mu_g_cp * 6.72e-4);
+    f_orki = moodyFriction(Re_mist, 0.00015, D_ft);
+  }
+
+  // Mixture density with holdup
+  const rho_s = rho_l * HL + rho_gas * (1 - HL);
+
+  // Gradient: gravity + friction
+  const grad_grav = rho_s / 144;
+  const rho_ns    = rho_l * v_sl / v_m + rho_gas * v_sg / v_m;
+  const grad_fric = f_orki * rho_ns * v_m * v_m / (2 * G_FT_S2 * D_ft * 144);
+
+  return grad_grav + grad_fric;
+}
+
+/**
+ * Orkiszewski (1967) bottomhole pressure (psia).
+ *
+ * @param Pwh_psia      Wellhead pressure (psia)
+ * @param q_oil_bpd     Oil rate (bbl/d)
+ * @param q_gas_Mscfd   Free gas rate (Mscf/d)
+ * @param q_wat_bpd     Water rate (bbl/d)
+ * @param D_in          Tubing inside diameter (in)
+ * @param L_ft          Tubing length (ft)
+ * @param SG_oil        Oil specific gravity
+ * @param SG_gas        Gas specific gravity
+ * @param mu_l_cp       Liquid viscosity (cp)
+ * @param sigma_lbf_ft  Surface tension (lbf/ft)
+ * @param T_wh_F        Wellhead temperature (°F)
+ * @param T_bh_F        Bottomhole temperature (°F)
+ * @returns             BHP (psia)
+ */
+export function orkiszewskiBHP(
+  Pwh_psia: number,
+  q_oil_bpd: number,
+  q_gas_Mscfd: number,
+  q_wat_bpd: number,
+  D_in: number,
+  L_ft: number,
+  SG_oil: number,
+  SG_gas: number,
+  mu_l_cp: number,
+  sigma_lbf_ft: number,
+  T_wh_F: number,
+  T_bh_F: number,
+): number {
+  const nSeg = 10;
+  let P = Pwh_psia;
+  const dL = L_ft / nSeg;
+  for (let i = 0; i < nSeg; i++) {
+    const T_F = T_wh_F + (T_bh_F - T_wh_F) * (i + 0.5) / nSeg;
+    const grad = orkiszewskiGradient(
+      q_oil_bpd, q_gas_Mscfd, q_wat_bpd, D_in,
+      SG_oil, SG_gas, mu_l_cp, sigma_lbf_ft, P, T_F,
+    );
+    P += grad * dL;
+  }
+  return P;
+}

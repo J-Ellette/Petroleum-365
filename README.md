@@ -2,7 +2,7 @@
 
 > **A comprehensive petroleum engineering function library and Excel add-in for natural gas, oil, CNG, and LNG calculations.**
 
-[![Tests](https://img.shields.io/badge/tests-1465%20passing-brightgreen)](./test)
+[![Tests](https://img.shields.io/badge/tests-1735%20passing-brightgreen)](./test)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -28,7 +28,7 @@
 
 ## What Is P365?
 
-**Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **800+ engineering calculations** organized into 31 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design (including poroelastic closure stress and Nolte G-function analysis), nodal analysis, LNG thermodynamics, wellbore heat transfer, geomechanics, composite skin factor analysis, wellbore integrity (casing design, cement jobs, shoe tests), **reservoir simulation INCLUDE file generation** (Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, and batch file generator), **Eclipse Results Import** (SMSPEC/UNSMRY binary parser that loads simulator output directly into Excel worksheets), **spline interpolation** (cubic, linear, and monotone PCHIP), **economic analysis** (NPV, IRR, payout, economic limit, WI/NRI/royalty stacking, after-tax NPV, price escalation, F&D cost), and **well production allocation** (multi-well proration, capacity curtailment, voidage replacement).
+**Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **800+ engineering calculations** organized into 33 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design (including poroelastic closure stress and Nolte G-function analysis), nodal analysis, LNG thermodynamics, wellbore heat transfer, geomechanics, composite skin factor analysis, wellbore integrity (casing design, cement jobs, shoe tests), **reservoir simulation INCLUDE file generation** (Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, and batch file generator), **Eclipse Results Import** (SMSPEC/UNSMRY binary parser that loads simulator output directly into Excel worksheets), **spline interpolation** (cubic, linear, and monotone PCHIP), **economic analysis** (NPV, IRR, payout, economic limit, WI/NRI/royalty stacking, after-tax NPV, price escalation, F&D cost), **well production allocation** (multi-well proration, capacity curtailment, voidage replacement), **rate-transient analysis** (FMB, b-plot, RNP, material balance time, Blasingame type curves), **SRK equation of state** (bubble/dew point, two-phase flash, fugacity, Peneloux volume shift), and **gas condensate PVT** (wellstream gravity, wet-gas correction, condensate FVF/density/viscosity, Whitson C7+ characterization).
 
 P365 is designed to work **inside Microsoft Excel** as a custom function library (UDFs), letting engineers use familiar spreadsheet workflows backed by rigorous, well-tested engineering correlations. It is also available as a standalone TypeScript/Node.js library for integration into web applications, pipelines, or custom tooling. The full **Office 365 add-in suite** — Word, Outlook, Teams, PowerPoint, OneNote, and Access — extends P365 calculations into reports, emails, collaboration cards, presentations, field notes, and job databases.
 
@@ -52,8 +52,8 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 
 ## Features
 
-- ✅ **1465 passing unit tests** — every correlation is independently verified
-- ✅ **31 engineering modules** covering the full production lifecycle
+- ✅ **1735 passing unit tests** — every correlation is independently verified
+- ✅ **33 engineering modules** covering the full production lifecycle
 - ✅ **Field units throughout** — psi, °F, STB, scf, ft, cp, md
 - ✅ **Named after correlation authors** — `P365.PVT.Z.ByDAK` is the Dranchuk-Abou-Kassem method
 - ✅ **Pure functions** — no side effects, no global state, fully testable
@@ -99,8 +99,10 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 | 30 | **RTA** | Rate-Transient Analysis | Material balance time, pseudo-pressure/pseudo-time, rate-normalized pressure (RNP), flowing material balance (FMB) for gas and oil, Blasingame b-plot diagnostic, type-curve normalization, permeability/skin from IARF RNP slope, PSS kh estimation |
 | 31 | **EoS** (ext.) | Phase Equilibrium | Wilson K-value initial guess, Michelsen (1982) tangent-plane distance (TPD) stability test |
 | 32 | **PTA** (ext.) | Multi-Well Testing | Interference transient pressure (line-source Ei), permeability/storativity inversion, pulse test amplitude/permeability/storativity |
-| 33 | **Blueprints** | Blueprint Manager Catalog | 50+ structured blueprint templates; RTA, EoS stability, PTA interference/pulse added Session 14 |
-| 34 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions |
+| 33 | **SRK** | Soave-Redlich-Kwong EoS | Pure-component and mixture flash, bubble-point, dew-point, fugacity coefficients, Peneloux volume shift (Session 15) |
+| 34 | **GasCond** | Gas Condensate PVT | Wellstream gravity, wet-gas correction, condensate FVF/density/viscosity, Whitson (1983) C7+ gamma-distribution split (Session 15) |
+| 35 | **Blueprints** | Blueprint Manager Catalog | 50+ structured blueprint templates; RTA, EoS stability, PTA interference/pulse added Session 14 |
+| 36 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions |
 
 ---
 
@@ -1167,6 +1169,55 @@ Production data analytics for reservoir characterization from rate-pressure hist
 
 ---
 
+### SRK Equation of State (Session 15)
+
+**Soave-Redlich-Kwong (1972) EoS** — parallel implementation to Peng-Robinson:
+- P = RT/(V−b) − a(T)/[V(V+b)];  ΩA=0.42748, ΩB=0.08664;  m=0.480+1.574ω−0.176ω²
+
+| Function | Description |
+|----------|-------------|
+| `P365.EoS.SRK.AB(Tc_R, Pc_psia, omega, T_R)` | SRK a (psia·ft⁶/lbmol²) and b (ft³/lbmol) |
+| `P365.EoS.SRK.ZFactor(Tc_R, Pc_psia, omega, T_R, P_psia, phase)` | Compressibility factor Z (vapor or liquid) |
+| `P365.EoS.SRK.FugacityCoefficient(Z, A, B)` | Fugacity coefficient φ |
+| `P365.EoS.SRK.MixAB(Tcs, Pcs, omegas, zs, T_R, P_psia, kijs)` | Mixture A, B with vdW mixing rules |
+| `P365.EoS.SRK.BubblePoint(Tcs, Pcs, omegas, zs, T_R, P_guess, kijs)` | Bubble-point pressure (psia) |
+| `P365.EoS.SRK.DewPoint(Tcs, Pcs, omegas, zs, T_R, P_guess, kijs)` | Dew-point pressure (psia) |
+| `P365.EoS.SRK.Flash(Tcs, Pcs, omegas, zs, T_R, P_psia, kijs)` | Two-phase flash: V_frac, x[], y[], Z_liq, Z_vap |
+| `P365.EoS.SRK.PenelouxShift(Tcs, Pcs, omegas, zs, ZRA_i)` | Peneloux (1982) volume shift Σ zi·ci (ft³/lbmol) |
+
+### VFP Classic Correlations (Session 15)
+
+**Poettmann-Carpenter (1952)** — homogeneous model, empirical friction factor from chart-fit:
+| Function | Description |
+|----------|-------------|
+| `P365.VFP.PoettmannCarpenter.Gradient(q_oil, q_gas, q_wat, D_in, SG_oil, SG_gas, P_avg, T_avg)` | Pressure gradient (psi/ft) |
+| `P365.VFP.PoettmannCarpenter.BHP(Pwh, q_oil, q_gas, q_wat, D_in, L_ft, SG_oil, SG_gas, T_wh, T_bh)` | Bottomhole pressure (psia) |
+
+**Duns-Ros (1963)** — three-region flow (bubble/slug/mist) using dimensionless NLv, NGv, Nd, NL numbers:
+| Function | Description |
+|----------|-------------|
+| `P365.VFP.DunsRos.Gradient(q_oil, q_gas, q_wat, D_in, SG_oil, SG_gas, mu_l, sigma, P_avg, T_avg)` | Pressure gradient (psi/ft) |
+| `P365.VFP.DunsRos.BHP(Pwh, q_oil, q_gas, q_wat, D_in, L_ft, SG_oil, SG_gas, mu_l, sigma, T_wh, T_bh)` | Bottomhole pressure (psia) |
+
+**Orkiszewski (1967)** — Griffith-Wallis bubble/slug + Duns-Ros mist flow:
+| Function | Description |
+|----------|-------------|
+| `P365.VFP.Orkiszewski.Gradient(q_oil, q_gas, q_wat, D_in, SG_oil, SG_gas, mu_l, sigma, P_avg, T_avg)` | Pressure gradient (psi/ft) |
+| `P365.VFP.Orkiszewski.BHP(Pwh, q_oil, q_gas, q_wat, D_in, L_ft, SG_oil, SG_gas, mu_l, sigma, T_wh, T_bh)` | Bottomhole pressure (psia) |
+
+### PVT Gas Condensate (Session 15)
+
+| Function | Description |
+|----------|-------------|
+| `P365.PVT.Condensate.WellstreamGravity(gammaG_sp, gammaC, CGR_stb_MMscf)` | Recombined wellstream specific gravity (air=1) |
+| `P365.PVT.Condensate.WetGasCorrectedGravity(gammaG_sp, API_cond, T_sp_F, P_sp_psia)` | Standing (1977) wet-gas gravity correction |
+| `P365.PVT.Condensate.FVF(Rsp_scf_stb, gammaG, gammaC, T_F)` | Condensate FVF Bco (RB/STB) |
+| `P365.PVT.Condensate.Density(gammaC, Rsp_scf_stb, gammaG, Bco_RB_STB)` | Condensate density at reservoir conditions (lb/ft³) |
+| `P365.PVT.Condensate.Viscosity(API_cond, T_F, Rsp_scf_stb)` | Condensate viscosity (cp) — Beggs-Robinson + Chew-Connally |
+| `P365.PVT.Condensate.WhitsonC7PlusSplit(M_C7plus, gamma_C7plus, nComp, alpha)` | Whitson (1983) C7+ gamma-distribution pseudocomponent split |
+
+---
+
 ## Development
 
 ### Project Structure
@@ -1175,7 +1226,7 @@ Production data analytics for reservoir characterization from rate-pressure hist
 Petroleum-365/
 ├── src/
 │   ├── index.ts                  ← P365 namespace (all exports)
-│   ├── functions.json            ← UDF registrations (221 entries)
+│   ├── functions.json            ← UDF registrations (241 entries)
 │   └── functions/
 │       ├── pvt/                  ← PVT: gas.ts, oil.ts, water.ts
 │       ├── dca/                  ← Decline curve analysis
@@ -1206,6 +1257,8 @@ Petroleum-365/
 │       ├── eco/                  ← Economic analysis: NPV/IRR/payout/economic limit (Session 11)
 │       ├── wpa/                  ← Well production allocation & VRR (Session 11)
 │       ├── rta/                  ← Rate-transient analysis: FMB, b-plot, RNP, type curves (Session 14)
+│       ├── eos/srk.ts            ← Soave-Redlich-Kwong EoS: flash, bubble/dew, Peneloux shift (Session 15)
+│       ├── pvt/condensate.ts     ← Gas condensate PVT: wellstream gravity, wet-gas correction, Whitson C7+ (Session 15)
 │       ├── pipe/                 ← Pipe sizing
 │       └── utilities/            ← Unit converter
 ├── src/addins/
@@ -1232,7 +1285,7 @@ Petroleum-365/
 | Command | Description |
 |---------|-------------|
 | `npm install` | Install all dependencies |
-| `npx jest --no-coverage` | Run all 1465 unit tests |
+| `npx jest --no-coverage` | Run all 1735 unit tests |
 | `npx tsc --noEmit` | TypeScript type-check (0 errors expected) |
 | `npm run build` | Build for production |
 
