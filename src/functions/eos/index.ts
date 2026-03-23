@@ -576,3 +576,166 @@ export function prFlash(
     Zl: Math.min(...prCubicRoots(Al_f, Bl_f)),
   };
 }
+
+
+// ─── Wilson K-Value Initial Guess ────────────────────────────────────────────
+
+/**
+ * Compute Wilson equation K-values as initial guess for flash calculations.
+ *
+ * Ki = (Pci / P) * exp(5.373 * (1 + omegai) * (1 - Tci / T))
+ *
+ * Reference: Wilson (1969); also used in Michelsen stability test.
+ *
+ * @param T_R         Temperature (degR)
+ * @param P_psia      Pressure (psia)
+ * @param Tc_R_arr    Critical temperatures (degR)
+ * @param Pc_psia_arr Critical pressures (psia)
+ * @param omega_arr   Acentric factors (dimensionless)
+ * @returns           Array of K-values (dimensionless)
+ */
+export function prWilsonK(
+  T_R: number,
+  P_psia: number,
+  Tc_R_arr: number[],
+  Pc_psia_arr: number[],
+  omega_arr: number[]
+): number[] {
+  const n = Tc_R_arr.length;
+  if (Pc_psia_arr.length !== n || omega_arr.length !== n) {
+    throw new Error("All component arrays must have the same length");
+  }
+  return Tc_R_arr.map((Tc, i) =>
+    (Pc_psia_arr[i] / P_psia) * Math.exp(5.373 * (1 + omega_arr[i]) * (1 - Tc / T_R))
+  );
+}
+
+// ─── Michelsen Stability Test ─────────────────────────────────────────────────
+
+/**
+ * Michelsen (1982) tangent-plane distance (TPD) stability test.
+ *
+ * Tests whether a feed composition z at (T, P) is stable or in two-phase
+ * equilibrium by minimizing the tangent plane distance function.
+ *
+ * Algorithm:
+ *   1. Initialize trial compositions from Wilson K-values (liquid-like and vapor-like)
+ *   2. Successive substitution: Wi_new = zi * exp(lnPhi_i(z) - lnPhi_i(W))
+ *   3. If sum(Wi) > 1 + tolerance at convergence, feed is UNSTABLE
+ *
+ * @param T_R         Temperature (degR)
+ * @param P_psia      Pressure (psia)
+ * @param z_arr       Feed composition (mole fractions, must sum to 1)
+ * @param Tc_R_arr    Critical temperatures (degR)
+ * @param Pc_psia_arr Critical pressures (psia)
+ * @param omega_arr   Acentric factors (dimensionless)
+ * @param kij_arr     Binary interaction parameters (n x n matrix)
+ * @param maxIter     Maximum iterations (default 100)
+ * @returns           { stable, sumW_L, sumW_V, tpdL, tpdV, iterations }
+ */
+export function prStabilityTest(
+  T_R: number,
+  P_psia: number,
+  z_arr: number[],
+  Tc_R_arr: number[],
+  Pc_psia_arr: number[],
+  omega_arr: number[],
+  kij_arr?: number[][],
+  maxIter = 100
+): { stable: boolean; sumW_L: number; sumW_V: number; tpdL: number; tpdV: number; iterations: number } {
+  const n = z_arr.length;
+  if (Tc_R_arr.length !== n || Pc_psia_arr.length !== n || omega_arr.length !== n) {
+    throw new Error("All component arrays must have the same length");
+  }
+
+  const TOL = 1e-10;
+
+  // Compute feed fugacity coefficients using the liquid-like Z root
+  const feedResult = prMixAB(T_R, P_psia, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr);
+  const { A_mix: Az, B_mix: Bz, a_i_arr: az_i, b_i_arr: bz_i } = feedResult;
+  const Zz_roots = prCubicRoots(Az, Bz);
+  const Zz = Zz_roots.reduce((a, b) => (b < a ? b : a));
+  const lnPhiZ: number[] = [];
+  for (let i = 0; i < n; i++) {
+    lnPhiZ.push(prComponentLnFugacity(i, Zz, Az, Bz, az_i, bz_i, z_arr, kij_arr));
+  }
+
+  // Wilson K-values for initialization
+  const K = prWilsonK(T_R, P_psia, Tc_R_arr, Pc_psia_arr, omega_arr);
+
+  // Trial 1: liquid-like (W = z/K)
+  let W_L = z_arr.map((zi, i) => zi / K[i]);
+  // Trial 2: vapor-like (W = z*K)
+  let W_V = z_arr.map((zi, i) => zi * K[i]);
+
+  let iter = 0;
+  let sumW_L = 0, sumW_V = 0;
+  let tpdL = 0, tpdV = 0;
+
+  for (iter = 0; iter < maxIter; iter++) {
+    // Normalize trial compositions
+    sumW_L = W_L.reduce((a, b) => a + b, 0);
+    sumW_V = W_V.reduce((a, b) => a + b, 0);
+    const wl_norm = W_L.map(w => w / sumW_L);
+    const wv_norm = W_V.map(w => w / sumW_V);
+
+    // Compute fugacity coefficients for trial phases
+    const { A_mix: AL, B_mix: BL, a_i_arr: al_i, b_i_arr: bl_i } =
+      prMixAB(T_R, P_psia, Tc_R_arr, Pc_psia_arr, omega_arr, wl_norm, kij_arr);
+    const ZL_roots = prCubicRoots(AL, BL);
+    const ZL = ZL_roots.reduce((a, b) => (b < a ? b : a));
+
+    const { A_mix: AV, B_mix: BV, a_i_arr: av_i, b_i_arr: bv_i } =
+      prMixAB(T_R, P_psia, Tc_R_arr, Pc_psia_arr, omega_arr, wv_norm, kij_arr);
+    const ZV_roots = prCubicRoots(AV, BV);
+    const ZV = ZV_roots.reduce((a, b) => (b > a ? b : a));
+
+    // Update trial compositions (successive substitution)
+    const W_L_new: number[] = [];
+    const W_V_new: number[] = [];
+    let maxDelta = 0;
+
+    for (let i = 0; i < n; i++) {
+      const lnPhiL = prComponentLnFugacity(i, ZL, AL, BL, al_i, bl_i, wl_norm, kij_arr);
+      const lnPhiV = prComponentLnFugacity(i, ZV, AV, BV, av_i, bv_i, wv_norm, kij_arr);
+      const W_L_new_i = z_arr[i] > 0 ? Math.exp(lnPhiZ[i] - lnPhiL + Math.log(z_arr[i])) : 0;
+      const W_V_new_i = z_arr[i] > 0 ? Math.exp(lnPhiZ[i] - lnPhiV + Math.log(z_arr[i])) : 0;
+      W_L_new.push(W_L_new_i);
+      W_V_new.push(W_V_new_i);
+      maxDelta = Math.max(maxDelta, Math.abs(W_L_new_i - W_L[i]), Math.abs(W_V_new_i - W_V[i]));
+    }
+
+    W_L = W_L_new;
+    W_V = W_V_new;
+    if (maxDelta < TOL) break;
+  }
+
+  // Compute final sums
+  sumW_L = W_L.reduce((a, b) => a + b, 0);
+  sumW_V = W_V.reduce((a, b) => a + b, 0);
+
+  // Compute TPD values
+  const wl_norm = W_L.map(w => sumW_L > 0 ? w / sumW_L : 0);
+  const wv_norm = W_V.map(w => sumW_V > 0 ? w / sumW_V : 0);
+
+  const { A_mix: AL_f, B_mix: BL_f, a_i_arr: al_f, b_i_arr: bl_f } =
+    prMixAB(T_R, P_psia, Tc_R_arr, Pc_psia_arr, omega_arr, wl_norm, kij_arr);
+  const ZL_f = prCubicRoots(AL_f, BL_f).reduce((a, b) => (b < a ? b : a));
+  const { A_mix: AV_f, B_mix: BV_f, a_i_arr: av_f, b_i_arr: bv_f } =
+    prMixAB(T_R, P_psia, Tc_R_arr, Pc_psia_arr, omega_arr, wv_norm, kij_arr);
+  const ZV_f = prCubicRoots(AV_f, BV_f).reduce((a, b) => (b > a ? b : a));
+
+  tpdL = 0; tpdV = 0;
+  for (let i = 0; i < n; i++) {
+    const lnPhiL_f = prComponentLnFugacity(i, ZL_f, AL_f, BL_f, al_f, bl_f, wl_norm, kij_arr);
+    const lnPhiV_f = prComponentLnFugacity(i, ZV_f, AV_f, BV_f, av_f, bv_f, wv_norm, kij_arr);
+    const di = z_arr[i] > 0 ? Math.log(z_arr[i]) + lnPhiZ[i] : 0;
+    if (W_L[i] > 0) tpdL += W_L[i] * (Math.log(W_L[i]) + lnPhiL_f - di);
+    if (W_V[i] > 0) tpdV += W_V[i] * (Math.log(W_V[i]) + lnPhiV_f - di);
+  }
+
+  // Unstable if sum(Wi) > 1 + small tolerance for either trial
+  const stable = (sumW_L <= 1 + 1e-6) && (sumW_V <= 1 + 1e-6);
+
+  return { stable, sumW_L, sumW_V, tpdL, tpdV, iterations: iter };
+}

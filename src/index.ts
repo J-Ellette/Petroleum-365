@@ -43,6 +43,7 @@ import * as SplineExports  from "./functions/spline";
 import * as ECOExports     from "./functions/eco";
 import * as WPAExports     from "./functions/wpa";
 import * as IFTExports     from "./functions/pvt/ift";
+import * as RTAExports     from "./functions/rta";
 
 // ─── Re-export raw modules ────────────────────────────────────────────────────
 export * as P365_PVT_Gas   from "./functions/pvt/gas";
@@ -77,6 +78,7 @@ export * as P365_Spline    from "./functions/spline";
 export * as P365_ECO       from "./functions/eco";
 export * as P365_WPA       from "./functions/wpa";
 export * as P365_PVT_IFT   from "./functions/pvt/ift";
+export * as P365_RTA       from "./functions/rta";
 export { unitConverter, getUnitsForCategory, getCategories, listUnits } from "./functions/utilities/unitConverter";
 
 // ─── P365 Namespace Object ────────────────────────────────────────────────────
@@ -373,6 +375,16 @@ export const P365 = {
       C:   PTAExports.wellboreStorageCoefficient,
       CD:  PTAExports.wellboreStorageCoefficientCD,
     },
+    Interference: {
+      TransientPressure:  PTAExports.interferenceTransientPressure,
+      Permeability:       PTAExports.interferencePermeability,
+      Storativity:        PTAExports.interferenceStorativity,
+    },
+    PulseTest: {
+      Amplitude:          PTAExports.pulseTestAmplitude,
+      Permeability:       PTAExports.pulseTestPermeability,
+      Storativity:        PTAExports.pulseTestStorativity,
+    },
   },
 
   // ─── VFP — Vertical Flow Performance ──────────────────────────────────────
@@ -584,6 +596,8 @@ export const P365 = {
       BubblePoint:        EoSExports.prBubblePoint,
       DewPoint:           EoSExports.prDewPoint,
       Flash:              EoSExports.prFlash,
+      WilsonK:            EoSExports.prWilsonK,
+      StabilityTest:      EoSExports.prStabilityTest,
     },
   },
 
@@ -956,6 +970,37 @@ export const P365 = {
     // Field summary
     FieldSummary:           WPAExports.wpaFieldSummary,
     FieldPI:                WPAExports.wpaFieldPI,
+  },
+
+  // ─── RTA — Rate-Transient Analysis ─────────────────────────────────────────
+  RTA: {
+    // Material balance time
+    MaterialBalanceTime:      RTAExports.rtaMaterialBalanceTime,
+    MaterialBalanceTimeOil:   RTAExports.rtaMaterialBalanceTimeOil,
+    // Pseudo-pressure & pseudo-time
+    PseudoPressure:           RTAExports.rtaPseudoPressure,
+    PseudoPressureDiff:       RTAExports.rtaPseudoPressureDiff,
+    PseudoTime:               RTAExports.rtaPseudoTime,
+    // Rate-normalized pressure
+    RNP:                      RTAExports.rtaRateNormalizedPressure,
+    RNPOil:                   RTAExports.rtaRateNormalizedPressureOil,
+    // Flowing material balance
+    FMBGas:                   RTAExports.rtaFlowingMaterialBalanceGas,
+    FMBOil:                   RTAExports.rtaFlowingMaterialBalanceOil,
+    // b-plot diagnostic
+    BPlot:                    RTAExports.rtaBPlot,
+    // Blasingame type curves
+    BlassingameDimRate:       RTAExports.rtaBlassingameDimensionlessRate,
+    BlassingameDimTime:       RTAExports.rtaBlassingameDimensionlessTime,
+    // Recovery factor
+    RecoveryFactorFMB:        RTAExports.rtaRecoveryFactorFMB,
+    // Permeability & skin from RNP
+    PermeabilityFromRNP:      RTAExports.rtaPermeabilityFromRNP,
+    SkinFromRNP:              RTAExports.rtaSkinFromRNP,
+    // Arps b-exponent
+    ArpsBExponent:            RTAExports.rtaArpsBExponent,
+    // PSS kh from RNP
+    KhFromPSSRNP:             RTAExports.rtaKhFromPSSRNP,
   },
 
 } as const;

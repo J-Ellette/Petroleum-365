@@ -40,6 +40,7 @@ export type BlueprintCategory =
   | "Spline"
   | "ECO"
   | "WPA"
+  | "RTA"
   | "Utilities";
 
 /** A single blueprint catalog entry. */
@@ -671,6 +672,108 @@ export const BLUEPRINT_CATALOG: Blueprint[] = [
     tags: ["units", "converter", "psi", "bar", "mpa", "stb", "m3", "bbl", "psia", "torque", "thermal"],
     rowCount: 50,
     colCount: 5,
+  },
+
+  // ── RTA — Rate-Transient Analysis ───────────────────────────────────────────
+  {
+    id: "rta-flowing-material-balance",
+    name: "Flowing Material Balance (FMB)",
+    category: "RTA",
+    description:
+      "Flowing material balance analysis for gas or oil wells. Computes material balance time, rate-normalized pressure (RNP), and performs linear regression to estimate OGIP (gas) or OOIP (oil) from the RNP vs. material balance time straight line. Includes recovery factor and FMB quality metrics (R²).",
+    requiredFunctions: [
+      "RTA.MaterialBalanceTime",
+      "RTA.RNP",
+      "RTA.FMBGas",
+      "RTA.FMBOil",
+      "RTA.RecoveryFactorFMB",
+    ],
+    tags: ["rta", "fmb", "flowing material balance", "ogip", "ooip", "recovery factor", "rnp", "gas", "oil"],
+    rowCount: 55,
+    colCount: 12,
+  },
+  {
+    id: "rta-bplot-diagnostic",
+    name: "RTA b-Plot Diagnostic",
+    category: "RTA",
+    description:
+      "Rate-transient b-plot diagnostic for flow regime identification. Computes the Blasingame loss-ratio b = -q/(dq/dt) and its derivative bDot = db/dt at each time step. A constant b indicates boundary-dominated flow (BDF); increasing b indicates transient flow. Includes Arps b-exponent estimation and Blasingame dimensionless type-curve parameters.",
+    requiredFunctions: [
+      "RTA.BPlot",
+      "RTA.BlassingameDimRate",
+      "RTA.BlassingameDimTime",
+      "RTA.ArpsBExponent",
+    ],
+    tags: ["rta", "b-plot", "blasingame", "loss ratio", "flow regime", "transient", "bdf", "decline"],
+    rowCount: 60,
+    colCount: 10,
+  },
+  {
+    id: "rta-permeability-skin",
+    name: "RTA Permeability and Skin from RNP",
+    category: "RTA",
+    description:
+      "Estimate reservoir permeability and wellbore skin from rate-normalized pressure (RNP) vs. log(tc) straight-line analysis during infinite-acting radial flow (IARF). Uses the slope m* = 1637T/(kh) to compute k and the Horner-style equation for skin. Also includes PSS kh estimation and pseudo-time correction for gas wells.",
+    requiredFunctions: [
+      "RTA.PermeabilityFromRNP",
+      "RTA.SkinFromRNP",
+      "RTA.KhFromPSSRNP",
+      "RTA.PseudoPressure",
+      "RTA.PseudoTime",
+    ],
+    tags: ["rta", "permeability", "skin", "rnp", "iarf", "gas well", "pseudo-pressure", "pseudo-time"],
+    rowCount: 45,
+    colCount: 10,
+  },
+
+  // ── PTA extended — Interference and Pulse Tests ──────────────────────────────
+  {
+    id: "pta-interference-test",
+    name: "Interference Test Analysis",
+    category: "PTA",
+    description:
+      "Multi-well interference test analysis using the line-source Ei solution. Compute pressure response at an observation well due to production at an active well, estimate permeability and storativity from observed responses, and generate a pressure history match. Suitable for single-layer homogeneous reservoirs.",
+    requiredFunctions: [
+      "PTA.Interference.TransientPressure",
+      "PTA.Interference.Permeability",
+      "PTA.Interference.Storativity",
+    ],
+    tags: ["pta", "interference", "multi-well", "observation well", "permeability", "storativity", "ei"],
+    rowCount: 50,
+    colCount: 10,
+  },
+  {
+    id: "pta-pulse-test",
+    name: "Pulse Test Analysis",
+    category: "PTA",
+    description:
+      "Pulse test design and analysis. Compute expected pulse response amplitudes, estimate permeability from observed amplitudes, and determine storativity from pulse lag times. Includes guidance on pulse period selection and dimensionless lag time x_L values for the first odd pulse (Johnson-Greenkorn-Woods method).",
+    requiredFunctions: [
+      "PTA.PulseTest.Amplitude",
+      "PTA.PulseTest.Permeability",
+      "PTA.PulseTest.Storativity",
+    ],
+    tags: ["pta", "pulse test", "inter-well", "permeability", "storativity", "lag time", "amplitude"],
+    rowCount: 45,
+    colCount: 10,
+  },
+
+  // ── EoS extended — Phase Stability ──────────────────────────────────────────
+  {
+    id: "eos-stability-flash",
+    name: "EoS Phase Stability and Flash",
+    category: "EoS",
+    description:
+      "Peng-Robinson EoS phase stability test (Michelsen 1982) followed by two-phase flash. Initialize K-values with Wilson's equation, run the tangent-plane distance (TPD) stability test to determine if the feed is stable or two-phase, then perform rigorous PT flash to get equilibrium compositions, K-values, and vapor fraction.",
+    requiredFunctions: [
+      "EoS.PR.WilsonK",
+      "EoS.PR.StabilityTest",
+      "EoS.PR.Flash",
+      "EoS.PR.BubblePoint",
+    ],
+    tags: ["eos", "stability", "tpd", "michelsen", "flash", "k-values", "wilson", "phase equilibrium", "pr"],
+    rowCount: 50,
+    colCount: 12,
   },
 ];
 
