@@ -456,3 +456,215 @@ export function ecoTornadoSensitivity(
     return { name, baseNPV, lowNPV, highNPV, swing: highNPV - lowNPV };
   });
 }
+
+// ─── Working Interest / Royalty / NRI ────────────────────────────────────────
+
+/**
+ * Calculate working interest (WI) revenue from before-tax gross revenue.
+ *
+ * WI_Revenue = GrossRevenue × WI
+ *
+ * @param grossRevenue   Gross revenue before burdens (USD)
+ * @param wi             Working interest fraction (e.g. 0.75 for 75%)
+ * @returns              Working interest revenue (USD)
+ */
+export function ecoWorkingInterest(grossRevenue: number, wi: number): number {
+  return grossRevenue * wi;
+}
+
+/**
+ * Calculate Net Revenue Interest (NRI) from working interest and royalty.
+ *
+ * NRI = WI × (1 − totalRoyalty)
+ *
+ * @param wi             Working interest fraction (e.g. 0.75 for 75%)
+ * @param totalRoyalty   Total royalty burden (e.g. 0.1875 = 1/8 royalty + ORRI)
+ * @returns              Net revenue interest fraction
+ */
+export function ecoNetRevenueInterest(wi: number, totalRoyalty: number): number {
+  return wi * (1 - totalRoyalty);
+}
+
+/**
+ * Calculate royalty-stacked net revenue after multiple royalty burdens.
+ *
+ * Net = GrossRevenue × (1 − r1) × (1 − r2) × …
+ *
+ * Useful when multiple royalty owners hold separate interests
+ * (e.g., lessor royalty + ORRI + state royalty).
+ *
+ * @param grossRevenue  Gross revenue before royalties (USD)
+ * @param royalties     Array of royalty fractions to deduct in sequence
+ * @returns             Net revenue after all royalty deductions (USD)
+ */
+export function ecoRoyaltyStack(grossRevenue: number, royalties: number[]): number {
+  return royalties.reduce((rev, r) => rev * (1 - r), grossRevenue);
+}
+
+/**
+ * Project gas prices forward with annual escalation rate.
+ *
+ * price[t] = basePrice × (1 + escalationRate)^t
+ *
+ * @param basePrice       Price at period 0 (USD/Mscf or USD/MMBtu)
+ * @param escalationRate  Annual price escalation rate (e.g. 0.03 = 3%/yr)
+ * @param periods         Number of periods to generate (includes t = 0)
+ * @returns               Array of escalated prices length = periods
+ */
+export function ecoGasPriceEscalation(
+  basePrice: number,
+  escalationRate: number,
+  periods: number,
+): number[] {
+  const out: number[] = [];
+  for (let t = 0; t < periods; t++) {
+    out.push(basePrice * Math.pow(1 + escalationRate, t));
+  }
+  return out;
+}
+
+/**
+ * Adjust real cash flows for inflation to produce nominal cash flows.
+ *
+ * nominalCF[t] = realCF[t] × (1 + inflationRate)^t
+ *
+ * @param realCashFlows   Array of real (constant-dollar) cash flows
+ * @param inflationRate   Annual inflation rate (e.g. 0.03 = 3%/yr)
+ * @returns               Array of nominal (current-dollar) cash flows
+ */
+export function ecoInflationAdjust(realCashFlows: number[], inflationRate: number): number[] {
+  return realCashFlows.map((cf, t) => cf * Math.pow(1 + inflationRate, t));
+}
+
+/**
+ * Calculate after-tax NPV using a flat income tax rate on taxable income.
+ *
+ * After-tax CF[t] = preTaxCF[t] − max(0, preTaxCF[t] × taxRate)
+ * After-tax NPV   = Σ afterTaxCF[t] / (1 + r)^t
+ *
+ * Note: losses (negative CF) are not taxed (conservative — no carryforward).
+ * For depletion-adjusted taxation use ecoAfterTaxNPVWithDepletion.
+ *
+ * @param cashFlows  Pre-tax cash flows (positive = income, negative = expense)
+ * @param rate       Periodic discount rate
+ * @param taxRate    Income tax rate (e.g. 0.21 for 21% federal)
+ * @returns          After-tax NPV
+ */
+export function ecoAfterTaxNPV(cashFlows: number[], rate: number, taxRate: number): number {
+  const afterTax = cashFlows.map(cf => cf > 0 ? cf * (1 - taxRate) : cf);
+  return ecoNPV(afterTax, rate);
+}
+
+/**
+ * Calculate after-tax NPV with UOP depletion shielding.
+ *
+ * taxable income[t] = preTaxCF[t] − depletion[t]
+ * tax[t]           = max(0, taxable[t]) × taxRate
+ * after-tax CF[t]  = preTaxCF[t] − tax[t]
+ *
+ * @param cashFlows      Pre-tax cash flows
+ * @param rate           Periodic discount rate
+ * @param taxRate        Income tax rate
+ * @param depletion      Per-period depletion deduction (same length as cashFlows)
+ * @returns              After-tax NPV accounting for depletion shield
+ */
+export function ecoAfterTaxNPVWithDepletion(
+  cashFlows: number[],
+  rate: number,
+  taxRate: number,
+  depletion: number[],
+): number {
+  const n = cashFlows.length;
+  const deplArr = depletion.length >= n
+    ? depletion
+    : [...depletion, ...new Array<number>(n - depletion.length).fill(0)];
+  const afterTax = cashFlows.map((cf, t) => {
+    const taxable = cf - deplArr[t];
+    const tax = taxable > 0 ? taxable * taxRate : 0;
+    return cf - tax;
+  });
+  return ecoNPV(afterTax, rate);
+}
+
+/**
+ * Build escalated oil revenue cash flows for NPV analysis.
+ *
+ * Revenue[t] = volume[t] × price[0] × (1 + escalation)^t × NRI − OPEX[t]
+ *
+ * @param volumes         Array of production volumes (STB/period or Mscf/period)
+ * @param basePrice       Price at t=0 (USD/STB or USD/Mscf)
+ * @param priceEscalation Annual price escalation rate
+ * @param nri             Net revenue interest fraction
+ * @param opex            Operating cost per period (scalar or array, same units as revenue)
+ * @param capex           Capital expenditure per period (array, default = [])
+ * @returns               Array of net cash flows
+ */
+export function ecoBuildEscalatedRevenue(
+  volumes: number[],
+  basePrice: number,
+  priceEscalation: number,
+  nri: number,
+  opex: number | number[],
+  capex: number[] = [],
+): number[] {
+  const n = volumes.length;
+  const opexArr = typeof opex === "number" ? new Array<number>(n).fill(opex) : opex;
+  const capexArr = capex.length >= n ? capex : [...capex, ...new Array<number>(n - capex.length).fill(0)];
+  return volumes.map((vol, t) => {
+    const price = basePrice * Math.pow(1 + priceEscalation, t);
+    return vol * price * nri - opexArr[t] - capexArr[t];
+  });
+}
+
+/**
+ * Calculate lease operating cost per BOE (cost of operations analysis).
+ *
+ * LOE_per_BOE = totalOpex / (oilProduction + gasProduction_Mscf × BOE_per_Mscf)
+ *
+ * @param totalOpex         Total operating expenditure in period (USD)
+ * @param oilVolume_STB     Oil production (STB)
+ * @param gasVolume_Mscf    Gas production (Mscf)
+ * @param boePerMscf        BOE conversion for gas (default 6.0 Mscf/BOE)
+ * @returns                 Lease operating expense in USD/BOE
+ */
+export function ecoLOEPerBOE(
+  totalOpex: number,
+  oilVolume_STB: number,
+  gasVolume_Mscf: number,
+  boePerMscf = 6.0,
+): number {
+  const totalBOE = oilVolume_STB + gasVolume_Mscf / boePerMscf;
+  if (totalBOE <= 0) return 0;
+  return totalOpex / totalBOE;
+}
+
+/**
+ * Calculate CAPEX recycle ratio.
+ *
+ * Recycle Ratio = (Revenue − OPEX) / CAPEX
+ *
+ * A ratio > 1 means the well returns more cash than it costs to drill and complete.
+ *
+ * @param revenue  Cumulative undiscounted revenue over well life (USD)
+ * @param opex     Cumulative undiscounted operating expense (USD)
+ * @param capex    Total capital investment (USD)
+ * @returns        Recycle ratio (dimensionless)
+ */
+export function ecoRecycleRatio(revenue: number, opex: number, capex: number): number {
+  if (capex <= 0) return 0;
+  return (revenue - opex) / capex;
+}
+
+/**
+ * Calculate finding and development cost (F&D cost) per BOE.
+ *
+ * F&D = totalCapex / EUR_BOE
+ *
+ * @param totalCapex   Total drilling + completion + facilities cost (USD)
+ * @param eur_BOE      Estimated ultimate recovery (BOE)
+ * @returns            Finding & development cost (USD/BOE)
+ */
+export function ecoFindingCost(totalCapex: number, eur_BOE: number): number {
+  if (eur_BOE <= 0) return 0;
+  return totalCapex / eur_BOE;
+}

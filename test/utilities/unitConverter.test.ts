@@ -134,3 +134,97 @@ describe("Unit registry", () => {
     expect(units).toContain("MPa");
   });
 });
+
+// ─── New unit categories (Session 12) ─────────────────────────────────────
+
+describe("Unit Converter — Torque", () => {
+  test("1 ft·lbf = 1 ft·lbf (identity)", () => {
+    expect(unitConverter(1, "ft·lbf", "ft·lbf")).toBeCloseTo(1, 10);
+  });
+
+  test("1 N·m → ft·lbf ≈ 0.7376", () => {
+    expect(unitConverter(1, "N·m", "ft·lbf")).toBeCloseTo(0.737562, 4);
+  });
+
+  test("1 ft·lbf → N·m ≈ 1.3558", () => {
+    expect(unitConverter(1, "ft·lbf", "N·m")).toBeCloseTo(1 / 0.737562, 3);
+  });
+
+  test("12 in·lbf = 1 ft·lbf", () => {
+    expect(unitConverter(12, "in·lbf", "ft·lbf")).toBeCloseTo(1, 8);
+  });
+
+  test("1 kN·m → ft·lbf ≈ 737.56", () => {
+    expect(unitConverter(1, "kN·m", "ft·lbf")).toBeCloseTo(737.562, 2);
+  });
+
+  test("getUnitsForCategory('torque') contains ft·lbf and N·m", () => {
+    const units = getUnitsForCategory("torque");
+    expect(units).toContain("ft·lbf");
+    expect(units).toContain("N·m");
+  });
+});
+
+describe("Unit Converter — Thermal Conductivity", () => {
+  test("1 BTU/(hr·ft·°F) identity", () => {
+    expect(unitConverter(1, "BTU/(hr·ft·°F)", "BTU/(hr·ft·°F)")).toBeCloseTo(1, 10);
+  });
+
+  test("1 W/(m·K) → BTU/(hr·ft·°F) ≈ 0.5778", () => {
+    expect(unitConverter(1, "W/(m·K)", "BTU/(hr·ft·°F)")).toBeCloseTo(0.577789, 4);
+  });
+
+  test("1 BTU/(hr·ft·°F) → W/(m·K) ≈ 1.7307", () => {
+    expect(unitConverter(1, "BTU/(hr·ft·°F)", "W/(m·K)")).toBeCloseTo(1 / 0.577789, 3);
+  });
+
+  test("getUnitsForCategory('thermal_conductivity') not empty", () => {
+    expect(getUnitsForCategory("thermal_conductivity").length).toBeGreaterThan(0);
+  });
+});
+
+describe("Unit Converter — Specific Heat", () => {
+  test("1 BTU/(lbm·°F) identity", () => {
+    expect(unitConverter(1, "BTU/(lbm·°F)", "BTU/(lbm·°F)")).toBeCloseTo(1, 10);
+  });
+
+  test("1 kJ/(kg·K) → BTU/(lbm·°F) ≈ 0.2389", () => {
+    expect(unitConverter(1, "kJ/(kg·K)", "BTU/(lbm·°F)")).toBeCloseTo(0.238846, 4);
+  });
+
+  test("1 BTU/(lbm·°F) → kJ/(kg·K) ≈ 4.1868", () => {
+    expect(unitConverter(1, "BTU/(lbm·°F)", "kJ/(kg·K)")).toBeCloseTo(1 / 0.238846, 3);
+  });
+
+  test("water specific heat: 1 BTU/(lbm·°F) = 1 cal/(g·°C)", () => {
+    expect(unitConverter(1, "BTU/(lbm·°F)", "cal/(g·°C)")).toBeCloseTo(1, 5);
+  });
+
+  test("getUnitsForCategory('specific_heat') includes kJ/(kg·K)", () => {
+    expect(getUnitsForCategory("specific_heat")).toContain("kJ/(kg·K)");
+  });
+});
+
+describe("Unit Converter — Mass Flow Rate", () => {
+  test("1 lbm/hr identity", () => {
+    expect(unitConverter(1, "lbm/hr", "lbm/hr")).toBeCloseTo(1, 10);
+  });
+
+  test("1 lbm/s = 3600 lbm/hr", () => {
+    expect(unitConverter(1, "lbm/s", "lbm/hr")).toBeCloseTo(3600, 5);
+  });
+
+  test("1 kg/hr = 2.20462 lbm/hr", () => {
+    expect(unitConverter(1, "kg/hr", "lbm/hr")).toBeCloseTo(2.20462, 4);
+  });
+
+  test("1 kg/s = 7936.64 lbm/hr", () => {
+    expect(unitConverter(1, "kg/s", "lbm/hr")).toBeCloseTo(7936.64, 1);
+  });
+
+  test("getUnitsForCategory('flow_mass') contains lbm/hr and kg/s", () => {
+    const units = getUnitsForCategory("flow_mass");
+    expect(units).toContain("lbm/hr");
+    expect(units).toContain("kg/s");
+  });
+});

@@ -2,7 +2,7 @@
 
 > **A comprehensive petroleum engineering function library and Excel add-in for natural gas, oil, CNG, and LNG calculations.**
 
-[![Tests](https://img.shields.io/badge/tests-1385%20passing-brightgreen)](./test)
+[![Tests](https://img.shields.io/badge/tests-1465%20passing-brightgreen)](./test)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -28,7 +28,7 @@
 
 ## What Is P365?
 
-**Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **800+ engineering calculations** organized into 31 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design (including poroelastic closure stress and Nolte G-function analysis), nodal analysis, LNG thermodynamics, wellbore heat transfer, geomechanics, composite skin factor analysis, wellbore integrity (casing design, cement jobs, shoe tests), **reservoir simulation INCLUDE file generation** (Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, and batch file generator), **Eclipse Results Import** (SMSPEC/UNSMRY binary parser that loads simulator output directly into Excel worksheets), **spline interpolation** (cubic, linear, and monotone PCHIP), **economic analysis** (NPV, IRR, payout, economic limit, break-even price), and **well production allocation** (multi-well proration, capacity curtailment, voidage replacement).
+**Petroleum 365** is a TypeScript function library and Microsoft Office.js Excel add-in built for petroleum and natural gas engineers. It provides **800+ engineering calculations** organized into 31 discipline-specific modules — covering everything from PVT correlations and decline curve analysis to hydraulic fracturing design (including poroelastic closure stress and Nolte G-function analysis), nodal analysis, LNG thermodynamics, wellbore heat transfer, geomechanics, composite skin factor analysis, wellbore integrity (casing design, cement jobs, shoe tests), **reservoir simulation INCLUDE file generation** (Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, and batch file generator), **Eclipse Results Import** (SMSPEC/UNSMRY binary parser that loads simulator output directly into Excel worksheets), **spline interpolation** (cubic, linear, and monotone PCHIP), **economic analysis** (NPV, IRR, payout, economic limit, WI/NRI/royalty stacking, after-tax NPV, price escalation, F&D cost), and **well production allocation** (multi-well proration, capacity curtailment, voidage replacement).
 
 P365 is designed to work **inside Microsoft Excel** as a custom function library (UDFs), letting engineers use familiar spreadsheet workflows backed by rigorous, well-tested engineering correlations. It is also available as a standalone TypeScript/Node.js library for integration into web applications, pipelines, or custom tooling. The full **Office 365 add-in suite** — Word, Outlook, Teams, PowerPoint, OneNote, and Access — extends P365 calculations into reports, emails, collaboration cards, presentations, field notes, and job databases.
 
@@ -52,7 +52,7 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 
 ## Features
 
-- ✅ **1385 passing unit tests** — every correlation is independently verified
+- ✅ **1465 passing unit tests** — every correlation is independently verified
 - ✅ **31 engineering modules** covering the full production lifecycle
 - ✅ **Field units throughout** — psi, °F, STB, scf, ft, cp, md
 - ✅ **Named after correlation authors** — `P365.PVT.Z.ByDAK` is the Dranchuk-Abou-Kassem method
@@ -94,10 +94,10 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 | 25 | **SIM** | Sim INCLUDE Generator | Eclipse SWOF/SGOF/PVDG/PVTW, CMG WOTABLE/GOTABLE, Corey table builder, File Generator |
 | 26 | **Eclipse** | Eclipse Results Import | SMSPEC/UNSMRY binary parser, time-series extraction, Excel table formatter, well name listing |
 | 27 | **Spline** | Interpolation | Linear, natural cubic spline, monotone PCHIP, 2-D bilinear, inverse lookup, spline derivative/integral |
-| 28 | **ECO** | Economic Analysis | NPV, IRR, MIRR, payout (simple/discounted), economic limit, EUR at limit, profitability index, break-even price, UOP depletion, tornado sensitivity |
+| 28 | **ECO** | Economic Analysis | NPV, IRR, MIRR, payout, economic limit, EUR at limit, WI/NRI, royalty stacking, price escalation, inflation adjustment, after-tax NPV, LOE/BOE, recycle ratio, F&D cost |
 | 29 | **WPA** | Well Production Allocation | Proportional proration, PI/AOF-weighted, capacity curtailment, meter reconciliation, voidage replacement (VRR), field summary |
-| 30 | **Blueprints** | Blueprint Manager Catalog | 35+ structured blueprint templates with category/search/install metadata |
-| 31 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions |
+| 30 | **Blueprints** | Blueprint Manager Catalog | 45+ structured blueprint templates with category/search/install metadata (Spline, ECO, WPA categories added Session 12) |
+| 31 | **Utilities** | Unit Conversion | 60+ categories, 1500+ unit pairs, temperature offsets, unit expressions; torque, thermal conductivity, specific heat, mass flow rate added Session 12 |
 
 ---
 
@@ -614,6 +614,7 @@ Supported components: `C1, C2, C3, iC4, nC4, iC5, nC5, C6, C7, N2, CO2, H2S, H2,
 | `P365.DCA.Diagnostics.BFactor` | Instantaneous b-factor from rate data |
 | `P365.DCA.Diagnostics.LogLogDerivative` | d(log q)/d(log t) — flow regime slope |
 | `P365.DCA.Diagnostics.FlowRegimeFromB` | Classify flow regime from b-factor estimate |
+| `P365.DCA.Diagnostics.ModelComparison(times, rates)` | SSR comparison for Arps/SEPD/LGM models — lower SSR = better fit (Session 12) |
 
 **DCA Data QC**
 | Function | Description |
@@ -628,6 +629,13 @@ Supported components: `C1, C2, C3, iC4, nC4, iC5, nC5, C6, C7, N2, CO2, H2S, H2,
 | `P365.DCA.Conversions.ConvertNominalDecline` | Convert D between year/month/day |
 | `P365.DCA.Conversions.AnnualToMonthlyEffective` | De_annual → De_monthly |
 | `P365.DCA.Conversions.MonthlyToAnnualEffective` | De_monthly → De_annual |
+| `P365.DCA.Conversions.ArpsEURWithTerminalDecline(Qi, Di, b, Dterm, qEL)` | EUR with hyperbolic→exponential switch at D_term (Session 12) |
+
+**SEPD / LGM Extended Diagnostics (Session 12)**
+| Function | Description |
+|----------|-------------|
+| `P365.DCA.SEPD.CumShape(t, tau, n)` | Dimensionless cumulative shape ratio [0,1) — fraction of EUR produced |
+| `P365.DCA.LGM.SatFraction(t, K, a, n)` | LGM saturation fraction — Gp(t)/K |
 
 ---
 
@@ -840,7 +848,15 @@ Available blueprints cover:
 =P365.UnitConverter(1, "scf/STB", "Nm3/m3") → 0.17811
 ```
 
-Supports **60+ categories** and **1,500+ unit pairs** including pressure, temperature, length, area, volume, mass, flow, energy, power, viscosity, density, permeability, heating value, and molar units. Also supports **scaled units** (e.g., `"640 acre"`) and **unit expressions** (e.g., `"bbl*psi/day"`).
+Supports **60+ categories** and **1,500+ unit pairs** including pressure, temperature, length, area, volume, mass, flow, energy, power, viscosity, density, permeability, heating value, molar, **torque**, **thermal conductivity**, **specific heat capacity**, and **mass flow rate** units. Also supports **scaled units** (e.g., `"640 acre"`) and **unit expressions** (e.g., `"bbl*psi/day"`).
+
+**New in Session 12 — Torque, Thermal, and Mass Flow Rate categories:**
+```excel
+=P365.UnitConverter(1, "N·m", "ft·lbf")         → 0.7376  (torque)
+=P365.UnitConverter(1, "W/(m·K)", "BTU/(hr·ft·°F)") → 0.5778  (thermal conductivity)
+=P365.UnitConverter(1, "kJ/(kg·K)", "BTU/(lbm·°F)") → 0.2389  (specific heat)
+=P365.UnitConverter(1, "kg/s", "lbm/hr")         → 7936.6  (mass flow rate)
+```
 
 ---
 
@@ -973,9 +989,9 @@ Smooth interpolation for PVT tables, relative permeability curves, rate-time dat
 
 ---
 
-### ECO — Economic Analysis (Session 11)
+### ECO — Economic Analysis (Sessions 11-12)
 
-Project economics for petroleum wells: NPV, IRR, payout, economic limit, and break-even analysis.
+Project economics for petroleum wells: NPV, IRR, payout, economic limit, working interest, royalty stacking, price escalation, and after-tax analysis.
 
 **Discounted Cash Flow**
 | Function | Description |
@@ -1013,6 +1029,33 @@ Project economics for petroleum wells: NPV, IRR, payout, economic limit, and bre
 | `P365.ECO.UOPDepletion(costBasis, reserves, production)` | Unit-of-production depletion expense |
 | `P365.ECO.BuildCashFlows(volumes, price, NRI, opex, capex)` | Build periodic cash-flow array |
 | `P365.ECO.TornadoSensitivity(baseFlows, rate, parameters)` | One-at-a-time NPV sensitivity (tornado chart input) |
+
+**Working Interest / Royalty (Session 12)**
+| Function | Description |
+|----------|-------------|
+| `P365.ECO.WorkingInterest(grossRevenue, wi)` | WI_Revenue = GrossRevenue × WI |
+| `P365.ECO.NetRevenueInterest(wi, totalRoyalty)` | NRI = WI × (1 − totalRoyalty) |
+| `P365.ECO.RoyaltyStack(grossRevenue, royalties[])` | Net after sequential royalty deductions (lessor + ORRI + state) |
+
+**Price Escalation & Inflation (Session 12)**
+| Function | Description |
+|----------|-------------|
+| `P365.ECO.GasPriceEscalation(basePrice, escalationRate, periods)` | price[t] = P0 × (1 + esc)^t — escalated price schedule |
+| `P365.ECO.InflationAdjust(realCashFlows, inflationRate)` | Convert real (constant-dollar) to nominal cash flows |
+| `P365.ECO.BuildEscalatedRevenue(volumes, basePrice, escalation, nri, opex, capex)` | Revenue with time-varying escalated price |
+
+**After-Tax NPV (Session 12)**
+| Function | Description |
+|----------|-------------|
+| `P365.ECO.AfterTaxNPV(cashFlows, rate, taxRate)` | NPV after flat income tax (no depletion) |
+| `P365.ECO.AfterTaxNPVWithDepletion(cashFlows, rate, taxRate, depletion[])` | NPV with UOP depletion shielding taxable income |
+
+**Cost Metrics (Session 12)**
+| Function | Description |
+|----------|-------------|
+| `P365.ECO.LOEPerBOE(opex, oilVol_STB, gasVol_Mscf)` | Lease operating expense per BOE (oil + gas combined) |
+| `P365.ECO.RecycleRatio(revenue, opex, capex)` | (Revenue − OPEX) / CAPEX — ratio > 1 = value-creating well |
+| `P365.ECO.FindingCost(totalCapex, eur_BOE)` | F&D cost per BOE (finding & development cost) |
 
 ---
 
@@ -1110,7 +1153,7 @@ Petroleum-365/
 | Command | Description |
 |---------|-------------|
 | `npm install` | Install all dependencies |
-| `npx jest --no-coverage` | Run all 1385 unit tests |
+| `npx jest --no-coverage` | Run all 1465 unit tests |
 | `npx tsc --noEmit` | TypeScript type-check (0 errors expected) |
 | `npm run build` | Build for production |
 

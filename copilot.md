@@ -594,13 +594,50 @@ Good stopping point: taskpane HTML UI complete (Function Browser + Blueprint Man
 #### Stopping Point — Session 11
 Good stopping point: Spline interpolation module (cubic/PCHIP/bilinear), Economic Analysis module (NPV/IRR/payout/economic limit), and Well Production Allocation module (proration/VRR/field summary) fully implemented with 118 new tests. Total: 1385 tests, 161 UDFs, 31 modules.
 
-#### Next Session — Session 12 (Planned)
-- [ ] Nodal analysis extended: multi-string VLP, artificial lift overlay
-- [ ] Unit Converter: add more unit categories (torque, power, thermal conductivity)
+---
+
+### Session 12 — ECO Extensions + Unit Converter + DCA Diagnostics + Blueprint Expansion
+**Status:** Complete
+
+#### Completed
+- [x] Extended ECO module (src/functions/eco/index.ts) with 11 new functions:
+  - [x] **WI/NRI/Royalty**: `ecoWorkingInterest`, `ecoNetRevenueInterest`, `ecoRoyaltyStack` — WI revenue, NRI = WI × (1 − royalty), sequential royalty stacking
+  - [x] **Price Escalation**: `ecoGasPriceEscalation` — price[t] = P0 × (1 + esc)^t; `ecoInflationAdjust` — nominal cash flows from real cash flows
+  - [x] **After-Tax NPV**: `ecoAfterTaxNPV` — flat tax on positive CFs; `ecoAfterTaxNPVWithDepletion` — UOP depletion shield on taxable income
+  - [x] **Revenue Builder**: `ecoBuildEscalatedRevenue` — time-varying price cash flow stream with escalation
+  - [x] **Cost Metrics**: `ecoLOEPerBOE` — lease operating expense per BOE; `ecoRecycleRatio` — (Revenue − OPEX) / CAPEX; `ecoFindingCost` — F&D cost per BOE
+- [x] Extended DCA module (src/functions/dca/index.ts) with 4 new functions:
+  - [x] **SEPD Diagnostics**: `sepdCumShape(t, tau, n)` — dimensionless cumulative shape ratio [0,1)
+  - [x] **LGM Diagnostics**: `lgmSatFraction(t, K, a, n)` — fraction of EUR produced at time t
+  - [x] **Model Comparison**: `dcaModelComparison(times, rates)` — SSR for Arps/SEPD/LGM fitted models
+  - [x] **EUR with Terminal Decline**: `arpsEURWithTerminalDecline(Qi, Di, b, Dterm, qEL)` — EUR accounting for hyperbolic→exponential switch
+- [x] Extended Unit Converter (src/functions/utilities/unitConverter.ts) with 4 new categories:
+  - [x] **Torque**: ft·lbf, in·lbf, N·m, kN·m, lbf·ft, lbf·in, kip·ft, dN·m
+  - [x] **Thermal Conductivity**: BTU/(hr·ft·°F), W/(m·K), mW/(m·K), kW/(m·K), kcal/(hr·m·°C), cal/(s·cm·°C)
+  - [x] **Specific Heat**: BTU/(lbm·°F), J/(kg·K), kJ/(kg·K), cal/(g·°C), kcal/(kg·°C)
+  - [x] **Mass Flow Rate**: lbm/hr, lbm/s, lbm/min, kg/hr, kg/s, kg/min, g/s, tonne/hr, tonne/d, ton/hr
+- [x] Expanded Blueprint Catalog (src/addins/blueprints/index.ts) with 10 new blueprints:
+  - [x] **Spline** (3 blueprints): PVT Table Interpolation, Relative Permeability Smoothing, Decline Rate Bilinear Lookup
+  - [x] **ECO** (5 blueprints): Project NPV/IRR, Economic Limit & EUR, WI/NRI/Royalty Stack, NPV Sensitivity Tornado, Gas Price Escalation & After-Tax NPV
+  - [x] **WPA** (3 blueprints): Field Proration, Capacity Curtailment & VRR, Field Production Summary Dashboard
+  - [x] Updated BlueprintCategory type to include "Spline", "ECO", "WPA"
+  - [x] Updated Unit Converter blueprint description to include torque and thermal conductivity
+- [x] Updated src/index.ts: ECO namespace +11 new functions; DCA namespace +4 new functions (SEPD/LGM/Diagnostics/Conversions)
+- [x] Expanded functions.json from 161 → 176 UDF registrations (added ECO/DCA extensions)
+- [x] Written 80 new Jest unit tests (1465 total, all passing — up from 1385)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+- [x] Updated copilot.md and README.md for Session 12 (31 modules, 1465 tests, 176 UDFs)
+
+#### Stopping Point — Session 12
+Good stopping point: ECO extended with WI/NRI/royalty stacking, price escalation, after-tax NPV, and cost metrics; DCA extended with SEPD/LGM saturation diagnostics and model comparison; unit converter expanded with torque/thermal conductivity/specific heat/mass flow rate categories; blueprint catalog expanded from 35 → 45 entries with Spline, ECO, WPA categories. 1465 tests passing.
+
+#### Next Session — Session 13 (Planned)
+- [ ] Nodal analysis extended: multi-string VLP, artificial lift overlay comparison (ESP vs. GL vs. RP)
+- [ ] VFP extended: Ansari, Mukherjee-Brill, Hasan-Kabir mechanistic correlations
+- [ ] Geomechanics extended: Biot coefficient, elastic moduli conversion, 3D stress state
 - [ ] Web deployment manifest (Netlify/GitHub Pages hosting configuration)
-- [ ] DCA extended: additional diagnostic tests (SEPD cumulative shape, LGM saturation)
-- [ ] ECO extension: WI/NRI carry structure, royalty stacking, gas price escalation
-- [ ] Blueprint catalog: add Spline, ECO, WPA blueprints (3+ new entries)
+- [ ] PVT extended: interfacial tension (crude-brine-gas), EoS tuning workflow
+- [ ] ECO extended: Monte Carlo simulation helpers (Latin hypercube sampling)
 
 ## Function Naming Convention
 `P365.[Category].[Property].[Qualifier].By[Author]`

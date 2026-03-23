@@ -188,11 +188,13 @@ export const P365 = {
     SEPD: {
       Rate:       DCAExports.sepdRate,
       Cumulative: DCAExports.sepdCumulative,
+      CumShape:   DCAExports.sepdCumShape,
     },
     LGM: {
-      Rate:       DCAExports.lgmRate,
-      Cumulative: DCAExports.lgmCumulative,
-      EUR:        DCAExports.lgmEUR,
+      Rate:        DCAExports.lgmRate,
+      Cumulative:  DCAExports.lgmCumulative,
+      EUR:         DCAExports.lgmEUR,
+      SatFraction: DCAExports.lgmSatFraction,
     },
     TransientHyperbolic: {
       Rate:        DCAExports.thRate,
@@ -215,6 +217,7 @@ export const P365 = {
       BFactor:           DCAExports.dcaBFactor,
       LogLogDerivative:  DCAExports.dcaLogLogDerivative,
       FlowRegimeFromB:   DCAExports.dcaFlowRegimeFromB,
+      ModelComparison:   DCAExports.dcaModelComparison,
     },
     DataQC: {
       RollingZScore:    DCAExports.dcaRollingZScore,
@@ -225,6 +228,7 @@ export const P365 = {
       ConvertNominalDecline:     DCAExports.dcaConvertNominalDecline,
       AnnualToMonthlyEffective:  DCAExports.dcaAnnualToMonthlyEffective,
       MonthlyToAnnualEffective:  DCAExports.dcaMonthlyToAnnualEffective,
+      ArpsEURWithTerminalDecline: DCAExports.arpsEURWithTerminalDecline,
     },
   },
 
@@ -850,29 +854,44 @@ export const P365 = {
   // ─── ECO — Economic Analysis ────────────────────────────────────────────────
   ECO: {
     // NPV / discounted cash flow
-    NPV:                 ECOExports.ecoNPV,
-    NPVContinuous:       ECOExports.ecoNPVContinuous,
-    PV:                  ECOExports.ecoPV,
-    FV:                  ECOExports.ecoFV,
+    NPV:                    ECOExports.ecoNPV,
+    NPVContinuous:          ECOExports.ecoNPVContinuous,
+    PV:                     ECOExports.ecoPV,
+    FV:                     ECOExports.ecoFV,
     // Rate of return
-    IRR:                 ECOExports.ecoIRR,
-    MIRR:                ECOExports.ecoMIRR,
+    IRR:                    ECOExports.ecoIRR,
+    MIRR:                   ECOExports.ecoMIRR,
     // Payout
-    PayoutSimple:        ECOExports.ecoPayoutSimple,
-    PayoutDiscounted:    ECOExports.ecoPayoutDiscounted,
+    PayoutSimple:           ECOExports.ecoPayoutSimple,
+    PayoutDiscounted:       ECOExports.ecoPayoutDiscounted,
     // Economic limit
-    OilEconomicLimit:    ECOExports.ecoOilEconomicLimit,
-    GasEconomicLimit:    ECOExports.ecoGasEconomicLimit,
-    ArpsEURAtLimit:      ECOExports.ecoArpsEURAtLimit,
-    TimeToEconomicLimit: ECOExports.ecoTimeToEconomicLimit,
+    OilEconomicLimit:       ECOExports.ecoOilEconomicLimit,
+    GasEconomicLimit:       ECOExports.ecoGasEconomicLimit,
+    ArpsEURAtLimit:         ECOExports.ecoArpsEURAtLimit,
+    TimeToEconomicLimit:    ECOExports.ecoTimeToEconomicLimit,
     // Profitability
-    ProfitabilityIndex:  ECOExports.ecoProfitabilityIndex,
-    BreakEvenPrice:      ECOExports.ecoBreakEvenPrice,
+    ProfitabilityIndex:     ECOExports.ecoProfitabilityIndex,
+    BreakEvenPrice:         ECOExports.ecoBreakEvenPrice,
     // Depletion
-    UOPDepletion:        ECOExports.ecoUOPDepletion,
+    UOPDepletion:           ECOExports.ecoUOPDepletion,
     // Builders
-    BuildCashFlows:      ECOExports.ecoBuildCashFlows,
-    TornadoSensitivity:  ECOExports.ecoTornadoSensitivity,
+    BuildCashFlows:         ECOExports.ecoBuildCashFlows,
+    TornadoSensitivity:     ECOExports.ecoTornadoSensitivity,
+    // WI / NRI / Royalty
+    WorkingInterest:        ECOExports.ecoWorkingInterest,
+    NetRevenueInterest:     ECOExports.ecoNetRevenueInterest,
+    RoyaltyStack:           ECOExports.ecoRoyaltyStack,
+    // Price escalation & inflation
+    GasPriceEscalation:     ECOExports.ecoGasPriceEscalation,
+    InflationAdjust:        ECOExports.ecoInflationAdjust,
+    BuildEscalatedRevenue:  ECOExports.ecoBuildEscalatedRevenue,
+    // After-tax
+    AfterTaxNPV:            ECOExports.ecoAfterTaxNPV,
+    AfterTaxNPVWithDepletion: ECOExports.ecoAfterTaxNPVWithDepletion,
+    // Cost metrics
+    LOEPerBOE:              ECOExports.ecoLOEPerBOE,
+    RecycleRatio:           ECOExports.ecoRecycleRatio,
+    FindingCost:            ECOExports.ecoFindingCost,
   },
 
   // ─── WPA — Well Production Allocation ──────────────────────────────────────
