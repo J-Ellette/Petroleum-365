@@ -17,6 +17,8 @@
 const G_FT_S2 = 32.174;      // gravitational acceleration ft/s²
 const PI_CONST = Math.PI;
 const SCFM_TO_FT3S = 1.0 / 60.0;
+/** Default oil-gas surface tension (lbf/ft) ≈ 30 dyne/cm — typical crude oil at reservoir conditions. */
+const DEFAULT_OIL_GAS_SIGMA_LBF_FT = 0.04;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -597,4 +599,396 @@ export function vlpCurveBeggsBrill(
     const Pwf = beggsBrillBHP(Pwh_psia, q, q_gas_mscfd, D_in, L_ft, T_wh_F, T_bh_F, SG_liq, SG_gas);
     return { rate: q, Pwf };
   });
+}
+
+// ─── Ansari (1994) Mechanistic Model ─────────────────────────────────────────
+
+/**
+ * Ansari et al. (1994) mechanistic two-phase pressure gradient for vertical
+ * upward flow in wellbores.
+ *
+ * Flow-pattern determination (bubble / slug / annular mist) uses the Ansari
+ * transition boundaries.  Pressure gradient is the sum of gravity, friction,
+ * and acceleration components.
+ *
+ * Reference: Ansari A.M. et al. (1994) — A Comprehensive Mechanistic Model
+ * for Upward Two-Phase Flow in Wellbores.  SPE Production & Facilities, May.
+ *
+ * @param q_bpd      Liquid rate (bbl/d)
+ * @param GOR        Gas-oil ratio (scf/STB)
+ * @param D_in       Tubing inner diameter (in)
+ * @param SG_liq     Liquid specific gravity (water = 1.0)
+ * @param SG_gas     Gas specific gravity (air = 1.0)
+ * @param P_psia     Average pressure (psia)
+ * @param T_F        Average temperature (°F)
+ * @param angle_deg  Inclination from horizontal (°), 90 = vertical upward
+ * @returns          Pressure gradient (psi/ft)
+ */
+export function ansariGradient(
+  q_bpd: number,
+  GOR: number,
+  D_in: number,
+  SG_liq: number,
+  SG_gas: number,
+  P_psia: number,
+  T_F: number,
+  angle_deg = 90,
+): number {
+  const D_ft    = D_in / 12;
+  const A_ft2   = PI_CONST * D_ft * D_ft / 4;
+  const T_R     = T_F + 459.67;
+  const sinTh   = Math.sin(angle_deg * PI_CONST / 180);
+
+  // Phase densities (lb/ft³)
+  const rhoL    = SG_liq * 62.4;
+  const Z       = 0.9;                            // simplified Z at avg conditions
+  const rhoG    = SG_gas * 28.97 * P_psia / (Z * 10.732 * T_R);  // lb/ft³
+
+  // Superficial velocities (ft/s)
+  const qL_ft3s = q_bpd * 5.615 / 86400;
+  const qG_scfs = q_bpd * GOR / 86400;           // scf/s
+  const Bg_fac  = Z * T_R * 14.7 / (P_psia * 520.0);  // res ft³ / scf
+  const qG_ft3s = qG_scfs * Bg_fac;
+  const vsL     = qL_ft3s / A_ft2;
+  const vsG     = qG_ft3s / A_ft2;
+  const vm      = vsL + vsG;
+  const lambda_L = vsL / Math.max(vm, 1e-9);     // no-slip liquid fraction
+
+  // Drift-flux bubble rise velocity (Harmathy 1960)
+  const g       = G_FT_S2;
+  const sigma   = DEFAULT_OIL_GAS_SIGMA_LBF_FT;     // surface tension lbf/ft (≈30 dyne/cm)
+  const rho_diff = Math.max(rhoL - rhoG, 0.1);
+  const vbub    = 1.53 * Math.pow(g * sigma * rho_diff / (rhoL * rhoL), 0.25);
+
+  // Bubble-to-slug transition: vsG / vm < 0.25 AND vm < vbub/0.25
+  const slug_frac = vsG / Math.max(vm, 1e-9);
+  let HL: number;
+  if (slug_frac < 0.25 && vm < vbub * 4) {
+    // Bubble flow — drift-flux HL
+    const C0 = 1.2;
+    const vGift = C0 * vm + vbub;
+    HL = Math.min(0.98, Math.max(lambda_L, 1 - vsG / Math.max(vGift, 1e-9)));
+  } else if (vsG > 0.52 * Math.pow(g * D_ft * rho_diff / rhoG, 0.5)) {
+    // Annular mist — Wallis film model
+    HL = Math.max(0.01, lambda_L * 0.15);
+  } else {
+    // Slug flow — Fernandes slug HL correlation
+    HL = Math.min(0.95, 0.845 * Math.pow(lambda_L, 0.26));
+  }
+
+  // Mixture density
+  const rhoM = rhoL * HL + rhoG * (1 - HL);
+
+  // Friction factor (Moody at mixture Re)
+  const muL   = SG_liq * 1.0;                    // cp → simplified
+  const muG   = 0.012;                            // gas viscosity cp
+  const muM   = muL * lambda_L + muG * (1 - lambda_L);
+  const Re    = rhoM * vm * D_ft / (muM * 6.72e-4);
+  const f     = Re < 2100 ? 64 / Re : moodyFriction(Re, 0.00015, D_ft);
+
+  // Pressure gradient components (psi/ft)
+  const dP_grav = rhoM * sinTh / 144;
+  const dP_fric = f * rhoM * vm * vm / (2 * g * D_ft * 144);
+  const dP_acc  = rhoM * vm * vsG * (rhoL - rhoG) / (rhoL * P_psia * 144); // small
+
+  return dP_grav + dP_fric + dP_acc;
+}
+
+/**
+ * Ansari BHP: integrate gradient over depth.
+ *
+ * @param Pwh_psia  Wellhead flowing pressure (psia)
+ * @param q_bpd     Liquid rate (bbl/d)
+ * @param GOR       Gas-oil ratio (scf/STB)
+ * @param D_in      Tubing inner diameter (in)
+ * @param L_ft      Tubing length (ft)
+ * @param T_wh_F    Wellhead temperature (°F)
+ * @param T_bh_F    Bottomhole temperature (°F)
+ * @param SG_liq    Liquid specific gravity
+ * @param SG_gas    Gas specific gravity
+ * @returns         BHP (psia)
+ */
+export function ansariBHP(
+  Pwh_psia: number,
+  q_bpd: number,
+  GOR: number,
+  D_in: number,
+  L_ft: number,
+  T_wh_F: number,
+  T_bh_F: number,
+  SG_liq: number,
+  SG_gas: number,
+): number {
+  const nSeg = 10;
+  let P = Pwh_psia;
+  const dL = L_ft / nSeg;
+  for (let i = 0; i < nSeg; i++) {
+    const T_F = T_wh_F + (T_bh_F - T_wh_F) * (i + 0.5) / nSeg;
+    const grad = ansariGradient(q_bpd, GOR, D_in, SG_liq, SG_gas, P, T_F);
+    P += grad * dL;
+  }
+  return P;
+}
+
+// ─── Mukherjee-Brill (1985) Mechanistic Model ────────────────────────────────
+
+/**
+ * Mukherjee & Brill (1985) two-phase pressure gradient correlation for
+ * inclined and horizontal pipes.
+ *
+ * Uses empirical flow-pattern map (bubble / slug / stratified / mist) and
+ * holdup correlations for each pattern.
+ *
+ * Reference: Mukherjee H. & Brill J.P. (1985) — Pressure Drop Correlations
+ * for Inclined Two-Phase Flow. J. Energy Res. Tech., 107, 549-554.
+ *
+ * @param q_bpd      Liquid rate (bbl/d)
+ * @param GOR        Gas-oil ratio (scf/STB)
+ * @param D_in       Tubing inner diameter (in)
+ * @param SG_liq     Liquid specific gravity
+ * @param SG_gas     Gas specific gravity
+ * @param P_psia     Average pressure (psia)
+ * @param T_F        Average temperature (°F)
+ * @param angle_deg  Inclination from horizontal (°); 90 = vertical, 0 = horizontal
+ * @returns          Pressure gradient (psi/ft)
+ */
+export function mukherjeebrillGradient(
+  q_bpd: number,
+  GOR: number,
+  D_in: number,
+  SG_liq: number,
+  SG_gas: number,
+  P_psia: number,
+  T_F: number,
+  angle_deg = 90,
+): number {
+  const D_ft    = D_in / 12;
+  const A_ft2   = PI_CONST * D_ft * D_ft / 4;
+  const T_R     = T_F + 459.67;
+  const theta   = angle_deg * PI_CONST / 180;
+  const sinTh   = Math.sin(theta);
+  const g       = G_FT_S2;
+
+  const rhoL    = SG_liq * 62.4;
+  const Z       = 0.9;
+  const rhoG    = SG_gas * 28.97 * P_psia / (Z * 10.732 * T_R);
+
+  const qL_ft3s = q_bpd * 5.615 / 86400;
+  const qG_scfs = q_bpd * GOR / 86400;
+  const Bg_fac  = Z * T_R * 14.7 / (P_psia * 520.0);
+  const qG_ft3s = qG_scfs * Bg_fac;
+  const vsL     = qL_ft3s / A_ft2;
+  const vsG     = qG_ft3s / A_ft2;
+  const vm      = vsL + vsG;
+  const lambda_L = vsL / Math.max(vm, 1e-9);
+
+  // Mukherjee-Brill dimensionless groups
+  const sigma_lbf   = DEFAULT_OIL_GAS_SIGMA_LBF_FT; // lbf/ft (≈30 dyne/cm for crude oil)
+  const rho_diff    = Math.max(rhoL - rhoG, 0.1);
+
+  // Liquid velocity number NLv and gas velocity number NGv
+  const NLv = vsL * Math.pow(rhoL / (g * sigma_lbf), 0.25);
+  const NGv = vsG * Math.pow(rhoL / (g * sigma_lbf), 0.25);
+
+  // Flow-pattern map: Mukherjee-Brill empirical transitions
+  // Bubble-slug: NLv > 0.1, NGv < 10
+  // Stratified: small NLv, small inclination, large NGv
+  let HL: number;
+  if (Math.abs(angle_deg) < 10 && NGv > 4 && lambda_L < 0.3) {
+    // Stratified or mist
+    HL = Math.max(0.02, lambda_L * 0.5);
+  } else if (NGv > 50 || (NGv > 10 && lambda_L < 0.05)) {
+    // Mist flow
+    HL = Math.max(0.01, lambda_L * 0.12);
+  } else {
+    // Slug/bubble — Mukherjee-Brill holdup correlation
+    // HL = exp[(C1 + C2·sinθ + C3·sin²θ + C4·NL²)·NGv^C5 / NLv^C6]
+    // Upward bubble/slug coefficients (Table 1 in M-B 1985):
+    const C1 = -0.380113, C2 = 0.129875, C3 = -0.119788;
+    const C4 = 2.343227,  C5 = 0.475686, C6 = 0.288657;
+    const NL  = Math.max(0.01, lambda_L);
+    const arg = C1 + C2 * sinTh + C3 * sinTh * sinTh
+              + C4 * NL * NL + C5 * Math.log(Math.max(NGv, 0.01))
+              - C6 * Math.log(Math.max(NLv, 0.01));
+    HL = Math.min(0.98, Math.max(lambda_L, Math.exp(arg)));
+  }
+
+  const rhoM   = rhoL * HL + rhoG * (1 - HL);
+  const muL    = SG_liq * 1.0;
+  const muG    = 0.012;
+  const muM    = muL * lambda_L + muG * (1 - lambda_L);
+  const Re     = rhoM * vm * D_ft / (muM * 6.72e-4);
+  const f      = Re < 2100 ? 64 / Re : moodyFriction(Re, 0.00015, D_ft);
+
+  const dP_grav = rhoM * sinTh / 144;
+  const dP_fric = f * rhoM * vm * vm / (2 * g * D_ft * 144);
+
+  return dP_grav + dP_fric;
+}
+
+/**
+ * Mukherjee-Brill BHP: integrate gradient over depth.
+ *
+ * @param Pwh_psia  Wellhead flowing pressure (psia)
+ * @param q_bpd     Liquid rate (bbl/d)
+ * @param GOR       Gas-oil ratio (scf/STB)
+ * @param D_in      Tubing inner diameter (in)
+ * @param L_ft      Tubing length (ft)
+ * @param T_wh_F    Wellhead temperature (°F)
+ * @param T_bh_F    Bottomhole temperature (°F)
+ * @param SG_liq    Liquid specific gravity
+ * @param SG_gas    Gas specific gravity
+ * @param angle_deg Inclination from horizontal (°)
+ * @returns         BHP (psia)
+ */
+export function mukherjeebrillBHP(
+  Pwh_psia: number,
+  q_bpd: number,
+  GOR: number,
+  D_in: number,
+  L_ft: number,
+  T_wh_F: number,
+  T_bh_F: number,
+  SG_liq: number,
+  SG_gas: number,
+  angle_deg = 90,
+): number {
+  const nSeg = 10;
+  let P = Pwh_psia;
+  const dL = L_ft / nSeg;
+  for (let i = 0; i < nSeg; i++) {
+    const T_F = T_wh_F + (T_bh_F - T_wh_F) * (i + 0.5) / nSeg;
+    const grad = mukherjeebrillGradient(q_bpd, GOR, D_in, SG_liq, SG_gas, P, T_F, angle_deg);
+    P += grad * dL;
+  }
+  return P;
+}
+
+// ─── Hasan-Kabir (1988) Drift-Flux Mechanistic Model ─────────────────────────
+
+/**
+ * Hasan & Kabir (1988) drift-flux mechanistic model for two-phase flow in
+ * inclined wellbores.
+ *
+ * Uses drift-flux void fraction equation and pattern-specific friction.
+ *
+ * Reference: Hasan A.R. & Kabir C.S. (1988) — A Study of Multiphase Flow
+ * Behavior in Vertical Wells. SPE Production Engineering, May.
+ *
+ * @param q_bpd      Liquid rate (bbl/d)
+ * @param GOR        Gas-oil ratio (scf/STB)
+ * @param D_in       Tubing inner diameter (in)
+ * @param SG_liq     Liquid specific gravity
+ * @param SG_gas     Gas specific gravity
+ * @param P_psia     Average pressure (psia)
+ * @param T_F        Average temperature (°F)
+ * @param angle_deg  Inclination from horizontal (°); 90 = vertical
+ * @returns          Pressure gradient (psi/ft)
+ */
+export function hasanKabirGradient(
+  q_bpd: number,
+  GOR: number,
+  D_in: number,
+  SG_liq: number,
+  SG_gas: number,
+  P_psia: number,
+  T_F: number,
+  angle_deg = 90,
+): number {
+  const D_ft    = D_in / 12;
+  const A_ft2   = PI_CONST * D_ft * D_ft / 4;
+  const T_R     = T_F + 459.67;
+  const theta   = angle_deg * PI_CONST / 180;
+  const sinTh   = Math.sin(theta);
+  const g       = G_FT_S2;
+
+  const rhoL    = SG_liq * 62.4;
+  const Z       = 0.9;
+  const rhoG    = SG_gas * 28.97 * P_psia / (Z * 10.732 * T_R);
+  const rho_diff = Math.max(rhoL - rhoG, 0.1);
+
+  const qL_ft3s = q_bpd * 5.615 / 86400;
+  const qG_scfs = q_bpd * GOR / 86400;
+  const Bg_fac  = Z * T_R * 14.7 / (P_psia * 520.0);
+  const qG_ft3s = qG_scfs * Bg_fac;
+  const vsL     = qL_ft3s / A_ft2;
+  const vsG     = qG_ft3s / A_ft2;
+  const vm      = vsL + vsG;
+  const lambda_L = vsL / Math.max(vm, 1e-9);
+
+  // Hasan-Kabir drift velocity (v∞) — angle-corrected
+  const sigma   = DEFAULT_OIL_GAS_SIGMA_LBF_FT;     // surface tension lbf/ft (≈30 dyne/cm)
+  const v_inf   = 1.53 * Math.pow(g * sigma * rho_diff / (rhoL * rhoL), 0.25)
+                * Math.pow(Math.abs(sinTh), 0.5); // HK inclination factor
+
+  // Profile parameter C0 (bubble: 1.2, slug: 1.15, mist: 1.0)
+  const NGv     = vsG * Math.pow(rhoL / (g * sigma), 0.25);
+  let C0: number;
+  let voidFrac: number;
+  if (NGv < 0.5) {
+    // Bubble flow
+    C0 = 1.2;
+    voidFrac = vsG / Math.max(C0 * vm + v_inf, 1e-9);
+  } else if (NGv < 3.0) {
+    // Slug / churn
+    C0 = 1.15;
+    voidFrac = vsG / Math.max(C0 * vm + v_inf, 1e-9);
+  } else {
+    // Annular mist — Wallis entrainment
+    C0 = 1.0;
+    voidFrac = vsG / Math.max(C0 * vm + v_inf, 1e-9);
+    voidFrac = Math.min(voidFrac * 1.15, 0.99);  // HK mist correction
+  }
+  voidFrac = Math.min(0.99, Math.max(1 - lambda_L * 1.05, voidFrac));
+  const HL     = Math.max(0.01, 1 - voidFrac);
+  const rhoM   = rhoL * HL + rhoG * (1 - HL);
+
+  const muL    = SG_liq * 1.0;
+  const muG    = 0.012;
+  const muM    = muL * lambda_L + muG * (1 - lambda_L);
+  const Re     = rhoM * vm * D_ft / (muM * 6.72e-4);
+  const f      = Re < 2100 ? 64 / Re : moodyFriction(Re, 0.00015, D_ft);
+
+  const dP_grav = rhoM * sinTh / 144;
+  const dP_fric = f * rhoM * vm * vm / (2 * g * D_ft * 144);
+
+  return dP_grav + dP_fric;
+}
+
+/**
+ * Hasan-Kabir BHP: integrate gradient over depth.
+ *
+ * @param Pwh_psia  Wellhead flowing pressure (psia)
+ * @param q_bpd     Liquid rate (bbl/d)
+ * @param GOR       Gas-oil ratio (scf/STB)
+ * @param D_in      Tubing inner diameter (in)
+ * @param L_ft      Tubing length (ft)
+ * @param T_wh_F    Wellhead temperature (°F)
+ * @param T_bh_F    Bottomhole temperature (°F)
+ * @param SG_liq    Liquid specific gravity
+ * @param SG_gas    Gas specific gravity
+ * @param angle_deg Inclination from horizontal (°)
+ * @returns         BHP (psia)
+ */
+export function hasanKabirBHP(
+  Pwh_psia: number,
+  q_bpd: number,
+  GOR: number,
+  D_in: number,
+  L_ft: number,
+  T_wh_F: number,
+  T_bh_F: number,
+  SG_liq: number,
+  SG_gas: number,
+  angle_deg = 90,
+): number {
+  const nSeg = 10;
+  let P = Pwh_psia;
+  const dL = L_ft / nSeg;
+  for (let i = 0; i < nSeg; i++) {
+    const T_F = T_wh_F + (T_bh_F - T_wh_F) * (i + 0.5) / nSeg;
+    const grad = hasanKabirGradient(q_bpd, GOR, D_in, SG_liq, SG_gas, P, T_F, angle_deg);
+    P += grad * dL;
+  }
+  return P;
 }

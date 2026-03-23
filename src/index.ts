@@ -42,6 +42,7 @@ import * as EclipseExports from "./functions/eclipse";
 import * as SplineExports  from "./functions/spline";
 import * as ECOExports     from "./functions/eco";
 import * as WPAExports     from "./functions/wpa";
+import * as IFTExports     from "./functions/pvt/ift";
 
 // ─── Re-export raw modules ────────────────────────────────────────────────────
 export * as P365_PVT_Gas   from "./functions/pvt/gas";
@@ -75,6 +76,7 @@ export * as P365_Eclipse   from "./functions/eclipse";
 export * as P365_Spline    from "./functions/spline";
 export * as P365_ECO       from "./functions/eco";
 export * as P365_WPA       from "./functions/wpa";
+export * as P365_PVT_IFT   from "./functions/pvt/ift";
 export { unitConverter, getUnitsForCategory, getCategories, listUnits } from "./functions/utilities/unitConverter";
 
 // ─── P365 Namespace Object ────────────────────────────────────────────────────
@@ -160,6 +162,21 @@ export const P365 = {
     Cw:   WaterExports.waterCompressibilityByMcCain,
     Uw:   WaterExports.waterViscosityByMcCain,
     RhoW: WaterExports.waterDensity,
+
+    // Interfacial tension
+    IFT: {
+      GasOilByBakerSwerdloff: IFTExports.pvtGasOilIFTByBakerSwerdloff,
+      DeadOil:                IFTExports.pvtDeadOilIFT,
+      GasOilByMacleodSugden:  IFTExports.pvtGasOilIFTByMacleodSugden,
+      GasBrine:               IFTExports.pvtGasBrineIFT,
+    },
+
+    // EoS tuning
+    EoSTuning: {
+      PenelouxShift:       IFTExports.pvtPenelouxShift,
+      VolumeShiftRegress:  IFTExports.pvtEoSVolumeShiftRegress,
+      BinaryInteraction:   IFTExports.pvtBinaryInteractionParam,
+    },
   },
 
   // ─── DCA — Decline Curve Analysis ─────────────────────────────────────────
@@ -382,6 +399,18 @@ export const P365 = {
     LiquidLoading: {
       TurnerCriticalVelocity:   VFPExports.turnerCriticalVelocity,
       MinimumGasRateForLiftoff: VFPExports.minimumGasRateForLiftoff,
+    },
+    Ansari: {
+      Gradient: VFPExports.ansariGradient,
+      BHP:      VFPExports.ansariBHP,
+    },
+    MukherjeeBrill: {
+      Gradient: VFPExports.mukherjeebrillGradient,
+      BHP:      VFPExports.mukherjeebrillBHP,
+    },
+    HasanKabir: {
+      Gradient: VFPExports.hasanKabirGradient,
+      BHP:      VFPExports.hasanKabirBHP,
     },
   },
 
@@ -645,10 +674,12 @@ export const P365 = {
 
   // ─── Nodal — Nodal Analysis ────────────────────────────────────────────────
   Nodal: {
-    Sweep:          NodalExports.nodalSweep,
-    OperatingPoint: NodalExports.nodalOperatingPoint,
-    IPRVogel:       NodalExports.nodalIPRVogel,
-    GasWell:        NodalExports.nodalGasWell,
+    Sweep:                   NodalExports.nodalSweep,
+    OperatingPoint:          NodalExports.nodalOperatingPoint,
+    IPRVogel:                NodalExports.nodalIPRVogel,
+    GasWell:                 NodalExports.nodalGasWell,
+    MultiStringVLP:          NodalExports.nodalMultiStringVLP,
+    ArtificialLiftOverlay:   NodalExports.nodalArtificialLiftOverlay,
   },
 
   // ─── WHT — Wellbore Heat Transfer ─────────────────────────────────────────
@@ -701,8 +732,15 @@ export const P365 = {
 
     // Elastic properties
     StaticPoissonRatio:     GEOExports.geoStaticPoissonRatio,
+    StaticYoungsModulus:    GEOExports.geoStaticYoungsModulus,
     CastagnaVs:             GEOExports.geoCastagnaVs,
     DynamicElasticModuli:   GEOExports.geoDynamicElasticModuli,
+    ElasticModuliConvert:   GEOExports.geoElasticModuliConvert,
+    ElasticModuliFromKG:    GEOExports.geoElasticModuliFromKG,
+
+    // 3D wellbore stress state
+    WellboreStress3D:       GEOExports.geo3DWellboreStress,
+    CollapsePressure3D:     GEOExports.geo3DCollapsePressure,
 
     // Offshore
     OffshoreOverburden:     GEOExports.geoOffshoreOverburden,
@@ -892,6 +930,13 @@ export const P365 = {
     LOEPerBOE:              ECOExports.ecoLOEPerBOE,
     RecycleRatio:           ECOExports.ecoRecycleRatio,
     FindingCost:            ECOExports.ecoFindingCost,
+
+    // Monte Carlo / Latin Hypercube Sampling
+    LCGRandom:              ECOExports.ecoLCGRandom,
+    LHSSingleVar:           ECOExports.ecoLHSSingleVar,
+    LHSample:               ECOExports.ecoLHSample,
+    InvTransform:           ECOExports.ecoInvTransform,
+    MonteCarloNPV:          ECOExports.ecoMonteCarloNPV,
   },
 
   // ─── WPA — Well Production Allocation ──────────────────────────────────────

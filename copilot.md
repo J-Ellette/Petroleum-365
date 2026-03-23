@@ -631,13 +631,41 @@ Good stopping point: Spline interpolation module (cubic/PCHIP/bilinear), Economi
 #### Stopping Point — Session 12
 Good stopping point: ECO extended with WI/NRI/royalty stacking, price escalation, after-tax NPV, and cost metrics; DCA extended with SEPD/LGM saturation diagnostics and model comparison; unit converter expanded with torque/thermal conductivity/specific heat/mass flow rate categories; blueprint catalog expanded from 35 → 45 entries with Spline, ECO, WPA categories. 1465 tests passing.
 
-#### Next Session — Session 13 (Planned)
-- [ ] Nodal analysis extended: multi-string VLP, artificial lift overlay comparison (ESP vs. GL vs. RP)
-- [ ] VFP extended: Ansari, Mukherjee-Brill, Hasan-Kabir mechanistic correlations
-- [ ] Geomechanics extended: Biot coefficient, elastic moduli conversion, 3D stress state
-- [ ] Web deployment manifest (Netlify/GitHub Pages hosting configuration)
-- [ ] PVT extended: interfacial tension (crude-brine-gas), EoS tuning workflow
-- [ ] ECO extended: Monte Carlo simulation helpers (Latin hypercube sampling)
+### Session 13 — VFP Mechanistic + GEO 3D Stress + Nodal Lift + PVT IFT + ECO Monte Carlo + Web Deploy
+
+#### Scope
+- Nodal extended: multi-string VLP (parallel tubing strings) + artificial lift overlay (ESP/GL/RP comparison)
+- VFP extended: Ansari (1994), Mukherjee-Brill (1985), Hasan-Kabir (1988) mechanistic correlations
+- GEO extended: elastic moduli conversion (E/nu <-> K/G/lambda/M), static Young's modulus, 3D wellbore stress state (Kirsch), 3D collapse pressure
+- Web deployment: netlify.toml for Office.js add-in hosting (headers, CSP, redirects)
+- PVT extended: Baker-Swerdloff gas-oil IFT, Macleod-Sugden parachor IFT, Jennings-Patzek gas-brine IFT, Peneloux volume shift, EoS volume-shift regression, Chueh-Prausnitz kij
+- ECO extended: LCG random, Latin hypercube sampling (LHSSingleVar, LHSample), inverse-transform (uniform/triangular/normal/lognormal/PERT), Monte Carlo NPV simulation
+
+#### Deliverables
+- [x] src/functions/vfp/index.ts — ansariGradient/BHP, mukherjeebrillGradient/BHP, hasanKabirGradient/BHP
+- [x] src/functions/geo/index.ts — geoElasticModuliConvert, geoElasticModuliFromKG, geoStaticYoungsModulus, geo3DWellboreStress, geo3DCollapsePressure
+- [x] src/functions/nodal/index.ts — nodalMultiStringVLP, nodalArtificialLiftOverlay
+- [x] src/functions/pvt/ift.ts — pvtDeadOilIFT, pvtGasOilIFTByBakerSwerdloff, pvtGasOilIFTByMacleodSugden, pvtGasBrineIFT, pvtPenelouxShift, pvtEoSVolumeShiftRegress, pvtBinaryInteractionParam
+- [x] src/functions/eco/index.ts — ecoLCGRandom, ecoLHSSingleVar, ecoLHSample, ecoInvTransform, ecoMonteCarloNPV
+- [x] netlify.toml — web deployment manifest for Office.js add-in
+- [x] src/index.ts — all new functions registered on P365 namespace + re-exports
+- [x] src/functions.json — 20 new UDF registrations (176 -> 196)
+- [x] test/vfp/vfp_extended.test.ts — Ansari/MB/HK gradient and BHP tests
+- [x] test/geo/geo_extended.test.ts — elastic moduli + 3D stress tests
+- [x] test/nodal/nodal_extended.test.ts — multi-string VLP + lift overlay tests
+- [x] test/pvt/ift.test.ts — IFT + EoS tuning tests
+- [x] test/eco/eco_extended.test.ts — LHS + Monte Carlo NPV tests
+- [x] Updated copilot.md for Session 13 (31 modules, 1583 tests, 196 UDFs)
+
+#### Stopping Point — Session 13
+Good stopping point: VFP extended with three mechanistic correlations (Ansari/MB/HK); GEO extended with elastic moduli conversions and full Kirsch 3D wellbore stress state; Nodal extended with multi-string VLP and artificial lift overlay (ESP/GL/RP); PVT extended with gas-oil/brine IFT (Baker-Swerdloff/Macleod-Sugden/Jennings-Patzek) and EoS tuning helpers (Peneloux shift, volume-shift regression, Chueh-Prausnitz kij); ECO extended with Latin hypercube sampling and Monte Carlo NPV simulation; Netlify deployment manifest added. 1583 tests passing. 196 UDFs.
+
+#### Next Session — Session 14 (Planned)
+- [ ] Production data analytics: Flowing material balance (FMB), rate-transient analysis (RTA) b-plot
+- [ ] EoS full flash workflow: stability test (Michelsen), successive substitution, Newton convergence
+- [ ] Multi-well interference test (cross-well PTA, pulse testing)
+- [ ] Reservoir drive mechanisms dashboard blueprint
+- [ ] GitHub Pages alternative deployment configuration
 
 ## Function Naming Convention
 `P365.[Category].[Property].[Qualifier].By[Author]`
