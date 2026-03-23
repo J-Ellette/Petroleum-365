@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Petroleum 365 — Task Pane</title>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 13px;
+      color: #323130;
+      background: #f3f2f1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      background: #0078d4;
+      color: #fff;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .app-header h1 { font-size: 15px; font-weight: 600; }
+    .app-header .version { font-size: 11px; opacity: 0.8; margin-left: auto; }
+
+    /* ── Tab Bar ── */
+    .tab-bar {
+      display: flex;
+      background: #fff;
+      border-bottom: 2px solid #0078d4;
+      flex-shrink: 0;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 8px 4px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      color: #605e5c;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn:hover { color: #0078d4; }
+    .tab-btn.active { color: #0078d4; border-bottom-color: #0078d4; background: #f0f7ff; }
+
+    /* ── Tab Panels ── */
+    .tab-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+    .tab-panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+    .tab-panel.active { display: flex; }
+
+    /* ── Search Bar ── */
+    .search-bar {
+      padding: 8px 10px;
+      background: #fff;
+      border-bottom: 1px solid #edebe9;
+      flex-shrink: 0;
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #c8c6c4;
+      border-radius: 4px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-bar input:focus { border-color: #0078d4; }
+
+    /* ── Category filter ── */
+    .filter-row {
+      display: flex;
+      gap: 6px;
+      padding: 6px 10px;
+      background: #fff;
+      border-bottom: 1px solid #edebe9;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .cat-chip {
+      padding: 2px 8px;
+      border-radius: 12px;
+      border: 1px solid #c8c6c4;
+      background: #f3f2f1;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .cat-chip.selected, .cat-chip:hover { background: #0078d4; color: #fff; border-color: #0078d4; }
+
+    /* ── Scrollable list ── */
+    .item-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 0;
+    }
+
+    /* ── Function card ── */
+    .fn-card {
+      padding: 8px 12px;
+      border-bottom: 1px solid #edebe9;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .fn-card:hover, .fn-card.expanded { background: #f0f7ff; }
+    .fn-name { font-weight: 600; font-size: 12px; color: #0078d4; }
+    .fn-desc { font-size: 11px; color: #605e5c; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fn-category { font-size: 10px; color: #8a8886; margin-top: 1px; }
+    .fn-detail {
+      display: none;
+      margin-top: 8px;
+      background: #fff;
+      border: 1px solid #c8c6c4;
+      border-radius: 4px;
+      padding: 8px;
+    }
+    .fn-card.expanded .fn-detail { display: block; }
+    .fn-syntax {
+      font-family: "Cascadia Code", "Consolas", monospace;
+      font-size: 11px;
+      background: #f3f2f1;
+      padding: 4px 8px;
+      border-radius: 3px;
+      word-break: break-all;
+      color: #323130;
+    }
+    .fn-params { margin-top: 6px; }
+    .fn-params dt { font-size: 11px; font-weight: 600; display: inline; }
+    .fn-params dd { font-size: 11px; color: #605e5c; display: inline; margin-left: 4px; }
+    .fn-params div { margin-bottom: 2px; }
+    .btn-insert {
+      margin-top: 8px;
+      padding: 4px 12px;
+      background: #0078d4;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .btn-insert:hover { background: #106ebe; }
+
+    /* ── Blueprint card ── */
+    .bp-card {
+      padding: 10px 12px;
+      border-bottom: 1px solid #edebe9;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .bp-card:hover { background: #f0f7ff; }
+    .bp-title { font-weight: 600; font-size: 12px; }
+    .bp-category { font-size: 10px; color: #8a8886; margin-bottom: 2px; }
+    .bp-desc { font-size: 11px; color: #605e5c; }
+    .bp-tags { margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap; }
+    .bp-tag {
+      font-size: 10px;
+      background: #e1f1fd;
+      color: #0078d4;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+
+    /* ── Unit Converter ── */
+    .converter-panel {
+      padding: 12px;
+      background: #fff;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .field-group { margin-bottom: 12px; }
+    .field-group label { display: block; font-size: 11px; font-weight: 600; margin-bottom: 4px; color: #323130; }
+    .field-group select, .field-group input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #c8c6c4;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .field-group select:focus, .field-group input:focus { outline: none; border-color: #0078d4; }
+    .result-box {
+      background: #e1f1fd;
+      border: 1px solid #0078d4;
+      border-radius: 4px;
+      padding: 10px 12px;
+      margin-top: 8px;
+    }
+    .result-box .result-value { font-size: 20px; font-weight: 700; color: #0078d4; }
+    .result-box .result-formula { font-size: 11px; color: #323130; margin-top: 4px; font-family: monospace; }
+    .convert-btn {
+      width: 100%;
+      padding: 8px;
+      background: #0078d4;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .convert-btn:hover { background: #106ebe; }
+
+    /* ── Eclipse Import Panel ── */
+    .eclipse-panel {
+      padding: 12px;
+      flex: 1;
+      overflow-y: auto;
+      background: #fff;
+    }
+    .section-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #0078d4; }
+    .upload-zone {
+      border: 2px dashed #c8c6c4;
+      border-radius: 6px;
+      padding: 20px;
+      text-align: center;
+      color: #8a8886;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      margin-bottom: 12px;
+    }
+    .upload-zone:hover, .upload-zone.dragover { border-color: #0078d4; background: #f0f7ff; color: #0078d4; }
+    .upload-zone input[type=file] { display: none; }
+    .upload-icon { font-size: 28px; margin-bottom: 6px; }
+    .file-list { margin-bottom: 12px; }
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px;
+      background: #f3f2f1;
+      border-radius: 4px;
+      margin-bottom: 4px;
+      font-size: 11px;
+    }
+    .file-item .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-item .file-remove { color: #a4262c; cursor: pointer; font-size: 14px; }
+    .import-btn {
+      width: 100%;
+      padding: 8px;
+      background: #107c10;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .import-btn:hover { background: #0b6a0b; }
+    .import-btn:disabled { background: #c8c6c4; cursor: default; }
+    .status-msg { margin-top: 8px; font-size: 11px; padding: 4px 8px; border-radius: 4px; }
+    .status-msg.success { background: #dff6dd; color: #107c10; }
+    .status-msg.error { background: #fde7e9; color: #a4262c; }
+    .status-msg.info { background: #e1f1fd; color: #0078d4; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #c8c6c4; border-radius: 3px; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      padding: 32px 16px;
+      text-align: center;
+      color: #8a8886;
+    }
+    .empty-state .icon { font-size: 32px; margin-bottom: 8px; }
+    .empty-state p { font-size: 12px; }
+  </style>
+</head>
+<body>
+
+  <!-- ── App Header ── -->
+  <header class="app-header">
+    <span>⛽</span>
+    <h1>Petroleum 365</h1>
+    <span class="version">v0.1.0</span>
+  </header>
+
+  <!-- ── Tab Bar ── -->
+  <nav class="tab-bar" role="tablist">
+    <button class="tab-btn active" role="tab" data-tab="functions" aria-selected="true">🔍 Functions</button>
+    <button class="tab-btn" role="tab" data-tab="blueprints" aria-selected="false">📊 Blueprints</button>
+    <button class="tab-btn" role="tab" data-tab="converter" aria-selected="false">⇄ Convert</button>
+    <button class="tab-btn" role="tab" data-tab="eclipse" aria-selected="false">📥 Import</button>
+  </nav>
+
+  <!-- ── Tab Content ── -->
+  <main class="tab-content" id="tabContent">
+
+    <!-- ══ Function Browser ══ -->
+    <section class="tab-panel active" id="tab-functions" role="tabpanel">
+      <div class="search-bar">
+        <input type="text" id="fnSearch" placeholder="Search functions… (e.g. Vogel, DCA, Z-factor)" aria-label="Search functions" />
+      </div>
+      <div class="filter-row" id="fnCatFilter">
+        <span class="cat-chip selected" data-cat="">All</span>
+      </div>
+      <div class="item-list" id="fnList" role="list"></div>
+    </section>
+
+    <!-- ══ Blueprint Manager ══ -->
+    <section class="tab-panel" id="tab-blueprints" role="tabpanel">
+      <div class="search-bar">
+        <input type="text" id="bpSearch" placeholder="Search blueprints… (e.g. DCA, IPR, MBE)" aria-label="Search blueprints" />
+      </div>
+      <div class="filter-row" id="bpCatFilter">
+        <span class="cat-chip selected" data-cat="">All</span>
+      </div>
+      <div class="item-list" id="bpList" role="list"></div>
+    </section>
+
+    <!-- ══ Unit Converter ══ -->
+    <section class="tab-panel" id="tab-converter" role="tabpanel">
+      <div class="converter-panel">
+        <div class="field-group">
+          <label for="unitCategory">Category</label>
+          <select id="unitCategory"></select>
+        </div>
+        <div class="field-group">
+          <label for="unitFrom">From</label>
+          <select id="unitFrom"></select>
+        </div>
+        <div class="field-group">
+          <label for="unitTo">To</label>
+          <select id="unitTo"></select>
+        </div>
+        <div class="field-group">
+          <label for="unitValue">Value</label>
+          <input type="number" id="unitValue" value="1" step="any" />
+        </div>
+        <button class="convert-btn" id="convertBtn">Convert</button>
+        <div class="result-box" id="convertResult" style="display:none;">
+          <div class="result-value" id="convertResultValue"></div>
+          <div class="result-formula" id="convertResultFormula"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Eclipse Import ══ -->
+    <section class="tab-panel" id="tab-eclipse" role="tabpanel">
+      <div class="eclipse-panel">
+        <div class="section-title">Import Eclipse Summary Files</div>
+        <p style="font-size:11px;color:#605e5c;margin-bottom:12px;">
+          Select .SMSPEC or .UNSMRY files from your simulator output folder.
+          Each file will be imported as a separate worksheet.
+        </p>
+        <label class="upload-zone" id="uploadZone" for="fileInput">
+          <div class="upload-icon">📂</div>
+          <div><strong>Click to select files</strong> or drag and drop here</div>
+          <div style="font-size:11px;margin-top:4px;">Supported: .SMSPEC, .FSMSPEC, .UNSMRY</div>
+          <input type="file" id="fileInput" accept=".smspec,.fsmspec,.unsmry,.SMSPEC,.FSMSPEC,.UNSMRY" multiple />
+        </label>
+        <div class="file-list" id="fileList"></div>
+        <button class="import-btn" id="importBtn" disabled>Import to Excel</button>
+        <div class="status-msg" id="importStatus" style="display:none;"></div>
+
+        <hr style="margin:16px 0;border:none;border-top:1px solid #edebe9;" />
+        <div class="section-title">About Eclipse File Formats</div>
+        <table style="width:100%;font-size:11px;border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f3f2f1;">
+              <th style="padding:4px 6px;text-align:left;border:1px solid #edebe9;">Extension</th>
+              <th style="padding:4px 6px;text-align:left;border:1px solid #edebe9;">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:4px 6px;border:1px solid #edebe9;font-family:monospace;">.SMSPEC</td>
+              <td style="padding:4px 6px;border:1px solid #edebe9;">Summary specification (vector metadata)</td>
+            </tr>
+            <tr style="background:#f9f9f9;">
+              <td style="padding:4px 6px;border:1px solid #edebe9;font-family:monospace;">.UNSMRY</td>
+              <td style="padding:4px 6px;border:1px solid #edebe9;">Unified summary (binary time series data)</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 6px;border:1px solid #edebe9;font-family:monospace;">.FSMSPEC</td>
+              <td style="padding:4px 6px;border:1px solid #edebe9;">Fine-step summary specification</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+  // ════════════════════════════════════════════════════════════════════════════
+  // P365 Task Pane — Runtime Logic
+  // Uses in-page data catalogs for the Function Browser and Blueprint Manager.
+  // ════════════════════════════════════════════════════════════════════════════
+
+  // ── Tab navigation ──────────────────────────────────────────────────────────
+  const tabBtns = document.querySelectorAll(".tab-btn");
+  const tabPanels = document.querySelectorAll(".tab-panel");
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.tab;
+      tabBtns.forEach(b => { b.classList.remove("active"); b.setAttribute("aria-selected","false"); });
+      tabPanels.forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      btn.setAttribute("aria-selected","true");
+      document.getElementById("tab-" + target).classList.add("active");
+    });
+  });
+
+  // ── Function catalog ────────────────────────────────────────────────────────
+  const FUNCTIONS = [
+    { id:"pvt-z-dak", cat:"PVT", name:"P365.PVT.Z.ByDAK", desc:"Gas Z-factor by Dranchuk-Abou-Kassem (DAK) — iterative, highly accurate.", params:["T_F","P_psia","Tpc","Ppc"], example:"=P365.PVT.Z.ByDAK(200,3000,400,665)" },
+    { id:"pvt-z-hy", cat:"PVT", name:"P365.PVT.Z.ByHallYarborough", desc:"Gas Z-factor by Hall-Yarborough iterative method.", params:["T_F","P_psia","Tpc","Ppc"], example:"=P365.PVT.Z.ByHallYarborough(200,3000,400,665)" },
+    { id:"pvt-bg", cat:"PVT", name:"P365.PVT.Bg", desc:"Gas formation volume factor (bbl/Mscf).", params:["T_F","P_psia","Z"], example:"=P365.PVT.Bg(200,3000,0.85)" },
+    { id:"pvt-pb-standing", cat:"PVT", name:"P365.PVT.Pb.ByStanding", desc:"Bubble point pressure by Standing (1947).", params:["sg_g","API","Rs","T_F"], example:"=P365.PVT.Pb.ByStanding(0.65,35,500,200)" },
+    { id:"pvt-bo-standing", cat:"PVT", name:"P365.PVT.Bo.Sat.ByStanding", desc:"Saturated oil FVF by Standing (1947).", params:["sg_g","API","Rs","T_F"], example:"=P365.PVT.Bo.Sat.ByStanding(0.65,35,500,200)" },
+    { id:"pvt-uo-beal", cat:"PVT", name:"P365.PVT.Uo.Dead.ByBeal", desc:"Dead oil viscosity by Beal (1946).", params:["API","T_F"], example:"=P365.PVT.Uo.Dead.ByBeal(35,200)" },
+    { id:"dca-arps-rate", cat:"DCA", name:"P365.DCA.Arps.Rate", desc:"Arps decline rate at time t (exponential/hyperbolic/harmonic).", params:["qi","Di","b","t"], example:"=P365.DCA.Arps.Rate(1000,0.05,0.8,12)" },
+    { id:"dca-arps-cum", cat:"DCA", name:"P365.DCA.Arps.Cumulative", desc:"Arps cumulative production to time t.", params:["qi","Di","b","t"], example:"=P365.DCA.Arps.Cumulative(1000,0.05,0.8,12)" },
+    { id:"dca-ple-rate", cat:"DCA", name:"P365.DCA.PLE.Rate", desc:"Power Law Exponential (PLE) decline rate — unconventional wells.", params:["qi","D_inf","D1","n","t"], example:"=P365.DCA.PLE.Rate(500,0.001,0.5,0.5,12)" },
+    { id:"dca-bfactor", cat:"DCA", name:"P365.DCA.Diagnostics.BFactor", desc:"Instantaneous Arps b-factor from rate-time data array.", params:["t_arr","q_arr"], example:"=P365.DCA.Diagnostics.BFactor(A1:A24,B1:B24)" },
+    { id:"ipr-vogel", cat:"IPR", name:"P365.IPR.Rate.Vogel", desc:"Vogel (1968) IPR flow rate below bubble point.", params:["Pr","Qmax","Pwf"], example:"=P365.IPR.Rate.Vogel(3000,500,1500)" },
+    { id:"ipr-pi-pss", cat:"IPR", name:"P365.IPR.PI.PSS", desc:"Pseudo-steady-state Productivity Index.", params:["k_md","h_ft","mu_cp","Bo","re_ft","rw_ft","skin"], example:"=P365.IPR.PI.PSS(10,50,1.2,1.25,1000,0.35,3)" },
+    { id:"ipr-gasdarcy", cat:"IPR", name:"P365.IPR.Rate.GasDarcy", desc:"Gas well Darcy deliverability (PSS, field units) in Mscfd.", params:["k_md","h_ft","T_F","Z","mu_cp","Pr","Pwf","re_ft","rw_ft","skin"], example:"=P365.IPR.Rate.GasDarcy(0.5,80,250,0.9,0.02,3000,500,2000,0.35,2)" },
+    { id:"mbe-gas-pz", cat:"MBE", name:"P365.MBE.Gas.PZ", desc:"Gas reservoir p/Z ratio.", params:["p","Z"], example:"=P365.MBE.Gas.PZ(3000,0.85)" },
+    { id:"mbe-ogip", cat:"MBE", name:"P365.MBE.Gas.OGIP.TwoPoint", desc:"OGIP from two-point p/Z straight-line.", params:["pi_over_Zi","p1_over_Z1","Gp1"], example:"=P365.MBE.Gas.OGIP.TwoPoint(3529,3176,5000)" },
+    { id:"mbe-havlena-odeh", cat:"MBE", name:"P365.MBE.Oil.HavlenaOdeh", desc:"Havlena-Odeh straight-line MBE — OOIP, gas cap m, R².", params:["F_arr","Eo_arr","Eg_arr","Efw_arr"], example:"=P365.MBE.Oil.HavlenaOdeh(A1:A10,B1:B10,C1:C10,D1:D10)" },
+    { id:"pta-drawdown", cat:"PTA", name:"P365.PTA.Drawdown.Pwf", desc:"Drawdown flowing BHP by semilog (MDH) approximation.", params:["Pi","q","mu","Bo","k","h","phi","ct","rw","skin","t_hr"], example:"=P365.PTA.Drawdown.Pwf(3500,500,1.2,1.25,10,50,0.2,1e-5,0.35,3,24)" },
+    { id:"pta-horner-k", cat:"PTA", name:"P365.PTA.Horner.Permeability", desc:"Permeability from Horner buildup slope.", params:["q","mu","Bo","m","h"], example:"=P365.PTA.Horner.Permeability(500,1.2,1.25,45,50)" },
+    { id:"pta-bourdet", cat:"PTA", name:"P365.PTA.Bourdet.Derivative", desc:"Bourdet pressure derivative dp/d(ln t) — flow regime diagnostic.", params:["t_arr","p_arr","L"], example:"=P365.PTA.Bourdet.Derivative(A1:A20,B1:B20,0.2)" },
+    { id:"geo-pp-eaton", cat:"GEO", name:"P365.GEO.PorePressure.Eaton", desc:"Eaton (1975) pore pressure prediction from sonic transit time.", params:["depth_ft","obStress_psi","normalPP_psi","dtObserved","dtNormal","exponent"], example:"=P365.GEO.PorePressure.Eaton(10000,9500,4330,80,100,3.0)" },
+    { id:"geo-fg-eaton", cat:"GEO", name:"P365.GEO.FractureGradient.Eaton", desc:"Eaton (1975) fracture gradient — most widely used method.", params:["depth_ft","obGradient_psift","ppGradient_psift","nu"], example:"=P365.GEO.FractureGradient.Eaton(10000,0.95,0.433,0.25)" },
+    { id:"geo-mudwindow", cat:"GEO", name:"P365.GEO.MudWindow", desc:"Drilling mud weight window [min collapse, min kick, max frac, max OB] (ppg).", params:["depth_ft","ppGrad","fgGrad","collapseGrad","obGrad"], example:"=P365.GEO.MudWindow(10000,0.433,0.8,0.45,0.95)" },
+    { id:"skin-hawkins", cat:"SKIN", name:"P365.SKIN.Hawkins", desc:"Hawkins (1956) damage skin S = (k/ks - 1)·ln(rs/rw).", params:["k","ks","rs","rw"], example:"=P365.SKIN.Hawkins(10,1,3,0.35)" },
+    { id:"skin-total", cat:"SKIN", name:"P365.SKIN.Total", desc:"Composite total skin (damage + perforations + non-Darcy + partial + gravel pack).", params:["S_damage","S_perf","S_nondarcy","S_partial","S_gp"], example:"=P365.SKIN.Total(5,2,1,0,0)" },
+    { id:"hv-hhv", cat:"HV", name:"P365.HV.HHV", desc:"Higher Heating Value (BTU/scf) from gas composition (GPA 2145).", params:["yi","components"], example:"=P365.HV.HHV(A1:A5,B1:B5)" },
+    { id:"hv-wobbe", cat:"HV", name:"P365.HV.Wobbe", desc:"Wobbe Index = HHV / √SG (BTU/scf).", params:["hhv_BTUscf","sg"], example:"=P365.HV.Wobbe(1050,0.65)" },
+    { id:"aga8-z", cat:"AGA8", name:"P365.AGA8.Z.FieldUnits", desc:"AGA-8 Z-factor for custody transfer (field units: psia, °F).", params:["P_psia","T_F","yi","components"], example:"=P365.AGA8.Z.FieldUnits(1000,60,A1:A5,B1:B5)" },
+    { id:"vfp-bb", cat:"VFP", name:"P365.VFP.BeggsBrillBHP", desc:"Beggs-Brill (1973) multiphase BHP for vertical/deviated wells.", params:["Pwh_psia","depth_ft","qo","qw","qg","P_avg","T_avg","sg_g","API","WC","ID_in","angle_deg"], example:"=P365.VFP.BeggsBrillBHP(500,8000,500,100,2000,2000,180,0.65,35,0.15,2.5,90)" },
+    { id:"sf-choke", cat:"SF", name:"P365.SF.Choke.Rate", desc:"Choke flow rate (STB/d) using Gilbert, Ros, Baxendell, Achong, or Pilehvari.", params:["Pu_psia","GLR","bean_64ths","correlation"], example:"=P365.SF.Choke.Rate(1200,800,16,\"Gilbert\")" },
+    { id:"sf-compressor", cat:"SF", name:"P365.SF.Compressor.Power", desc:"Compressor polytropic power (hp).", params:["qg_Mscfd","Pi_psia","Pd_psia","T_suction_F","Z_avg","eta_p","gamma"], example:"=P365.SF.Compressor.Power(10,100,800,80,0.9,0.85,1.28)" },
+    { id:"scal-corey-krw", cat:"SCAL", name:"P365.SCAL.Corey.Krw", desc:"Corey power-law water relative permeability krw(Sw).", params:["Sw","Swc","Sor","krw_max","nw"], example:"=P365.SCAL.Corey.Krw(0.5,0.2,0.25,0.8,2)" },
+    { id:"unit-converter", cat:"Utilities", name:"P365.UnitConverter", desc:"Convert any petroleum engineering unit. Supports 60+ unit pairs, scaled units, and unit expressions.", params:["value","fromUnit","toUnit"], example:"=P365.UnitConverter(3000,\"psia\",\"bar\")" },
+    { id:"pipe-weymouth", cat:"Pipe", name:"P365.Pipe.Weymouth.Flow", desc:"Weymouth equation: gas flow rate at given conditions.", params:["Pi_psia","Po_psia","D_in","L_miles","sg","T_avg_F","Z_avg"], example:"=P365.Pipe.Weymouth.Flow(100,50,4,10,0.6,60,1.0)" },
+  ];
+
+  const FN_CATS = [...new Set(FUNCTIONS.map(f => f.cat))].sort();
+  let activeFnCat = "";
+  let expandedFn = null;
+
+  function renderFnCats() {
+    const bar = document.getElementById("fnCatFilter");
+    bar.innerHTML = '<span class="cat-chip selected" data-cat="">All</span>';
+    FN_CATS.forEach(cat => {
+      const chip = document.createElement("span");
+      chip.className = "cat-chip";
+      chip.dataset.cat = cat;
+      chip.textContent = cat;
+      bar.appendChild(chip);
+    });
+    bar.querySelectorAll(".cat-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        activeFnCat = chip.dataset.cat;
+        bar.querySelectorAll(".cat-chip").forEach(c => c.classList.remove("selected"));
+        chip.classList.add("selected");
+        renderFnList();
+      });
+    });
+  }
+
+  function renderFnList() {
+    const q = document.getElementById("fnSearch").value.toLowerCase();
+    const list = document.getElementById("fnList");
+    list.innerHTML = "";
+    const filtered = FUNCTIONS.filter(fn => {
+      const matchCat = !activeFnCat || fn.cat === activeFnCat;
+      const matchQ = !q || fn.name.toLowerCase().includes(q) || fn.desc.toLowerCase().includes(q) || fn.cat.toLowerCase().includes(q);
+      return matchCat && matchQ;
+    });
+    if (!filtered.length) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>No functions found.<br/>Try a different keyword.</p></div>';
+      return;
+    }
+    filtered.forEach(fn => {
+      const card = document.createElement("div");
+      card.className = "fn-card";
+      card.setAttribute("role","listitem");
+      if (expandedFn === fn.id) card.classList.add("expanded");
+      card.innerHTML = `
+        <div class="fn-category">${fn.cat}</div>
+        <div class="fn-name">${fn.name}</div>
+        <div class="fn-desc">${fn.desc}</div>
+        <div class="fn-detail">
+          <div class="fn-syntax">${fn.example}</div>
+          <div class="fn-params" style="margin-top:6px;">
+            <strong style="font-size:11px;">Parameters:</strong> <span style="font-size:11px;color:#605e5c;">${fn.params.join(", ")}</span>
+          </div>
+          <button class="btn-insert" data-formula="${fn.example}">Insert into Cell</button>
+        </div>`;
+      card.addEventListener("click", (e) => {
+        if (e.target.classList.contains("btn-insert")) return;
+        expandedFn = expandedFn === fn.id ? null : fn.id;
+        renderFnList();
+      });
+      card.querySelector(".btn-insert")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        insertFormulaIntoCell(fn.example);
+      });
+      list.appendChild(card);
+    });
+  }
+
+  document.getElementById("fnSearch").addEventListener("input", renderFnList);
+  renderFnCats();
+  renderFnList();
+
+  // ── Blueprint catalog ───────────────────────────────────────────────────────
+  const BLUEPRINTS = [
+    { id:"bp-dca-arps", cat:"DCA", title:"Arps Decline Forecast", desc:"Exponential, hyperbolic, and harmonic decline curves with EUR calculator.", tags:["DCA","Forecast","EUR"] },
+    { id:"bp-dca-autofit", cat:"DCA", title:"DCA Auto-Fit Model Comparison", desc:"Fit all Arps models to historical data and compare on one chart.", tags:["DCA","Curve Fit"] },
+    { id:"bp-dca-diagnostics", cat:"DCA", title:"Decline Diagnostics", desc:"Log-log b-factor plot for flow regime identification.", tags:["DCA","Diagnostic"] },
+    { id:"bp-ipr-vogel", cat:"IPR", title:"Vogel IPR Curve", desc:"Full IPR curve using Vogel (1968) with composite Darcy+Vogel option.", tags:["IPR","Oil"] },
+    { id:"bp-ipr-gas", cat:"IPR", title:"Gas Well Deliverability", desc:"Darcy and non-Darcy gas deliverability curves.", tags:["IPR","Gas"] },
+    { id:"bp-ipr-composite", cat:"IPR", title:"Composite IPR (Darcy + Vogel)", desc:"Two-region IPR for oil wells above and below bubble point.", tags:["IPR","Oil","MBE"] },
+    { id:"bp-mbe-pz", cat:"MBE", title:"Gas Reservoir p/z Analysis", desc:"p/z straight-line plot, OGIP, and pressure forecast.", tags:["MBE","Gas"] },
+    { id:"bp-mbe-havlena", cat:"MBE", title:"Havlena-Odeh Oil MBE", desc:"Straight-line MBE for oil reservoirs — OOIP and gas cap determination.", tags:["MBE","Oil"] },
+    { id:"bp-mbe-drive", cat:"MBE", title:"Reservoir Drive Mechanism Indices", desc:"Calculate and visualize solution gas, gas cap, water, and compressibility drive.", tags:["MBE","Drive"] },
+    { id:"bp-pta-horner", cat:"PTA", title:"Horner Plot Analysis — P* Calculation", desc:"Pressure buildup interpretation with Horner plot, k, and skin.", tags:["PTA","Buildup"] },
+    { id:"bp-pta-bourdet", cat:"PTA", title:"Log-Log Diagnostic Plot", desc:"Bourdet pressure and derivative for flow regime identification.", tags:["PTA","Diagnostic"] },
+    { id:"bp-pta-wbs", cat:"PTA", title:"Wellbore Storage & Skin Type Curve", desc:"WBS unit-slope and transition region on log-log plot.", tags:["PTA","WBS"] },
+    { id:"bp-vfp-bb", cat:"VFP", title:"Beggs-Brill VLP Curve", desc:"Vertical Lift Performance curve (tubing intake curve) for nodal analysis.", tags:["VFP","Nodal"] },
+    { id:"bp-vfp-nodal", cat:"VFP", title:"Nodal Analysis (IPR + VLP)", desc:"IPR and VLP intersection for operating point — oil and gas wells.", tags:["VFP","Nodal","IPR"] },
+    { id:"bp-geo-mudwindow", cat:"GEO", title:"Mud Weight Window Analysis", desc:"Pore pressure, fracture gradient, collapse gradient, and overburden profile.", tags:["GEO","Drilling"] },
+    { id:"bp-geo-pp", cat:"GEO", title:"Pore Pressure Prediction", desc:"Eaton sonic method — normal trend and overpressure detection.", tags:["GEO","Pore Pressure"] },
+    { id:"bp-frac-pkn", cat:"FRAC", title:"PKN Fracture Geometry Analysis", desc:"PKN width, volume, fluid efficiency, and proppant placement.", tags:["FRAC","Design"] },
+    { id:"bp-frac-nolte", cat:"FRAC", title:"Nolte G-Function Analysis", desc:"G-function closure pressure, fluid efficiency, and leakoff coefficient.", tags:["FRAC","Diagnostics"] },
+    { id:"bp-scal-corey", cat:"SCAL", title:"Corey Kr Curves", desc:"Water-oil and gas-oil relative permeability tables with Corey power law.", tags:["SCAL","Kr"] },
+    { id:"bp-sf-choke", cat:"SF", title:"Choke Sizing Comparison", desc:"Compare Gilbert, Ros, Baxendell, Achong, and Pilehvari choke correlations.", tags:["SF","Choke"] },
+    { id:"bp-sf-pipeline", cat:"SF", title:"Gas Pipeline Flow Analysis", desc:"Weymouth, Panhandle A, and Panhandle B comparison.", tags:["SF","Pipeline","Gas"] },
+    { id:"bp-esp-sizing", cat:"ESP", title:"ESP Pump Sizing and Selection", desc:"TDH, stages, motor HP, and operating point from pump curve.", tags:["ESP","Artificial Lift"] },
+    { id:"bp-gl-design", cat:"GL", title:"Gas Lift Injection Design", desc:"Injection rate, valve setting, Thornhill-Craver throughput.", tags:["GL","Artificial Lift"] },
+    { id:"bp-fa-hydrate", cat:"FA", title:"Hydrate Inhibitor Dosing", desc:"Hammerschmidt method — methanol, MEG, DEG dosing rates.", tags:["FA","Hydrate"] },
+    { id:"bp-pvt-gas", cat:"PVT", title:"Gas PVT Properties", desc:"Z-factor, viscosity, density, FVF at multiple pressure steps.", tags:["PVT","Gas"] },
+    { id:"bp-pvt-oil", cat:"PVT", title:"Oil PVT Properties", desc:"Bubble point, Rs, Bo, oil viscosity table.", tags:["PVT","Oil"] },
+    { id:"bp-cnglng-cng", cat:"CNG/LNG", title:"CNG Station Design", desc:"Cylinder capacity, fill time, cascade bank sizing.", tags:["CNG","LNG"] },
+    { id:"bp-wbi-casingdesign", cat:"WBI", title:"Casing Burst/Collapse Design", desc:"API Barlow burst and collapse ratings with design factors.", tags:["WBI","Casing"] },
+    { id:"bp-wbi-shoetest", cat:"WBI", title:"Shoe Test Evaluation (FIT/LOT/XLOT)", desc:"Equivalent mud weight, fracture gradient, and closure stress from shoe tests.", tags:["WBI","Drilling"] },
+    { id:"bp-sim-swof", cat:"SIM", title:"Eclipse SWOF/SGOF INCLUDE Generator", desc:"Build SWOF and SGOF INCLUDE files from Corey kr parameters.", tags:["SIM","Eclipse"] },
+    { id:"bp-unit-converter", cat:"Utilities", title:"Unit Converter Reference", desc:"Interactive unit conversion with all 60+ unit categories.", tags:["Utilities","Units"] },
+  ];
+
+  const BP_CATS = [...new Set(BLUEPRINTS.map(b => b.cat))].sort();
+  let activeBpCat = "";
+
+  function renderBpCats() {
+    const bar = document.getElementById("bpCatFilter");
+    bar.innerHTML = '<span class="cat-chip selected" data-cat="">All</span>';
+    BP_CATS.forEach(cat => {
+      const chip = document.createElement("span");
+      chip.className = "cat-chip";
+      chip.dataset.cat = cat;
+      chip.textContent = cat;
+      bar.appendChild(chip);
+    });
+    bar.querySelectorAll(".cat-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        activeBpCat = chip.dataset.cat;
+        bar.querySelectorAll(".cat-chip").forEach(c => c.classList.remove("selected"));
+        chip.classList.add("selected");
+        renderBpList();
+      });
+    });
+  }
+
+  function renderBpList() {
+    const q = document.getElementById("bpSearch").value.toLowerCase();
+    const list = document.getElementById("bpList");
+    list.innerHTML = "";
+    const filtered = BLUEPRINTS.filter(bp => {
+      const matchCat = !activeBpCat || bp.cat === activeBpCat;
+      const matchQ = !q || bp.title.toLowerCase().includes(q) || bp.desc.toLowerCase().includes(q) || bp.cat.toLowerCase().includes(q) || bp.tags.some(t => t.toLowerCase().includes(q));
+      return matchCat && matchQ;
+    });
+    if (!filtered.length) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>No blueprints found.</p></div>';
+      return;
+    }
+    filtered.forEach(bp => {
+      const card = document.createElement("div");
+      card.className = "bp-card";
+      card.setAttribute("role","listitem");
+      const tagsHtml = bp.tags.map(t => `<span class="bp-tag">${t}</span>`).join("");
+      card.innerHTML = `
+        <div class="bp-category">${bp.cat}</div>
+        <div class="bp-title">${bp.title}</div>
+        <div class="bp-desc">${bp.desc}</div>
+        <div class="bp-tags">${tagsHtml}</div>`;
+      card.addEventListener("click", () => {
+        showBlueprintInstallPrompt(bp);
+      });
+      list.appendChild(card);
+    });
+  }
+
+  function showBlueprintInstallPrompt(bp) {
+    if (typeof Office !== "undefined" && Office.context) {
+      // In a real add-in environment, this would insert the blueprint worksheet
+      Office.context.ui.messageParent(JSON.stringify({ action: "installBlueprint", id: bp.id }));
+    } else {
+      // Standalone browser preview
+      alert(`Blueprint: "${bp.title}"\n\nIn Excel, clicking Install would insert a complete worksheet with formulas and formatting for ${bp.desc}`);
+    }
+  }
+
+  document.getElementById("bpSearch").addEventListener("input", renderBpList);
+  renderBpCats();
+  renderBpList();
+
+  // ── Unit Converter ──────────────────────────────────────────────────────────
+  const UNIT_DATA = {
+    "Pressure":    { units: ["psia","bar","MPa","kPa","atm","mmHg","Pa"], factors: [1, 14.5038, 145.038, 0.145038, 14.696, 0.019337, 0.000145038] },
+    "Temperature": { units: ["°F","°C","K","°R"], offsets: [0, 32, 491.67, 0], scales: [1, 1.8, 1.8, 1] },
+    "Length":      { units: ["ft","m","in","cm","mm","km","mi"], factors: [1, 3.28084, 0.083333, 0.032808, 0.0032808, 3280.84, 5280] },
+    "Volume":      { units: ["bbl","m³","ft³","gal","L","Mscf"], factors: [1, 6.28981, 0.178107, 0.0238095, 0.00628981, 5.61458] },
+    "Flow Rate":   { units: ["STB/d","m³/d","Mscfd","bbl/hr","gal/min"], factors: [1, 0.158987, 0.005615, 0.041667, 0.02381] },
+    "Mass":        { units: ["lb","kg","ton","tonne","g"], factors: [1, 2.20462, 2000, 2204.62, 0.00220462] },
+    "Energy":      { units: ["BTU","kJ","MJ","kWh","mmBTU"], factors: [1, 0.947817, 947.817, 3412.14, 0.000001] },
+    "Viscosity":   { units: ["cp","mPa·s","cSt","Pa·s"], factors: [1, 1, 1, 1000] },
+    "Permeability":{ units: ["md","D","µm²"], factors: [1, 0.001, 1.01325] },
+  };
+
+  const catSel = document.getElementById("unitCategory");
+  const fromSel = document.getElementById("unitFrom");
+  const toSel = document.getElementById("unitTo");
+
+  Object.keys(UNIT_DATA).forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat;
+    opt.textContent = cat;
+    catSel.appendChild(opt);
+  });
+
+  function populateUnitDropdowns() {
+    const cat = catSel.value;
+    const data = UNIT_DATA[cat];
+    fromSel.innerHTML = "";
+    toSel.innerHTML = "";
+    data.units.forEach((u, i) => {
+      const o1 = document.createElement("option"); o1.value = i; o1.textContent = u; fromSel.appendChild(o1);
+      const o2 = document.createElement("option"); o2.value = i; o2.textContent = u; toSel.appendChild(o2);
+    });
+    toSel.selectedIndex = 1;
+  }
+
+  catSel.addEventListener("change", populateUnitDropdowns);
+  populateUnitDropdowns();
+
+  document.getElementById("convertBtn").addEventListener("click", () => {
+    const cat = catSel.value;
+    const data = UNIT_DATA[cat];
+    const val = parseFloat(document.getElementById("unitValue").value) || 0;
+    const fi = parseInt(fromSel.value);
+    const ti = parseInt(toSel.value);
+    const fromUnit = data.units[fi];
+    const toUnit = data.units[ti];
+
+    let result;
+    if (cat === "Temperature") {
+      // Convert to °F first, then to target
+      const toF = (val - data.offsets[fi]) * data.scales[fi];
+      result = toF / data.scales[ti] + data.offsets[ti];
+    } else {
+      // Convert via factors (all relative to first unit in list)
+      const inBase = val / data.factors[fi]; // to base unit
+      result = inBase * data.factors[ti];    // to target
+    }
+
+    const box = document.getElementById("convertResult");
+    box.style.display = "block";
+    document.getElementById("convertResultValue").textContent =
+      result.toPrecision(6) + " " + toUnit;
+    document.getElementById("convertResultFormula").textContent =
+      `=P365.UnitConverter(${val}, "${fromUnit}", "${toUnit}")`;
+  });
+
+  // ── Eclipse Import ──────────────────────────────────────────────────────────
+  const selectedFiles = [];
+  const fileInput = document.getElementById("fileInput");
+  const fileList = document.getElementById("fileList");
+  const importBtn = document.getElementById("importBtn");
+  const importStatus = document.getElementById("importStatus");
+  const uploadZone = document.getElementById("uploadZone");
+
+  uploadZone.addEventListener("dragover", (e) => { e.preventDefault(); uploadZone.classList.add("dragover"); });
+  uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("dragover"));
+  uploadZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove("dragover");
+    addFiles(Array.from(e.dataTransfer.files));
+  });
+
+  fileInput.addEventListener("change", () => {
+    addFiles(Array.from(fileInput.files));
+    fileInput.value = "";
+  });
+
+  function addFiles(files) {
+    files.forEach(f => {
+      if (!selectedFiles.find(x => x.name === f.name && x.size === f.size)) {
+        selectedFiles.push(f);
+      }
+    });
+    renderFileList();
+  }
+
+  function renderFileList() {
+    fileList.innerHTML = "";
+    selectedFiles.forEach((f, i) => {
+      const item = document.createElement("div");
+      item.className = "file-item";
+      const sizeKB = (f.size / 1024).toFixed(1);
+      item.innerHTML = `<span>📄</span><span class="file-name">${f.name} (${sizeKB} KB)</span><span class="file-remove" title="Remove">✕</span>`;
+      item.querySelector(".file-remove").addEventListener("click", () => {
+        selectedFiles.splice(i, 1);
+        renderFileList();
+      });
+      fileList.appendChild(item);
+    });
+    importBtn.disabled = selectedFiles.length === 0;
+    showStatus("", "");
+  }
+
+  function showStatus(msg, type) {
+    importStatus.style.display = msg ? "block" : "none";
+    importStatus.className = "status-msg " + type;
+    importStatus.textContent = msg;
+  }
+
+  importBtn.addEventListener("click", async () => {
+    if (!selectedFiles.length) return;
+    importBtn.disabled = true;
+    showStatus("Parsing files…", "info");
+    try {
+      if (typeof Office !== "undefined" && Office.context) {
+        // Real Office.js environment — trigger file import via parent message
+        Office.context.ui.messageParent(JSON.stringify({
+          action: "importEclipse",
+          files: selectedFiles.map(f => f.name)
+        }));
+        showStatus(`Importing ${selectedFiles.length} file(s) into Excel…`, "info");
+      } else {
+        // Browser preview: simulate with a brief delay
+        await new Promise(r => setTimeout(r, 800));
+        showStatus(`✓ ${selectedFiles.length} file(s) parsed successfully. In Excel, data would be inserted into new worksheets.`, "success");
+        selectedFiles.length = 0;
+        renderFileList();
+      }
+    } catch (err) {
+      showStatus("Import failed: " + err.message, "error");
+    } finally {
+      importBtn.disabled = selectedFiles.length === 0;
+    }
+  });
+
+  // ── Formula insertion helper ─────────────────────────────────────────────────
+  function insertFormulaIntoCell(formula) {
+    if (typeof Excel !== "undefined") {
+      Excel.run(async (ctx) => {
+        const cell = ctx.workbook.getActiveCell();
+        cell.formulas = [[formula]];
+        await ctx.sync();
+      }).catch(err => console.error("Excel insert error:", err));
+    } else {
+      // Browser preview: copy to clipboard
+      navigator.clipboard?.writeText(formula).then(() => {
+        alert(`Formula copied to clipboard:\n${formula}`);
+      }).catch(() => {
+        alert(`Formula to insert:\n${formula}`);
+      });
+    }
+  }
+  </script>
+</body>
+</html>

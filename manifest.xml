@@ -12,7 +12,7 @@
   <ProviderName>Petroleum 365</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Petroleum 365" />
-  <Description DefaultValue="Professional petroleum engineering functions for Excel — PVT, DCA, IPR, VFP, MBE, PTA and more." />
+  <Description DefaultValue="Professional petroleum engineering functions for Excel — PVT, DCA, IPR, VFP, MBE, PTA, FRAC, GEO, SKIN, WBI, SIM and more." />
   <SupportUrl DefaultValue="https://github.com/J-Ellette/Petroleum-365" />
 
   <!-- Icon resources -->
@@ -53,9 +53,22 @@
         </AllFormFactors>
 
         <DesktopFormFactor>
-          <!-- Custom ribbon tab: Petroleum 365 -->
+          <!-- ═══════════════════════════════════════════════════════════════
+               Custom ribbon tab: Petroleum 365
+               Groups (left to right):
+                 1. Production   — DCA, FPP, FRAC
+                 2. Reservoir    — IPR, MBE, PTA
+                 3. Well Flow    — VFP, SF, FA
+                 4. Artificial Lift — ESP, GL, RP
+                 5. Fluids & Rock — PVT, SCAL, EoS
+                 6. Utilities    — Spline, Unit Converter
+                 7. Library      — Functions, Blueprints, Toolbox
+               ═══════════════════════════════════════════════════════════════ -->
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
-            <OfficeTab id="TabHome">
+            <CustomTab id="P365.Tab">
+              <Label resid="Tab.Label" />
+
+              <!-- ── Group 1: Production ───────────────────────────────── -->
               <Group id="P365.Group.Production">
                 <Label resid="Group.Production.Label" />
                 <Icon>
@@ -63,6 +76,8 @@
                   <bt:Image size="32" resid="Icon.32x32" />
                   <bt:Image size="80" resid="Icon.80x80" />
                 </Icon>
+
+                <!-- DCA Menu -->
                 <Control xsi:type="Menu" id="P365.Menu.DCA">
                   <Label resid="Menu.DCA.Label" />
                   <Supertip>
@@ -105,10 +120,570 @@
                         <FunctionName>insertDuongDecline</FunctionName>
                       </Action>
                     </Item>
+                    <Item id="P365.Menu.DCA.PLE">
+                      <Label resid="Menu.DCA.PLE.Label" />
+                      <Supertip>
+                        <Title resid="Menu.DCA.PLE.Label" />
+                        <Description resid="Menu.DCA.PLE.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertPLEDecline</FunctionName>
+                      </Action>
+                    </Item>
+                    <Item id="P365.Menu.DCA.EUR">
+                      <Label resid="Menu.DCA.EUR.Label" />
+                      <Supertip>
+                        <Title resid="Menu.DCA.EUR.Label" />
+                        <Description resid="Menu.DCA.EUR.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertEURCalculator</FunctionName>
+                      </Action>
+                    </Item>
+                  </Items>
+                </Control>
+
+                <!-- FRAC Menu -->
+                <Control xsi:type="Menu" id="P365.Menu.FRAC">
+                  <Label resid="Menu.FRAC.Label" />
+                  <Supertip>
+                    <Title resid="Menu.FRAC.Label" />
+                    <Description resid="Menu.FRAC.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Items>
+                    <Item id="P365.Menu.FRAC.PKN">
+                      <Label resid="Menu.FRAC.PKN.Label" />
+                      <Supertip>
+                        <Title resid="Menu.FRAC.PKN.Label" />
+                        <Description resid="Menu.FRAC.PKN.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertPKNGeometry</FunctionName>
+                      </Action>
+                    </Item>
+                    <Item id="P365.Menu.FRAC.NolteG">
+                      <Label resid="Menu.FRAC.NolteG.Label" />
+                      <Supertip>
+                        <Title resid="Menu.FRAC.NolteG.Label" />
+                        <Description resid="Menu.FRAC.NolteG.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertNolteGAnalysis</FunctionName>
+                      </Action>
+                    </Item>
                   </Items>
                 </Control>
               </Group>
 
+              <!-- ── Group 2: Reservoir ──────────────────────────────────── -->
+              <Group id="P365.Group.Reservoir">
+                <Label resid="Group.Reservoir.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16" />
+                  <bt:Image size="32" resid="Icon.32x32" />
+                  <bt:Image size="80" resid="Icon.80x80" />
+                </Icon>
+
+                <!-- IPR Menu -->
+                <Control xsi:type="Menu" id="P365.Menu.IPR">
+                  <Label resid="Menu.IPR.Label" />
+                  <Supertip>
+                    <Title resid="Menu.IPR.Label" />
+                    <Description resid="Menu.IPR.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Items>
+                    <Item id="P365.Menu.IPR.Vogel">
+                      <Label resid="Menu.IPR.Vogel.Label" />
+                      <Supertip>
+                        <Title resid="Menu.IPR.Vogel.Label" />
+                        <Description resid="Menu.IPR.Vogel.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertVogelIPR</FunctionName>
+                      </Action>
+                    </Item>
+                    <Item id="P365.Menu.IPR.Gas">
+                      <Label resid="Menu.IPR.Gas.Label" />
+                      <Supertip>
+                        <Title resid="Menu.IPR.Gas.Label" />
+                        <Description resid="Menu.IPR.Gas.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertGasDeliverability</FunctionName>
+                      </Action>
+                    </Item>
+                  </Items>
+                </Control>
+
+                <!-- MBE Menu -->
+                <Control xsi:type="Menu" id="P365.Menu.MBE">
+                  <Label resid="Menu.MBE.Label" />
+                  <Supertip>
+                    <Title resid="Menu.MBE.Label" />
+                    <Description resid="Menu.MBE.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Items>
+                    <Item id="P365.Menu.MBE.GasPZ">
+                      <Label resid="Menu.MBE.GasPZ.Label" />
+                      <Supertip>
+                        <Title resid="Menu.MBE.GasPZ.Label" />
+                        <Description resid="Menu.MBE.GasPZ.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertGasPzAnalysis</FunctionName>
+                      </Action>
+                    </Item>
+                    <Item id="P365.Menu.MBE.OilHO">
+                      <Label resid="Menu.MBE.OilHO.Label" />
+                      <Supertip>
+                        <Title resid="Menu.MBE.OilHO.Label" />
+                        <Description resid="Menu.MBE.OilHO.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertHavlenaOdeh</FunctionName>
+                      </Action>
+                    </Item>
+                  </Items>
+                </Control>
+
+                <!-- PTA Menu -->
+                <Control xsi:type="Menu" id="P365.Menu.PTA">
+                  <Label resid="Menu.PTA.Label" />
+                  <Supertip>
+                    <Title resid="Menu.PTA.Label" />
+                    <Description resid="Menu.PTA.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Items>
+                    <Item id="P365.Menu.PTA.Horner">
+                      <Label resid="Menu.PTA.Horner.Label" />
+                      <Supertip>
+                        <Title resid="Menu.PTA.Horner.Label" />
+                        <Description resid="Menu.PTA.Horner.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertHornerAnalysis</FunctionName>
+                      </Action>
+                    </Item>
+                    <Item id="P365.Menu.PTA.Bourdet">
+                      <Label resid="Menu.PTA.Bourdet.Label" />
+                      <Supertip>
+                        <Title resid="Menu.PTA.Bourdet.Label" />
+                        <Description resid="Menu.PTA.Bourdet.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertBourdetDerivative</FunctionName>
+                      </Action>
+                    </Item>
+                  </Items>
+                </Control>
+              </Group>
+
+              <!-- ── Group 3: Well Flow ─────────────────────────────────── -->
+              <Group id="P365.Group.WellFlow">
+                <Label resid="Group.WellFlow.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16" />
+                  <bt:Image size="32" resid="Icon.32x32" />
+                  <bt:Image size="80" resid="Icon.80x80" />
+                </Icon>
+
+                <!-- VFP Menu -->
+                <Control xsi:type="Menu" id="P365.Menu.VFP">
+                  <Label resid="Menu.VFP.Label" />
+                  <Supertip>
+                    <Title resid="Menu.VFP.Label" />
+                    <Description resid="Menu.VFP.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Items>
+                    <Item id="P365.Menu.VFP.BeggsBrill">
+                      <Label resid="Menu.VFP.BeggsBrill.Label" />
+                      <Supertip>
+                        <Title resid="Menu.VFP.BeggsBrill.Label" />
+                        <Description resid="Menu.VFP.BeggsBrill.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertBeggsBrillVLP</FunctionName>
+                      </Action>
+                    </Item>
+                    <Item id="P365.Menu.VFP.Nodal">
+                      <Label resid="Menu.VFP.Nodal.Label" />
+                      <Supertip>
+                        <Title resid="Menu.VFP.Nodal.Label" />
+                        <Description resid="Menu.VFP.Nodal.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertNodalAnalysis</FunctionName>
+                      </Action>
+                    </Item>
+                  </Items>
+                </Control>
+
+                <!-- SF Menu -->
+                <Control xsi:type="Menu" id="P365.Menu.SF">
+                  <Label resid="Menu.SF.Label" />
+                  <Supertip>
+                    <Title resid="Menu.SF.Label" />
+                    <Description resid="Menu.SF.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Items>
+                    <Item id="P365.Menu.SF.Choke">
+                      <Label resid="Menu.SF.Choke.Label" />
+                      <Supertip>
+                        <Title resid="Menu.SF.Choke.Label" />
+                        <Description resid="Menu.SF.Choke.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertChokeSizing</FunctionName>
+                      </Action>
+                    </Item>
+                    <Item id="P365.Menu.SF.Pipeline">
+                      <Label resid="Menu.SF.Pipeline.Label" />
+                      <Supertip>
+                        <Title resid="Menu.SF.Pipeline.Label" />
+                        <Description resid="Menu.SF.Pipeline.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertGasPipelineAnalysis</FunctionName>
+                      </Action>
+                    </Item>
+                  </Items>
+                </Control>
+              </Group>
+
+              <!-- ── Group 4: Artificial Lift ─────────────────────────── -->
+              <Group id="P365.Group.ArtificialLift">
+                <Label resid="Group.ArtificialLift.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16" />
+                  <bt:Image size="32" resid="Icon.32x32" />
+                  <bt:Image size="80" resid="Icon.80x80" />
+                </Icon>
+
+                <!-- ESP Menu -->
+                <Control xsi:type="Menu" id="P365.Menu.ESP">
+                  <Label resid="Menu.ESP.Label" />
+                  <Supertip>
+                    <Title resid="Menu.ESP.Label" />
+                    <Description resid="Menu.ESP.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Items>
+                    <Item id="P365.Menu.ESP.Sizing">
+                      <Label resid="Menu.ESP.Sizing.Label" />
+                      <Supertip>
+                        <Title resid="Menu.ESP.Sizing.Label" />
+                        <Description resid="Menu.ESP.Sizing.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertESPSizing</FunctionName>
+                      </Action>
+                    </Item>
+                  </Items>
+                </Control>
+
+                <!-- GL Menu -->
+                <Control xsi:type="Menu" id="P365.Menu.GL">
+                  <Label resid="Menu.GL.Label" />
+                  <Supertip>
+                    <Title resid="Menu.GL.Label" />
+                    <Description resid="Menu.GL.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Items>
+                    <Item id="P365.Menu.GL.Design">
+                      <Label resid="Menu.GL.Design.Label" />
+                      <Supertip>
+                        <Title resid="Menu.GL.Design.Label" />
+                        <Description resid="Menu.GL.Design.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertGasLiftDesign</FunctionName>
+                      </Action>
+                    </Item>
+                  </Items>
+                </Control>
+              </Group>
+
+              <!-- ── Group 5: Fluids & Rock ─────────────────────────────── -->
+              <Group id="P365.Group.FluidsRock">
+                <Label resid="Group.FluidsRock.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16" />
+                  <bt:Image size="32" resid="Icon.32x32" />
+                  <bt:Image size="80" resid="Icon.80x80" />
+                </Icon>
+
+                <!-- PVT Menu -->
+                <Control xsi:type="Menu" id="P365.Menu.PVT">
+                  <Label resid="Menu.PVT.Label" />
+                  <Supertip>
+                    <Title resid="Menu.PVT.Label" />
+                    <Description resid="Menu.PVT.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Items>
+                    <Item id="P365.Menu.PVT.GasProps">
+                      <Label resid="Menu.PVT.GasProps.Label" />
+                      <Supertip>
+                        <Title resid="Menu.PVT.GasProps.Label" />
+                        <Description resid="Menu.PVT.GasProps.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertGasPVT</FunctionName>
+                      </Action>
+                    </Item>
+                    <Item id="P365.Menu.PVT.OilProps">
+                      <Label resid="Menu.PVT.OilProps.Label" />
+                      <Supertip>
+                        <Title resid="Menu.PVT.OilProps.Label" />
+                        <Description resid="Menu.PVT.OilProps.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertOilPVT</FunctionName>
+                      </Action>
+                    </Item>
+                    <Item id="P365.Menu.PVT.HV">
+                      <Label resid="Menu.PVT.HV.Label" />
+                      <Supertip>
+                        <Title resid="Menu.PVT.HV.Label" />
+                        <Description resid="Menu.PVT.HV.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertHeatingValue</FunctionName>
+                      </Action>
+                    </Item>
+                  </Items>
+                </Control>
+
+                <!-- SCAL Menu -->
+                <Control xsi:type="Menu" id="P365.Menu.SCAL">
+                  <Label resid="Menu.SCAL.Label" />
+                  <Supertip>
+                    <Title resid="Menu.SCAL.Label" />
+                    <Description resid="Menu.SCAL.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Items>
+                    <Item id="P365.Menu.SCAL.Corey">
+                      <Label resid="Menu.SCAL.Corey.Label" />
+                      <Supertip>
+                        <Title resid="Menu.SCAL.Corey.Label" />
+                        <Description resid="Menu.SCAL.Corey.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertCoreyKr</FunctionName>
+                      </Action>
+                    </Item>
+                  </Items>
+                </Control>
+              </Group>
+
+              <!-- ── Group 6: Utilities ─────────────────────────────────── -->
+              <Group id="P365.Group.Utilities">
+                <Label resid="Group.Utilities.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16" />
+                  <bt:Image size="32" resid="Icon.32x32" />
+                  <bt:Image size="80" resid="Icon.80x80" />
+                </Icon>
+
+                <!-- Unit Converter Button -->
+                <Control xsi:type="Button" id="P365.Button.UnitConverter">
+                  <Label resid="Button.UnitConverter.Label" />
+                  <Supertip>
+                    <Title resid="Button.UnitConverter.Label" />
+                    <Description resid="Button.UnitConverter.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>UnitConverter</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url" />
+                  </Action>
+                </Control>
+
+                <!-- GEO Menu -->
+                <Control xsi:type="Menu" id="P365.Menu.GEO">
+                  <Label resid="Menu.GEO.Label" />
+                  <Supertip>
+                    <Title resid="Menu.GEO.Label" />
+                    <Description resid="Menu.GEO.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Items>
+                    <Item id="P365.Menu.GEO.MudWindow">
+                      <Label resid="Menu.GEO.MudWindow.Label" />
+                      <Supertip>
+                        <Title resid="Menu.GEO.MudWindow.Label" />
+                        <Description resid="Menu.GEO.MudWindow.Desc" />
+                      </Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.16x16" />
+                        <bt:Image size="32" resid="Icon.32x32" />
+                        <bt:Image size="80" resid="Icon.80x80" />
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction">
+                        <FunctionName>insertMudWindowAnalysis</FunctionName>
+                      </Action>
+                    </Item>
+                  </Items>
+                </Control>
+              </Group>
+
+              <!-- ── Group 7: Library ────────────────────────────────────── -->
               <Group id="P365.Group.Library">
                 <Label resid="Group.Library.Label" />
                 <Icon>
@@ -116,6 +691,7 @@
                   <bt:Image size="32" resid="Icon.32x32" />
                   <bt:Image size="80" resid="Icon.80x80" />
                 </Icon>
+
                 <!-- Function Browser Button -->
                 <Control xsi:type="Button" id="P365.Button.Functions">
                   <Label resid="Button.Functions.Label" />
@@ -129,10 +705,11 @@
                     <bt:Image size="80" resid="Icon.80x80" />
                   </Icon>
                   <Action xsi:type="ShowTaskpane">
-                    <TaskpaneId>FunctionBrowser</TaskpaneId>
+                    <TaskpaneId>P365TaskPane</TaskpaneId>
                     <SourceLocation resid="Taskpane.Url" />
                   </Action>
                 </Control>
+
                 <!-- Blueprint Manager Button -->
                 <Control xsi:type="Button" id="P365.Button.Blueprints">
                   <Label resid="Button.Blueprints.Label" />
@@ -146,18 +723,31 @@
                     <bt:Image size="80" resid="Icon.80x80" />
                   </Icon>
                   <Action xsi:type="ShowTaskpane">
-                    <TaskpaneId>BlueprintManager</TaskpaneId>
+                    <TaskpaneId>P365TaskPane</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url" />
+                  </Action>
+                </Control>
+
+                <!-- Toolbox Button (Eclipse Import + File Generator) -->
+                <Control xsi:type="Button" id="P365.Button.Toolbox">
+                  <Label resid="Button.Toolbox.Label" />
+                  <Supertip>
+                    <Title resid="Button.Toolbox.Label" />
+                    <Description resid="Button.Toolbox.Desc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>P365TaskPane</TaskpaneId>
                     <SourceLocation resid="Taskpane.Url" />
                   </Action>
                 </Control>
               </Group>
-            </OfficeTab>
-          </ExtensionPoint>
 
-          <!-- Task Pane -->
-          <ExtensionPoint xsi:type="CustomPane">
-            <DisplayApp />
-            <RequestedWidth>300</RequestedWidth>
+            </CustomTab>
           </ExtensionPoint>
         </DesktopFormFactor>
       </Host>
@@ -172,20 +762,110 @@
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="Functions.Namespace" DefaultValue="P365" />
+        <!-- Tab -->
+        <bt:String id="Tab.Label" DefaultValue="Petroleum 365" />
+        <!-- Groups -->
         <bt:String id="Group.Production.Label" DefaultValue="Production" />
+        <bt:String id="Group.Reservoir.Label" DefaultValue="Reservoir" />
+        <bt:String id="Group.WellFlow.Label" DefaultValue="Well Flow" />
+        <bt:String id="Group.ArtificialLift.Label" DefaultValue="Artificial Lift" />
+        <bt:String id="Group.FluidsRock.Label" DefaultValue="Fluids &amp; Rock" />
+        <bt:String id="Group.Utilities.Label" DefaultValue="Utilities" />
         <bt:String id="Group.Library.Label" DefaultValue="Library" />
+        <!-- Production group menus -->
         <bt:String id="Menu.DCA.Label" DefaultValue="DCA" />
         <bt:String id="Menu.DCA.Arps.Label" DefaultValue="Arps Decline" />
         <bt:String id="Menu.DCA.Duong.Label" DefaultValue="Duong Decline" />
+        <bt:String id="Menu.DCA.PLE.Label" DefaultValue="PLE Decline" />
+        <bt:String id="Menu.DCA.EUR.Label" DefaultValue="EUR Calculator" />
+        <bt:String id="Menu.FRAC.Label" DefaultValue="FRAC" />
+        <bt:String id="Menu.FRAC.PKN.Label" DefaultValue="PKN Geometry" />
+        <bt:String id="Menu.FRAC.NolteG.Label" DefaultValue="Nolte G-Function" />
+        <!-- Reservoir group menus -->
+        <bt:String id="Menu.IPR.Label" DefaultValue="IPR" />
+        <bt:String id="Menu.IPR.Vogel.Label" DefaultValue="Vogel IPR" />
+        <bt:String id="Menu.IPR.Gas.Label" DefaultValue="Gas Deliverability" />
+        <bt:String id="Menu.MBE.Label" DefaultValue="MBE" />
+        <bt:String id="Menu.MBE.GasPZ.Label" DefaultValue="Gas p/z Analysis" />
+        <bt:String id="Menu.MBE.OilHO.Label" DefaultValue="Havlena-Odeh Oil MBE" />
+        <bt:String id="Menu.PTA.Label" DefaultValue="PTA" />
+        <bt:String id="Menu.PTA.Horner.Label" DefaultValue="Horner Buildup" />
+        <bt:String id="Menu.PTA.Bourdet.Label" DefaultValue="Bourdet Derivative" />
+        <!-- Well Flow group menus -->
+        <bt:String id="Menu.VFP.Label" DefaultValue="VFP" />
+        <bt:String id="Menu.VFP.BeggsBrill.Label" DefaultValue="Beggs-Brill VLP" />
+        <bt:String id="Menu.VFP.Nodal.Label" DefaultValue="Nodal Analysis" />
+        <bt:String id="Menu.SF.Label" DefaultValue="Surface" />
+        <bt:String id="Menu.SF.Choke.Label" DefaultValue="Choke Sizing" />
+        <bt:String id="Menu.SF.Pipeline.Label" DefaultValue="Gas Pipeline" />
+        <!-- Artificial Lift group menus -->
+        <bt:String id="Menu.ESP.Label" DefaultValue="ESP" />
+        <bt:String id="Menu.ESP.Sizing.Label" DefaultValue="ESP Pump Sizing" />
+        <bt:String id="Menu.GL.Label" DefaultValue="Gas Lift" />
+        <bt:String id="Menu.GL.Design.Label" DefaultValue="GL Injection Design" />
+        <!-- Fluids & Rock group menus -->
+        <bt:String id="Menu.PVT.Label" DefaultValue="PVT" />
+        <bt:String id="Menu.PVT.GasProps.Label" DefaultValue="Gas PVT Properties" />
+        <bt:String id="Menu.PVT.OilProps.Label" DefaultValue="Oil PVT Properties" />
+        <bt:String id="Menu.PVT.HV.Label" DefaultValue="Heating Value (GPA 2145)" />
+        <bt:String id="Menu.SCAL.Label" DefaultValue="SCAL" />
+        <bt:String id="Menu.SCAL.Corey.Label" DefaultValue="Corey Kr Curves" />
+        <!-- Utilities group -->
+        <bt:String id="Menu.GEO.Label" DefaultValue="GEO" />
+        <bt:String id="Menu.GEO.MudWindow.Label" DefaultValue="Mud Weight Window" />
+        <!-- Library group buttons -->
         <bt:String id="Button.Functions.Label" DefaultValue="Functions" />
         <bt:String id="Button.Blueprints.Label" DefaultValue="Blueprints" />
+        <bt:String id="Button.Toolbox.Label" DefaultValue="Toolbox" />
+        <bt:String id="Button.UnitConverter.Label" DefaultValue="Unit Converter" />
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="Menu.DCA.Desc" DefaultValue="Decline Curve Analysis functions for production forecasting" />
-        <bt:String id="Menu.DCA.Arps.Desc" DefaultValue="Insert Arps hyperbolic decline curve functions (Rate, Cumulative, EUR)" />
-        <bt:String id="Menu.DCA.Duong.Desc" DefaultValue="Insert Duong decline model for unconventional reservoirs" />
-        <bt:String id="Button.Functions.Desc" DefaultValue="Open the Function Browser to search and insert engineering functions" />
-        <bt:String id="Button.Blueprints.Desc" DefaultValue="Open the Blueprint Manager to browse and insert calculation templates" />
+        <!-- Production menus -->
+        <bt:String id="Menu.DCA.Desc" DefaultValue="Decline Curve Analysis — Arps, Duong, PLE, SEPD, LGM, TH, EE, AKB models with EUR and diagnostics." />
+        <bt:String id="Menu.DCA.Arps.Desc" DefaultValue="Insert Arps hyperbolic decline functions: rate, cumulative, EUR, curve fit." />
+        <bt:String id="Menu.DCA.Duong.Desc" DefaultValue="Insert Duong decline model for unconventional wells." />
+        <bt:String id="Menu.DCA.PLE.Desc" DefaultValue="Insert Power Law Exponential (PLE) decline functions for tight/shale wells." />
+        <bt:String id="Menu.DCA.EUR.Desc" DefaultValue="Insert EUR calculator with economic limit cutoff." />
+        <bt:String id="Menu.FRAC.Desc" DefaultValue="Hydraulic Fracturing — PKN/KGD geometry, proppant, Nolte G-function, closure, ISIP, breakdown." />
+        <bt:String id="Menu.FRAC.PKN.Desc" DefaultValue="Insert PKN fracture geometry (width, volume, efficiency, net pressure)." />
+        <bt:String id="Menu.FRAC.NolteG.Desc" DefaultValue="Insert Nolte G-function analysis for closure stress and leakoff coefficient." />
+        <!-- Reservoir menus -->
+        <bt:String id="Menu.IPR.Desc" DefaultValue="Inflow Performance Relationship — Vogel, Fetkovich, composite, gas deliverability, horizontal wells." />
+        <bt:String id="Menu.IPR.Vogel.Desc" DefaultValue="Insert Vogel (1968) oil well IPR curve." />
+        <bt:String id="Menu.IPR.Gas.Desc" DefaultValue="Insert gas well Darcy/non-Darcy deliverability." />
+        <bt:String id="Menu.MBE.Desc" DefaultValue="Material Balance Equation — gas p/z, oil MBE, Havlena-Odeh, aquifer models, drive indices." />
+        <bt:String id="Menu.MBE.GasPZ.Desc" DefaultValue="Insert gas p/z analysis with OGIP and pressure forecast." />
+        <bt:String id="Menu.MBE.OilHO.Desc" DefaultValue="Insert Havlena-Odeh straight-line MBE for oil reservoirs." />
+        <bt:String id="Menu.PTA.Desc" DefaultValue="Pressure Transient Analysis — drawdown, Horner buildup, Bourdet derivative, fault, WBS." />
+        <bt:String id="Menu.PTA.Horner.Desc" DefaultValue="Insert Horner buildup analysis (k, skin, P* extrapolation)." />
+        <bt:String id="Menu.PTA.Bourdet.Desc" DefaultValue="Insert Bourdet pressure derivative for log-log diagnostic plot." />
+        <!-- Well Flow menus -->
+        <bt:String id="Menu.VFP.Desc" DefaultValue="Vertical Flow Performance — Beggs-Brill, Gray, Hagedorn-Brown, Turner critical rate, VLP curves." />
+        <bt:String id="Menu.VFP.BeggsBrill.Desc" DefaultValue="Insert Beggs-Brill multiphase VLP (BHP from wellhead conditions)." />
+        <bt:String id="Menu.VFP.Nodal.Desc" DefaultValue="Insert nodal analysis — IPR and VLP intersection." />
+        <bt:String id="Menu.SF.Desc" DefaultValue="Surface Facilities — choke sizing (5 correlations), gas pipeline (Weymouth/Panhandle), compressor power." />
+        <bt:String id="Menu.SF.Choke.Desc" DefaultValue="Insert choke flow rate (Gilbert, Ros, Baxendell, Achong, Pilehvari)." />
+        <bt:String id="Menu.SF.Pipeline.Desc" DefaultValue="Insert gas pipeline analysis (Weymouth, Panhandle A/B)." />
+        <!-- Artificial Lift menus -->
+        <bt:String id="Menu.ESP.Desc" DefaultValue="Electric Submersible Pump — TDH, stages, motor HP, cable drop, gas handling." />
+        <bt:String id="Menu.ESP.Sizing.Desc" DefaultValue="Insert ESP sizing (TDH, stages, motor HP)." />
+        <bt:String id="Menu.GL.Desc" DefaultValue="Gas Lift — injection rate, Thornhill-Craver valve throughput, dome pressure, TRO." />
+        <bt:String id="Menu.GL.Design.Desc" DefaultValue="Insert gas lift injection design." />
+        <!-- Fluids & Rock menus -->
+        <bt:String id="Menu.PVT.Desc" DefaultValue="PVT Properties — gas Z-factor, viscosity, oil bubble point, Rs, Bo, water PVT, heating value, AGA-8." />
+        <bt:String id="Menu.PVT.GasProps.Desc" DefaultValue="Insert gas PVT property table (Z, Bg, Ug, density)." />
+        <bt:String id="Menu.PVT.OilProps.Desc" DefaultValue="Insert oil PVT property table (Pb, Rs, Bo, viscosity)." />
+        <bt:String id="Menu.PVT.HV.Desc" DefaultValue="Insert GPA 2145 heating value analysis (HHV, LHV, Wobbe, MW, SG)." />
+        <bt:String id="Menu.SCAL.Desc" DefaultValue="Special Core Analysis — Corey/LET Kr, Brooks-Corey Pc, Leverett J, Stone, Buckley-Leverett, IFT." />
+        <bt:String id="Menu.SCAL.Corey.Desc" DefaultValue="Insert Corey power-law relative permeability curves." />
+        <!-- Utilities menus -->
+        <bt:String id="Menu.GEO.Desc" DefaultValue="Geomechanics — pore pressure, fracture gradient, wellbore stability, mud window, UCS, Mohr-Coulomb." />
+        <bt:String id="Menu.GEO.MudWindow.Desc" DefaultValue="Insert drilling mud weight window analysis." />
+        <!-- Library buttons -->
+        <bt:String id="Button.Functions.Desc" DefaultValue="Open the Function Browser to search and insert any P365 engineering function." />
+        <bt:String id="Button.Blueprints.Desc" DefaultValue="Open the Blueprint Manager to browse and insert professionally designed calculation templates." />
+        <bt:String id="Button.Toolbox.Desc" DefaultValue="Open the Toolbox — import Eclipse results, generate simulation files, and access advanced tools." />
+        <bt:String id="Button.UnitConverter.Desc" DefaultValue="Open the inline unit converter for quick pressure, volume, flow, and temperature conversions." />
       </bt:LongStrings>
       <bt:Images>
         <bt:Image id="Icon.16x16" DefaultValue="https://petroleum365.app/assets/icon-16.png" />
