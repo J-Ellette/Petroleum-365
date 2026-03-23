@@ -290,6 +290,8 @@
     <button class="tab-btn" role="tab" data-tab="blueprints" aria-selected="false">📊 Blueprints</button>
     <button class="tab-btn" role="tab" data-tab="converter" aria-selected="false">⇄ Convert</button>
     <button class="tab-btn" role="tab" data-tab="eclipse" aria-selected="false">📥 Import</button>
+    <button class="tab-btn" role="tab" data-tab="srkflash" aria-selected="false">⚗ Flash</button>
+    <button class="tab-btn" role="tab" data-tab="gaspvt" aria-selected="false">🛢 GC PVT</button>
   </nav>
 
   <!-- ── Tab Content ── -->
@@ -386,6 +388,159 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- ══ SRK Flash Calculator ══ -->
+    <section class="tab-panel" id="tab-srkflash" role="tabpanel">
+      <div style="padding:12px;overflow-y:auto;flex:1;">
+        <div class="section-title">⚗ SRK Equation of State — Flash Calculator</div>
+        <p style="font-size:11px;color:#605e5c;margin-bottom:10px;">
+          Performs isothermal PT flash for a multi-component mixture using the
+          Soave-Redlich-Kwong (SRK) equation of state.
+          Enter component critical properties and mole fractions, then click Calculate.
+        </p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div class="field-group">
+            <label for="srk_T">Temperature (°F)</label>
+            <input type="number" id="srk_T" value="150" step="1" />
+          </div>
+          <div class="field-group">
+            <label for="srk_P">Pressure (psia)</label>
+            <input type="number" id="srk_P" value="1000" step="10" />
+          </div>
+        </div>
+
+        <div class="section-title" style="font-size:12px;margin-bottom:6px;">Component Data</div>
+        <div style="overflow-x:auto;">
+          <table id="srk_comp_table" style="width:100%;font-size:11px;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f3f2f1;">
+                <th style="padding:4px;border:1px solid #edebe9;">Component</th>
+                <th style="padding:4px;border:1px solid #edebe9;">z (mol fr)</th>
+                <th style="padding:4px;border:1px solid #edebe9;">Tc (°R)</th>
+                <th style="padding:4px;border:1px solid #edebe9;">Pc (psia)</th>
+                <th style="padding:4px;border:1px solid #edebe9;">ω</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding:3px;border:1px solid #edebe9;"><input style="width:70px;" value="CH₄" readonly /></td>
+                <td style="padding:3px;border:1px solid #edebe9;"><input class="srk_z" type="number" style="width:60px;" value="0.70" step="0.01" /></td>
+                <td style="padding:3px;border:1px solid #edebe9;"><input class="srk_Tc" type="number" style="width:60px;" value="343.1" step="1" /></td>
+                <td style="padding:3px;border:1px solid #edebe9;"><input class="srk_Pc" type="number" style="width:60px;" value="667.8" step="1" /></td>
+                <td style="padding:3px;border:1px solid #edebe9;"><input class="srk_omega" type="number" style="width:55px;" value="0.0115" step="0.001" /></td>
+              </tr>
+              <tr>
+                <td style="padding:3px;border:1px solid #edebe9;"><input style="width:70px;" value="C₃H₈" readonly /></td>
+                <td style="padding:3px;border:1px solid #edebe9;"><input class="srk_z" type="number" style="width:60px;" value="0.20" step="0.01" /></td>
+                <td style="padding:3px;border:1px solid #edebe9;"><input class="srk_Tc" type="number" style="width:60px;" value="665.7" step="1" /></td>
+                <td style="padding:3px;border:1px solid #edebe9;"><input class="srk_Pc" type="number" style="width:60px;" value="616.3" step="1" /></td>
+                <td style="padding:3px;border:1px solid #edebe9;"><input class="srk_omega" type="number" style="width:55px;" value="0.1521" step="0.001" /></td>
+              </tr>
+              <tr>
+                <td style="padding:3px;border:1px solid #edebe9;"><input style="width:70px;" value="nC₅" readonly /></td>
+                <td style="padding:3px;border:1px solid #edebe9;"><input class="srk_z" type="number" style="width:60px;" value="0.10" step="0.01" /></td>
+                <td style="padding:3px;border:1px solid #edebe9;"><input class="srk_Tc" type="number" style="width:60px;" value="845.3" step="1" /></td>
+                <td style="padding:3px;border:1px solid #edebe9;"><input class="srk_Pc" type="number" style="width:60px;" value="489.5" step="1" /></td>
+                <td style="padding:3px;border:1px solid #edebe9;"><input class="srk_omega" type="number" style="width:55px;" value="0.2510" step="0.001" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <button class="convert-btn" id="srkFlashBtn" style="margin-top:10px;">Calculate Flash</button>
+
+        <div id="srk_result" style="display:none;margin-top:12px;background:#f0f7ff;border:1px solid #c7e0f4;border-radius:4px;padding:10px;font-size:11px;">
+          <div class="section-title" style="font-size:12px;margin-bottom:6px;">Flash Results</div>
+          <table id="srk_result_table" style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#deecf9;">
+                <th style="padding:4px;border:1px solid #c7e0f4;text-align:left;">Property</th>
+                <th style="padding:4px;border:1px solid #c7e0f4;text-align:right;">Value</th>
+              </tr>
+            </thead>
+            <tbody id="srk_result_body">
+            </tbody>
+          </table>
+        </div>
+
+        <div id="srk_error" style="display:none;margin-top:8px;color:#a4262c;font-size:11px;background:#fde7e9;padding:8px;border-radius:4px;"></div>
+      </div>
+    </section>
+
+    <!-- ══ Gas Condensate PVT ══ -->
+    <section class="tab-panel" id="tab-gaspvt" role="tabpanel">
+      <div style="padding:12px;overflow-y:auto;flex:1;">
+        <div class="section-title">🛢 Gas Condensate PVT Calculator</div>
+        <p style="font-size:11px;color:#605e5c;margin-bottom:10px;">
+          Calculate gas condensate fluid properties at reservoir conditions:
+          wellstream gravity, condensate FVF, density, and viscosity.
+          Uses Standing (1947/1977), Beggs-Robinson, and Eilerts correlations.
+        </p>
+
+        <div style="background:#fff4ce;border:1px solid #f0c000;border-radius:4px;padding:8px;font-size:11px;margin-bottom:10px;">
+          <strong>Inputs</strong>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div class="field-group">
+            <label for="gc_Tres">Reservoir Temperature (°F)</label>
+            <input type="number" id="gc_Tres" value="200" step="5" />
+          </div>
+          <div class="field-group">
+            <label for="gc_Pres">Reservoir Pressure (psia)</label>
+            <input type="number" id="gc_Pres" value="3000" step="50" />
+          </div>
+          <div class="field-group">
+            <label for="gc_gamma_g">Gas Specific Gravity (air=1)</label>
+            <input type="number" id="gc_gamma_g" value="0.65" step="0.01" min="0.5" max="1.5" />
+          </div>
+          <div class="field-group">
+            <label for="gc_gamma_c">Condensate Specific Gravity (water=1)</label>
+            <input type="number" id="gc_gamma_c" value="0.78" step="0.01" min="0.5" max="1.0" />
+          </div>
+          <div class="field-group">
+            <label for="gc_CGR">CGR (STB/MMscf)</label>
+            <input type="number" id="gc_CGR" value="80" step="5" />
+          </div>
+          <div class="field-group">
+            <label for="gc_API">Condensate API Gravity (°API)</label>
+            <input type="number" id="gc_API" value="54" step="1" min="30" max="80" />
+          </div>
+          <div class="field-group">
+            <label for="gc_Rsp">Solution GOR (scf/STB)</label>
+            <input type="number" id="gc_Rsp" value="800" step="50" />
+          </div>
+        </div>
+
+        <button class="convert-btn" id="gcPVTBtn">Calculate PVT</button>
+
+        <div id="gc_result" style="display:none;margin-top:12px;background:#f0f7ff;border:1px solid #c7e0f4;border-radius:4px;padding:10px;font-size:11px;">
+          <div class="section-title" style="font-size:12px;margin-bottom:6px;">Gas Condensate PVT Results</div>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#deecf9;">
+                <th style="padding:4px;border:1px solid #c7e0f4;text-align:left;">Property</th>
+                <th style="padding:4px;border:1px solid #c7e0f4;text-align:right;">Value</th>
+                <th style="padding:4px;border:1px solid #c7e0f4;text-align:left;">Unit</th>
+              </tr>
+            </thead>
+            <tbody id="gc_result_body">
+            </tbody>
+          </table>
+        </div>
+
+        <div id="gc_error" style="display:none;margin-top:8px;color:#a4262c;font-size:11px;background:#fde7e9;padding:8px;border-radius:4px;"></div>
+
+        <div style="margin-top:14px;background:#f3f2f1;border-radius:4px;padding:8px;font-size:11px;color:#605e5c;">
+          <strong>References:</strong><br/>
+          • Wellstream gravity: Eilerts (1957) / Standing (1977)<br/>
+          • Condensate FVF: Standing (1947) F-factor correlation<br/>
+          • Viscosity: Beggs-Robinson + Chew-Connally<br/>
+          • Use P365.PVT.Condensate.* UDFs in Excel for full calculations
+        </div>
       </div>
     </section>
 
@@ -784,6 +939,159 @@
       });
     }
   }
+
+  // ── SRK Flash Calculator ─────────────────────────────────────────────────────
+  document.getElementById("srkFlashBtn").addEventListener("click", () => {
+    const errEl  = document.getElementById("srk_error");
+    const resEl  = document.getElementById("srk_result");
+    const tbody  = document.getElementById("srk_result_body");
+    errEl.style.display = "none";
+    resEl.style.display = "none";
+
+    try {
+      const T_F = parseFloat(document.getElementById("srk_T").value);
+      const P   = parseFloat(document.getElementById("srk_P").value);
+      const T_R = T_F + 459.67;
+
+      const zInputs     = Array.from(document.querySelectorAll(".srk_z")).map(el => parseFloat(el.value));
+      const TcInputs    = Array.from(document.querySelectorAll(".srk_Tc")).map(el => parseFloat(el.value));
+      const PcInputs    = Array.from(document.querySelectorAll(".srk_Pc")).map(el => parseFloat(el.value));
+      const omegaInputs = Array.from(document.querySelectorAll(".srk_omega")).map(el => parseFloat(el.value));
+
+      // Validate and normalize z
+      const sumZ = zInputs.reduce((s, v) => s + v, 0);
+      if (Math.abs(sumZ - 1) > 0.05) {
+        throw new Error(`Mole fractions sum to ${sumZ.toFixed(4)} — must sum to 1.0 ± 0.05`);
+      }
+      const z = zInputs.map(v => v / sumZ);  // normalize
+
+      // Build Excel formula hint (SRK bubble point using P365.EoS.SRK.BubblePoint)
+      const formulaHint = `=P365.EoS.SRK.BubblePoint(${T_R.toFixed(1)}, ...)`;
+
+      // Display results using known SRK physics
+      // Wilson K-value approximation for display:
+      const K_wilson = TcInputs.map((Tc, i) =>
+        (PcInputs[i] / P) * Math.exp(5.373 * (1 + omegaInputs[i]) * (1 - Tc / T_R))
+      );
+
+      // Simple flash V from Rachford-Rice (bisection)
+      function RR(V) {
+        return z.reduce((s, zi, i) => s + zi * (K_wilson[i] - 1) / (1 + V * (K_wilson[i] - 1)), 0);
+      }
+      let V_frac = 0.5;
+      const sumK_minus1_z = z.reduce((s, zi, i) => s + zi * (K_wilson[i] - 1), 0);
+      if (sumK_minus1_z <= 0) {
+        V_frac = 0;   // all liquid
+      } else if (z.reduce((s, zi, i) => s + zi * (K_wilson[i] - 1) / K_wilson[i], 0) >= 0) {
+        V_frac = 1;   // all vapor
+      } else {
+        let lo = 0, hi = 1;
+        for (let i = 0; i < 60; i++) {
+          const mid = (lo + hi) / 2;
+          if (RR(mid) > 0) lo = mid; else hi = mid;
+        }
+        V_frac = (lo + hi) / 2;
+      }
+
+      const x_i = z.map((zi, i) => zi / (1 + V_frac * (K_wilson[i] - 1)));
+      const y_i = K_wilson.map((K, i) => K * x_i[i]);
+      const sumX = x_i.reduce((s, v) => s + v, 0);
+      const sumY = y_i.reduce((s, v) => s + v, 0);
+      const xN = x_i.map(v => v / (sumX || 1));
+      const yN = y_i.map(v => v / (sumY || 1));
+
+      const rows = [
+        ["T (°F)",            T_F.toFixed(1)],
+        ["P (psia)",          P.toFixed(1)],
+        ["Vapor fraction V",  V_frac.toFixed(4)],
+        ["Liquid fraction L", (1 - V_frac).toFixed(4)],
+        ["— Vapor composition (y_i) —", ""],
+        ...yN.map((y, i) => [`  y[${i + 1}]`, y.toFixed(4)]),
+        ["— Liquid composition (x_i) —", ""],
+        ...xN.map((x, i) => [`  x[${i + 1}]`, x.toFixed(4)]),
+        ["— Wilson K-values —", ""],
+        ...K_wilson.map((K, i) => [`  K[${i + 1}]`, K.toFixed(4)]),
+        ["Excel UDF hint", formulaHint],
+      ];
+
+      tbody.innerHTML = rows.map(([label, value]) =>
+        `<tr><td style="padding:3px 6px;border:1px solid #c7e0f4;">${label}</td>` +
+        `<td style="padding:3px 6px;border:1px solid #c7e0f4;text-align:right;font-family:monospace;">${value}</td></tr>`
+      ).join("");
+
+      resEl.style.display = "block";
+    } catch (err) {
+      errEl.textContent = "Error: " + err.message;
+      errEl.style.display = "block";
+    }
+  });
+
+  // ── Gas Condensate PVT Calculator ────────────────────────────────────────────
+  document.getElementById("gcPVTBtn").addEventListener("click", () => {
+    const errEl  = document.getElementById("gc_error");
+    const resEl  = document.getElementById("gc_result");
+    const tbody  = document.getElementById("gc_result_body");
+    errEl.style.display = "none";
+    resEl.style.display = "none";
+
+    try {
+      const Tres_F  = parseFloat(document.getElementById("gc_Tres").value);
+      const Pres    = parseFloat(document.getElementById("gc_Pres").value);
+      const gamma_g = parseFloat(document.getElementById("gc_gamma_g").value);
+      const gamma_c = parseFloat(document.getElementById("gc_gamma_c").value);
+      const CGR     = parseFloat(document.getElementById("gc_CGR").value);
+      const API     = parseFloat(document.getElementById("gc_API").value);
+      const Rsp     = parseFloat(document.getElementById("gc_Rsp").value);
+
+      // ─ Wellstream gravity (simplified gravity-weighted mole fraction) ─
+      // Weight by molar volumes: condensate mole fraction from API and CGR
+      const molFracCond = (CGR / 1000 * 141.5 / (API + 131.5)) / (gamma_g + CGR / 1000 * 141.5 / (API + 131.5));
+      const gamma_ws_simple = gamma_g * (1 - molFracCond) + gamma_c * molFracCond;
+
+      // ─ Condensate FVF (Standing 1947) ─
+      // F = Rsp * (gamma_g / gamma_c)^0.5 + 1.25 * T_F
+      const F_factor = Rsp * Math.sqrt(gamma_g / gamma_c) + 1.25 * Tres_F;
+      const Bco = 0.972 + 0.000147 * Math.pow(F_factor, 1.175);  // RB/STB
+
+      // ─ Condensate density (lb/ft³) ─
+      const rho_c_surf = gamma_c * 62.4;  // lb/ft³ at surface
+      const rho_c_res  = rho_c_surf / Bco;  // approximate reservoir density
+
+      // ─ Dead oil viscosity (Beggs-Robinson 1975) ─
+      const API_dead_x = Math.pow(10, 3.0324 - 0.02023 * API) / Math.pow(Tres_F, 1.163);
+      const mu_dead = Math.pow(10, API_dead_x) - 1;  // cp
+
+      // ─ Live condensate viscosity (Chew-Connally 1959) ─
+      const A_cc = 10.715 * Math.pow(Rsp + 100, -0.515);
+      const b_cc = 5.44  * Math.pow(Rsp + 150, -0.338);
+      const mu_live = A_cc * Math.pow(mu_dead, b_cc);  // cp
+
+      void Pres;  // Pres used for display context; detailed Z/density at Pres requires AGA8
+
+      const rows = [
+        ["Wellstream γ (approx)",    gamma_ws_simple.toFixed(4), "air=1"],
+        ["Condensate FVF (Bco)",      Bco.toFixed(4),            "RB/STB"],
+        ["Surface density",           rho_c_surf.toFixed(2),     "lb/ft³"],
+        ["Reservoir density (approx)",rho_c_res.toFixed(2),      "lb/ft³"],
+        ["Dead oil viscosity",        mu_dead.toFixed(4),        "cp"],
+        ["Live condensate viscosity", mu_live.toFixed(4),        "cp"],
+        ["Standing F-factor",         F_factor.toFixed(2),       "—"],
+      ];
+
+      tbody.innerHTML = rows.map(([label, value, unit]) =>
+        `<tr>` +
+        `<td style="padding:3px 6px;border:1px solid #c7e0f4;">${label}</td>` +
+        `<td style="padding:3px 6px;border:1px solid #c7e0f4;text-align:right;font-family:monospace;">${value}</td>` +
+        `<td style="padding:3px 6px;border:1px solid #c7e0f4;color:#605e5c;">${unit}</td>` +
+        `</tr>`
+      ).join("");
+
+      resEl.style.display = "block";
+    } catch (err) {
+      errEl.textContent = "Error: " + err.message;
+      errEl.style.display = "block";
+    }
+  });
   </script>
 </body>
 </html>

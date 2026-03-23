@@ -2,7 +2,7 @@
 
 > **A comprehensive petroleum engineering function library and Excel add-in for natural gas, oil, CNG, and LNG calculations.**
 
-[![Tests](https://img.shields.io/badge/tests-1735%20passing-brightgreen)](./test)
+[![Tests](https://img.shields.io/badge/tests-1837%20passing-brightgreen)](./test)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -52,7 +52,7 @@ P365 is designed to work **inside Microsoft Excel** as a custom function library
 
 ## Features
 
-- ✅ **1735 passing unit tests** — every correlation is independently verified
+- ✅ **1837 passing unit tests** — every correlation is independently verified
 - ✅ **33 engineering modules** covering the full production lifecycle
 - ✅ **Field units throughout** — psi, °F, STB, scf, ft, cp, md
 - ✅ **Named after correlation authors** — `P365.PVT.Z.ByDAK` is the Dranchuk-Abou-Kassem method
@@ -1216,6 +1216,41 @@ Production data analytics for reservoir characterization from rate-pressure hist
 | `P365.PVT.Condensate.Viscosity(API_cond, T_F, Rsp_scf_stb)` | Condensate viscosity (cp) — Beggs-Robinson + Chew-Connally |
 | `P365.PVT.Condensate.WhitsonC7PlusSplit(M_C7plus, gamma_C7plus, nComp, alpha)` | Whitson (1983) C7+ gamma-distribution pseudocomponent split |
 
+### EoS Phase Envelope (Session 16)
+
+| Function | Description |
+|----------|-------------|
+| `P365.EoS.PR.PhaseEnvelopePoint(T_R, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr)` | Bubble-point pressure (psia) at T for phase envelope scan |
+| `P365.EoS.PR.PhaseEnvelopeDewPoint(T_R, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr)` | Dew-point pressure (psia) at T for phase envelope scan |
+| `P365.EoS.PR.PhaseEnvelope(T_min_R, T_max_R, nT, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr)` | Full P-T phase envelope array: {T_R, Pb_psia, Pd_psia}×nT |
+| `P365.EoS.PR.Cricondentherm(T_min_R, T_max_R, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr)` | Cricondentherm: max T on the phase envelope (binary-search) |
+| `P365.EoS.PR.Cricondenbar(T_min_R, T_max_R, Tc_R_arr, Pc_psia_arr, omega_arr, z_arr, kij_arr)` | Cricondenbar: max P on the phase envelope (golden-section) |
+
+### PTA Multi-Rate & Diagnostics (Session 16)
+
+| Function | Description |
+|----------|-------------|
+| `P365.PTA.MultiRateRNP(t_hrs, q_changes, k_mD, h_ft, phi, mu_cp, ct_psi, rw_ft, Bo_resbbl, S)` | Rate-normalized pressure (RNP) using multi-rate superposition |
+| `P365.PTA.LogLogDiagnostic(dt_hrs, dp_psi, L)` | Log-log ΔP and Bourdet derivative ΔP′ for test interpretation |
+| `P365.PTA.Deconvolution(dt_hrs, dp_psi, q_STBd, lambda)` | Simplified deconvolution: unit-rate response from variable-rate data |
+
+### FRAC TSO & Refrac (Session 16)
+
+| Function | Description |
+|----------|-------------|
+| `P365.FRAC.TSODesign(qi_bpm, h_ft, E_prime_psi, mu_cp, CL_ftSqrtMin, Vpad_bbl, conc_ppg)` | Tip screen-out design: L_so, w_avg, A_so, t_so, packingFraction |
+| `P365.FRAC.ProppantConcentration(qi_bpm, conc_ppg, t_pump_min, L_ft, h_ft, rho_prop_pcf)` | Proppant areal concentration (lbm/ft²) and fracture fill fraction |
+| `P365.FRAC.RefracScore(PI_initial, PI_current, P_si_psia, P_i_psia, skin, age_yrs)` | Refrac candidate score (0–100) with recommendation string |
+
+### WPA Pattern Floods (Session 16)
+
+| Function | Description |
+|----------|-------------|
+| `P365.WPA.FiveSpotAllocation(q_inj_STBd, kh_prod)` | 5-spot pattern injection allocation weighted by kh |
+| `P365.WPA.PatternFloodBalance(producers, injectorWeights, target_VRR, Bw_inj)` | Compute injector rates to achieve target voidage replacement ratio |
+| `P365.WPA.DykstraParsonsMobility(M, V_DP)` | Dykstra-Parsons volumetric sweep efficiency (Koval/Stiles approximation) |
+| `P365.WPA.StilesSweep(k_arr, h_arr, M)` | Stiles (1949) layer-by-layer flood sweep efficiency |
+
 ---
 
 ## Development
@@ -1226,7 +1261,7 @@ Production data analytics for reservoir characterization from rate-pressure hist
 Petroleum-365/
 ├── src/
 │   ├── index.ts                  ← P365 namespace (all exports)
-│   ├── functions.json            ← UDF registrations (241 entries)
+│   ├── functions.json            ← UDF registrations (256 entries)
 │   └── functions/
 │       ├── pvt/                  ← PVT: gas.ts, oil.ts, water.ts
 │       ├── dca/                  ← Decline curve analysis
@@ -1285,7 +1320,7 @@ Petroleum-365/
 | Command | Description |
 |---------|-------------|
 | `npm install` | Install all dependencies |
-| `npx jest --no-coverage` | Run all 1735 unit tests |
+| `npx jest --no-coverage` | Run all 1837 unit tests |
 | `npx tsc --noEmit` | TypeScript type-check (0 errors expected) |
 | `npm run build` | Build for production |
 

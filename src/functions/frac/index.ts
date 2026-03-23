@@ -563,3 +563,200 @@ export function fracBreakdownPressure(
 ): number {
   return sigma_h_psi + T0_psi - P_pore_psi;
 }
+
+// ─── Tip Screen-Out (TSO) Design ──────────────────────────────────────────────
+
+/**
+ * Tip screen-out (TSO) fracture design — estimate volumes at screenout.
+ *
+ * A TSO treatment is designed to screen out at the fracture tip, creating a
+ * packed, wide fracture rather than a long, narrow one.  The key design outputs
+ * are the pad volume (before proppant addition), the proppant slurry volume,
+ * and the expected fracture dimensions at screenout.
+ *
+ * Procedure (after Nolte, 1986 and Smith et al., 1987):
+ *   1. Compute fluid-loss dominated fracture area at screenout: A_so = V_inj / (2·CL·√t_p)
+ *   2. For PKN geometry: half-length at screenout L_so = A_so / (2·h_f)
+ *   3. Average width at screenout (PKN): w_avg = 0.3048 * (2.05 × 10⁻⁵ · q · μ / E')^0.25 · L_so^0.25 · h_f^0.5
+ *   4. Proppant concentration at screenout: max packing in the fracture
+ *
+ * @param qi_bpm      Injection rate (bbl/min)
+ * @param h_ft        Fracture height (ft)
+ * @param E_prime_psi Plane-strain modulus E' = E/(1−ν²) (psi)
+ * @param mu_cp       Fracturing fluid viscosity (cp)
+ * @param CL_ftSqrtMin  Carter leakoff coefficient (ft/√min)
+ * @param Vpad_bbl    Pad volume (bbl) — pumped before proppant
+ * @param conc_ppg    Proppant concentration in slurry (lbm/gal)
+ * @returns           { L_so_ft, w_avg_in, A_so_ft2, t_so_min, packingFraction }
+ */
+export function fracTSODesign(
+  qi_bpm: number,
+  h_ft: number,
+  E_prime_psi: number,
+  mu_cp: number,
+  CL_ftSqrtMin: number,
+  Vpad_bbl: number,
+  conc_ppg: number
+): {
+  L_so_ft: number;
+  w_avg_in: number;
+  A_so_ft2: number;
+  t_so_min: number;
+  packingFraction: number;
+} {
+  if (qi_bpm <= 0 || h_ft <= 0 || E_prime_psi <= 0) {
+    throw new Error("qi, h, and E' must be positive");
+  }
+
+  // Time to pump pad (min)
+  const Vpad_ft3 = Vpad_bbl * 5.61458;
+  const qi_ft3min = qi_bpm * 5.61458;
+  const t_pad_min = Vpad_ft3 / qi_ft3min;
+
+  // Fluid-loss efficiency: fracture area at end of pad stage
+  // Carter leakoff: V_loss = 2·CL·A·√t  (one side)
+  // A_so estimated from mass balance: V_inj = V_frac + V_loss
+  // For efficiency η: A = (qi_ft3min · t) / (w_avg_ft · h_ft + 2·CL·A·√t)
+  // Simplified: treat pad as creating the fracture, screened-out by proppant
+
+  // PKN fracture half-length from pad volume (Carter 1957):
+  //   Vf = Kf · h · L · w  (narrow fracture model)
+  //   L_pad ≈ (V_pad / (π·h·w_0))^0.5 — use simplified PKN width
+  // Simpler: L_so ≈ (V_pad_ft3) / (2 · CL_ftSqrtMin · √t_pad · h_ft * 2 + h_ft * w0_ft)
+  // Use the Nordgren (1972) zero-leakoff reference length and scale by CL:
+  // L_so = (q_i · t_p)^0.5 / (2 · CL · h_f)  [approximate, from Nolte 1979]
+
+  const t_so_min = t_pad_min;
+  const L_so_ft = CL_ftSqrtMin > 0
+    ? (qi_ft3min * t_so_min) / (2 * CL_ftSqrtMin * Math.sqrt(t_so_min) * h_ft)
+    : Math.sqrt(qi_ft3min * t_so_min / h_ft) * 5;  // zero-leakoff fallback
+
+  const A_so_ft2 = 2 * h_ft * L_so_ft;  // two wings
+
+  // PKN average width (Perkins and Kern, 1961; Nordgren, 1972):
+  //   w_avg (ft) = 2.05e-5 · (qi · mu / E')^0.25 · L_so^0.25 · h^0.5
+  //   (field units: qi [ft³/min], mu [cp], E' [psi], L [ft], h [ft])
+  const w_avg_ft = 2.05e-5 * Math.pow(qi_ft3min * mu_cp / E_prime_psi, 0.25) *
+    Math.pow(L_so_ft, 0.25) * Math.pow(h_ft, 0.5);
+  const w_avg_in = w_avg_ft * 12;
+
+  // Packing fraction: proppant concentration relative to maximum pack
+  // Max pack density ≈ 12 lbm/gal (for sand: ~100 lbm/ft³ ≈ 12.3 ppg in slurry)
+  const maxConc_ppg = 12.0;
+  const packingFraction = Math.min(1.0, conc_ppg / maxConc_ppg);
+
+  return { L_so_ft, w_avg_in, A_so_ft2, t_so_min, packingFraction };
+}
+
+/**
+ * Proppant concentration profile in the fracture during pumping.
+ *
+ * Computes the proppant concentration (lbm/ft²) in the fracture at time t,
+ * accounting for slurry injection and fluid loss.
+ *
+ * The in-fracture proppant areal concentration (lbm/ft²):
+ *   Ca = (V_proppant_lbm) / (A_fracture_ft2)
+ *
+ * where A_fracture = fracture area at time t from PKN or user-supplied.
+ *
+ * @param qi_bpm         Injection rate (bbl/min)
+ * @param conc_ppg       Surface proppant concentration in slurry (lbm/gal)
+ * @param t_pump_min     Pumping time (min) since first proppant
+ * @param L_ft           Current fracture half-length (ft)
+ * @param h_ft           Fracture height (ft)
+ * @param rho_prop_pcf   Proppant bulk density (lbm/ft³; e.g. sand ≈ 105)
+ * @returns              { Ca_lbmFt2, vol_prop_lbm, prop_fill_fraction }
+ */
+export function fracProppantConcentration(
+  qi_bpm: number,
+  conc_ppg: number,
+  t_pump_min: number,
+  L_ft: number,
+  h_ft: number,
+  rho_prop_pcf: number
+): { Ca_lbmFt2: number; vol_prop_lbm: number; prop_fill_fraction: number } {
+  const qi_galmin = qi_bpm * 42;           // bbl/min → gal/min
+  const qi_ft3min = qi_bpm * 5.61458;
+
+  // Proppant mass pumped (lbm)
+  const vol_prop_lbm = conc_ppg * qi_galmin * t_pump_min;  // lbm
+
+  // Fracture area (both wings, one face)
+  const A_ft2 = 2 * L_ft * h_ft;  // ft²
+
+  // Areal concentration (lbm/ft²)
+  const Ca_lbmFt2 = A_ft2 > 0 ? vol_prop_lbm / A_ft2 : 0;
+
+  // Proppant fill fraction: fraction of fracture volume filled by proppant pack
+  // Proppant volume (ft³) = lbm / rho_prop
+  const vol_prop_ft3 = vol_prop_lbm / rho_prop_pcf;
+  // Fracture volume ≈ A * average width (simplified to 0.01 ft if not given)
+  const assumed_width_ft = 0.02;  // ~0.25 in average fracture width during pumping
+  const frac_vol_ft3 = A_ft2 * assumed_width_ft;
+  const prop_fill_fraction = Math.min(1.0, frac_vol_ft3 > 0 ? vol_prop_ft3 / frac_vol_ft3 : 0);
+
+  void qi_ft3min;
+  return { Ca_lbmFt2, vol_prop_lbm, prop_fill_fraction };
+}
+
+/**
+ * Refrac candidate scoring — score a well's suitability for re-fracturing.
+ *
+ * Uses a weighted scorecard approach combining reservoir quality, wellbore
+ * condition, and production performance metrics.
+ *
+ * Scoring criteria (each 0–10, weighted sum normalized to 0–100):
+ *   1. PI decline ratio (PI_current / PI_initial): high decline → good candidate
+ *   2. Shut-in pressure ratio (P_si / P_i): high SIWHP ratio → good connectivity
+ *   3. Skin severity: high skin → stimulation opportunity
+ *   4. Well age: older well → more likely to benefit from modern completion
+ *
+ * @param PI_initial      Original productivity index (STB/d/psi)
+ * @param PI_current      Current productivity index (STB/d/psi)
+ * @param P_si_psia       Current shut-in wellhead/BH pressure (psia)
+ * @param P_i_psia        Initial reservoir pressure (psia)
+ * @param skin            Current skin factor (dimensionless)
+ * @param age_yrs         Well age (years)
+ * @returns               { score_0_100, recommendation, pi_score, pressure_score, skin_score, age_score }
+ */
+export function fracRefracScore(
+  PI_initial: number,
+  PI_current: number,
+  P_si_psia: number,
+  P_i_psia: number,
+  skin: number,
+  age_yrs: number
+): {
+  score_0_100: number;
+  recommendation: string;
+  pi_score: number;
+  pressure_score: number;
+  skin_score: number;
+  age_score: number;
+} {
+  // 1. PI decline score: (1 − PI_current/PI_initial) × 10
+  const pi_ratio = PI_initial > 0 ? Math.min(1, PI_current / PI_initial) : 0;
+  const pi_score = Math.max(0, Math.min(10, (1 - pi_ratio) * 10));
+
+  // 2. Pressure retention score: P_si/P_i × 10
+  const p_ratio = P_i_psia > 0 ? Math.min(1, P_si_psia / P_i_psia) : 0;
+  const pressure_score = Math.max(0, Math.min(10, p_ratio * 10));
+
+  // 3. Skin score: skin > 0 means damage; clip at 50
+  const skin_score = Math.max(0, Math.min(10, Math.min(skin, 50) / 5));
+
+  // 4. Age score: older wells score higher (15 yr max)
+  const age_score = Math.max(0, Math.min(10, age_yrs / 1.5));
+
+  // Weighted composite (PI 35%, pressure 25%, skin 25%, age 15%)
+  const raw = 0.35 * pi_score + 0.25 * pressure_score + 0.25 * skin_score + 0.15 * age_score;
+  const score_0_100 = Math.round(raw * 10);
+
+  let recommendation: string;
+  if (score_0_100 >= 70)      recommendation = "Strong candidate — refrac recommended";
+  else if (score_0_100 >= 50) recommendation = "Moderate candidate — further evaluation needed";
+  else if (score_0_100 >= 30) recommendation = "Weak candidate — may not justify refrac cost";
+  else                        recommendation = "Poor candidate — refrac not recommended";
+
+  return { score_0_100, recommendation, pi_score, pressure_score, skin_score, age_score };
+}
