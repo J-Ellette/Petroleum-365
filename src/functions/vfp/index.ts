@@ -1833,3 +1833,212 @@ export function vfpChokeDP(
   const critical = P_dn_psia / P_up < 0.546;
   return { P_up_psia: P_up, P_dn_psia, dP_psia: dP, GLR_scf_bbl: GLR, critical };
 }
+
+/**
+ * Nodal analysis — gas well IPR meets VLP intersection.
+ *
+ * Builds a gas IPR curve (Darcy flow) and a VLP curve (Weymouth) for each q
+ * in q_arr, then finds the intersection (operating point) by bisection.
+ *
+ * IPR: q_g = (kh / (1422 * T_R * mu * Z)) * (Pr² - Pwf²) / (ln(re/rw) - 0.75 + S)
+ * VLP: uses singlePhaseGasBHP (average T-Z method) to compute Pwf from Pwh
+ *
+ * @param Pr          Reservoir pressure (psia)
+ * @param k           Permeability (md)
+ * @param h           Net pay (ft)
+ * @param re          Drainage radius (ft)
+ * @param rw          Wellbore radius (ft)
+ * @param S           Skin factor
+ * @param T_R         Reservoir temperature (°R)
+ * @param gamma_g     Gas specific gravity (air=1)
+ * @param q_arr       Flow rate array to evaluate (Mscf/d)
+ * @param Pwh_psia    Wellhead pressure (psia)
+ * @param D_in        Tubing ID (in)
+ * @param L_ft        Tubing length (ft)
+ * @param T_avg_F     Average temperature (°F)
+ * @param SG_gas      Gas SG for VLP calculation
+ * @returns           {q_intersection_Mscfd, Pwf_intersection_psia, IPR_Pwf_arr, VLP_Pwf_arr}
+ */
+export function vfpNodalIPRGasVLP(
+  Pr: number,
+  k: number,
+  h: number,
+  re: number,
+  rw: number,
+  S: number,
+  T_R: number,
+  gamma_g: number,
+  q_arr: number[],
+  Pwh_psia: number,
+  D_in: number,
+  L_ft: number,
+  T_avg_F: number,
+  SG_gas: number,
+): {
+  q_intersection_Mscfd: number;
+  Pwf_intersection_psia: number;
+  IPR_Pwf_arr: number[];
+  VLP_Pwf_arr: number[];
+} {
+  // Default viscosity and Z — approximate for lean natural gas at typical reservoir conditions.
+  // Valid for SG ~0.6-0.7 natural gas, Pr 1000-5000 psia, T_R 550-700 °R.
+  // Accuracy ~±15%; use component-level EoS for sour/rich gas.
+  const mu = 0.02;  // cp, typical lean gas reservoir viscosity
+  const Z  = 0.85;  // Z-factor at approximate mid-conditions
+
+  const lnPart = Math.log(re / rw) - 0.75 + S;
+  const C_ipr  = (k * h) / (1422 * T_R * mu * Z * lnPart); // Mscfd/psia²
+
+  const IPR_Pwf_arr: number[] = [];
+  const VLP_Pwf_arr: number[] = [];
+
+  for (const q_g of q_arr) {
+    // IPR: Pwf² = Pr² - q_g / C_ipr  → Pwf
+    const Pwf2_ipr = Pr * Pr - q_g / C_ipr;
+    IPR_Pwf_arr.push(Pwf2_ipr > 0 ? Math.sqrt(Pwf2_ipr) : 0);
+
+    // VLP: compute Pwf given Pwh and q_g using average T-Z gas BHP
+    const T_avg_R = T_avg_F + 460; // convert °F to °R
+    const z_avg   = 0.85;          // approximate Z at mid-conditions
+    const Pwf_vlp = singlePhaseGasBHP(Pwh_psia, q_g, D_in, L_ft, T_avg_R, z_avg, SG_gas);
+    VLP_Pwf_arr.push(Pwf_vlp);
+  }
+
+  // Find intersection: where IPR_Pwf - VLP_Pwf changes sign
+  let q_int = q_arr[0];
+  let Pwf_int = (IPR_Pwf_arr[0] + VLP_Pwf_arr[0]) / 2;
+  for (let i = 0; i < q_arr.length - 1; i++) {
+    const diff1 = IPR_Pwf_arr[i]   - VLP_Pwf_arr[i];
+    const diff2 = IPR_Pwf_arr[i+1] - VLP_Pwf_arr[i+1];
+    if (diff1 * diff2 <= 0) {
+      // Linear interpolation for crossing
+      const frac = Math.abs(diff1) / (Math.abs(diff1) + Math.abs(diff2));
+      q_int   = q_arr[i] + frac * (q_arr[i+1] - q_arr[i]);
+      Pwf_int = IPR_Pwf_arr[i] + frac * (IPR_Pwf_arr[i+1] - IPR_Pwf_arr[i]);
+      break;
+    }
+  }
+
+  return {
+    q_intersection_Mscfd:   q_int,
+    Pwf_intersection_psia:  Pwf_int,
+    IPR_Pwf_arr,
+    VLP_Pwf_arr,
+  };
+}
+
+/**
+ * Nodal analysis — oil well composite IPR meets VLP (Beggs-Brill).
+ *
+ * Builds composite Vogel/Darcy oil IPR and Beggs-Brill VLP curves,
+ * finds the nodal intersection (operating point).
+ *
+ * @param Pr          Reservoir pressure (psia)
+ * @param PI          Productivity index above bubble point (bpd/psi)
+ * @param Pb          Bubble point pressure (psia)
+ * @param q_arr       Flow rate array to evaluate (bpd)
+ * @param Pwh_psia    Wellhead pressure (psia)
+ * @param D_in        Tubing ID (in)
+ * @param L_ft        Tubing length (ft)
+ * @param T_avg_F     Average temperature (°F)
+ * @param SG_oil      Oil specific gravity
+ * @param SG_gas      Gas specific gravity
+ * @param GOR         Solution GOR (scf/bbl)
+ * @returns           {q_intersection_bpd, Pwf_intersection_psia, IPR_arr, VLP_arr}
+ */
+export function vfpNodalIPROilVLP(
+  Pr: number,
+  PI: number,
+  Pb: number,
+  q_arr: number[],
+  Pwh_psia: number,
+  D_in: number,
+  L_ft: number,
+  T_avg_F: number,
+  SG_oil: number,
+  SG_gas: number,
+  GOR: number,
+): {
+  q_intersection_bpd:    number;
+  Pwf_intersection_psia: number;
+  IPR_arr:               number[];
+  VLP_arr:               number[];
+} {
+  // Max flow rate at Pwf = 0 (composite Vogel)
+  const q_b = PI * (Pr - Pb);          // rate at bubble point
+  const q_max_vogel = q_b + PI * Pb / 1.8; // Vogel extension
+  const IPR_arr: number[] = [];
+  const VLP_arr: number[] = [];
+
+  for (const q_o of q_arr) {
+    let Pwf_ipr: number;
+    if (q_o <= q_b) {
+      // Above bubble point (Darcy)
+      Pwf_ipr = Pr - q_o / PI;
+    } else {
+      // Below bubble point (Vogel)
+      const q_rel = (q_o - q_b) / Math.max(q_max_vogel - q_b, 1e-6);
+      // Vogel: q/q_max = 1 - 0.2*(Pwf/Pb) - 0.8*(Pwf/Pb)²
+      // Solve for Pwf/Pb: 0.8x² + 0.2x + (q_rel - 1) = 0
+      const disc = 0.04 + 4 * 0.8 * (1 - q_rel);
+      const x    = disc > 0 ? (-0.2 + Math.sqrt(disc)) / (2 * 0.8) : 0;
+      Pwf_ipr = Math.max(0, x * Pb);
+    }
+    IPR_arr.push(Pwf_ipr);
+
+    // VLP: Beggs-Brill BHP
+    const q_gas_Mscfd = q_o * GOR / 1000;
+    const Pwf_vlp = beggsBrillBHP(Pwh_psia, q_o, q_gas_Mscfd, D_in, L_ft, T_avg_F, T_avg_F, SG_oil, SG_gas);
+    VLP_arr.push(Pwf_vlp);
+  }
+
+  // Find intersection
+  let q_int   = q_arr[0];
+  let Pwf_int = (IPR_arr[0] + VLP_arr[0]) / 2;
+  for (let i = 0; i < q_arr.length - 1; i++) {
+    const diff1 = IPR_arr[i]   - VLP_arr[i];
+    const diff2 = IPR_arr[i+1] - VLP_arr[i+1];
+    if (diff1 * diff2 <= 0) {
+      const frac = Math.abs(diff1) / (Math.abs(diff1) + Math.abs(diff2));
+      q_int   = q_arr[i] + frac * (q_arr[i+1] - q_arr[i]);
+      Pwf_int = IPR_arr[i] + frac * (IPR_arr[i+1] - IPR_arr[i]);
+      break;
+    }
+  }
+
+  return { q_intersection_bpd: q_int, Pwf_intersection_psia: Pwf_int, IPR_arr, VLP_arr };
+}
+
+/**
+ * Choke sensitivity analysis — Gilbert upstream pressure for each flow rate.
+ *
+ * For each q_oil in q_oil_arr, uses the Gilbert critical-flow correlation to
+ * compute upstream (tubing head) pressure for a given choke size and GOR.
+ * GOR is constant (fixed GLR scenario).
+ *
+ * Gilbert: P_up = 10 * q_oil * GLR^0.546 / d^1.89
+ *
+ * @param q_oil_arr      Oil rate array (bpd)
+ * @param GLR_scf_bbl    Gas-liquid ratio (scf/bbl)
+ * @param d_choke_64ths  Choke bean size in 64ths of an inch
+ * @param P_dn_psia      Downstream (separator / flowline) pressure (psia)
+ * @returns              {q_arr, P_up_arr, dP_arr}
+ */
+export function vfpChokeSensitivity(
+  q_oil_arr: number[],
+  GLR_scf_bbl: number,
+  d_choke_64ths: number,
+  P_dn_psia: number,
+): { q_arr: number[]; P_up_arr: number[]; dP_arr: number[] } {
+  const P_up_arr: number[] = [];
+  const dP_arr:   number[] = [];
+  const GLR = Math.max(GLR_scf_bbl, 1);
+
+  for (const q_o of q_oil_arr) {
+    const P_up = 10 * q_o * Math.pow(GLR, 0.546) / Math.pow(d_choke_64ths, 1.89);
+    P_up_arr.push(P_up);
+    dP_arr.push(P_up - P_dn_psia);
+  }
+
+  return { q_arr: q_oil_arr, P_up_arr, dP_arr };
+}

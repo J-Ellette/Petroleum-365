@@ -1022,3 +1022,89 @@ export function geoFaultReactivation(
 
   return { σ_n_psi: σ_n, τ_psi: τ, P_crit_psi: P_crit, safetyMargin_psi: safetyMargin, willReactivate };
 }
+
+/**
+ * Deviated wellbore stability mud weight window combining Kirsch and ECD.
+ *
+ * Uses geoDeviatedKirsch to compute breakdown and collapse pressures for a
+ * deviated well, then uses geoECD to compute the equivalent circulating
+ * density, and returns the recommended mud weight with stability assessment.
+ *
+ * @param sigma_h     Min horizontal stress (psi)
+ * @param sigma_H     Max horizontal stress (psi)
+ * @param sigma_v     Vertical stress (psi)
+ * @param Pp          Pore pressure (psi)
+ * @param inc_deg     Wellbore inclination (°)
+ * @param az_deg      Wellbore azimuth from σH (°)
+ * @param C0          Unconfined compressive strength (psi)
+ * @param phi_deg     Friction angle (°)
+ * @param T0          Tensile strength (psi)
+ * @param MW_ppg      Mud weight (ppg) — used for ECD calculation
+ * @param TVD_ft      True vertical depth (ft)
+ * @param Q_gpm       Circulation rate (gpm)
+ * @param D_h_in      Hole diameter (in)
+ * @param D_p_in      Drill pipe OD (in)
+ * @param L_ft        Interval length (ft)
+ * @param mu_p        Plastic viscosity (cp)
+ * @param tau_y       Yield point (lbf/100ft²)
+ * @returns           {MW_min_ppg, MW_max_ppg, MW_recommended_ppg, ECD_ppg, BP_psia, CP_psia, stable}
+ */
+export function geoDeviatedStabilityWindow(
+  sigma_h: number,
+  sigma_H: number,
+  sigma_v: number,
+  Pp: number,
+  inc_deg: number,
+  az_deg: number,
+  C0: number,
+  phi_deg: number,
+  T0: number,
+  MW_ppg: number,
+  TVD_ft: number,
+  Q_gpm: number,
+  D_h_in: number,
+  D_p_in: number,
+  L_ft: number,
+  mu_p: number,
+  tau_y: number,
+): {
+  MW_min_ppg: number;
+  MW_max_ppg: number;
+  MW_recommended_ppg: number;
+  ECD_ppg: number;
+  BP_psia: number;
+  CP_psia: number;
+  stable: boolean;
+} {
+  // Compute wellbore pressure from mud weight
+  const Pw_psia = 0.052 * MW_ppg * TVD_ft;
+  // Get Kirsch pressures for the deviated wellbore
+  const kirsch = geoDeviatedKirsch(sigma_h, sigma_H, sigma_v, Pp, Pw_psia, inc_deg, az_deg, C0, phi_deg, T0);
+  const BP_psia = kirsch.breakdownP_psi;
+  const CP_psia = kirsch.collapseP_psi;
+
+  // Convert pressures to mud weight equivalent (ppg)
+  const psiToEMW = (P_psi: number) => P_psi / (0.052 * TVD_ft);
+  const MW_min_ppg = psiToEMW(CP_psia);
+  const MW_max_ppg = psiToEMW(BP_psia);
+
+  // Compute ECD (correct arg order: MW_ppg, TVD_ft, Q_gpm, D_h_in, D_p_in, L_ft, mu_p, tau_y)
+  const ecdResult = geoECD(MW_ppg, TVD_ft, Q_gpm, D_h_in, D_p_in, L_ft, mu_p, tau_y);
+  const ecd = ecdResult.ECD_ppg;
+
+  // Recommended MW: midpoint of stability window, biased 40% toward the collapse side
+  // (conservative: stay closer to collapse pressure than to fracture gradient)
+  const MW_recommended_ppg = MW_min_ppg + 0.4 * (MW_max_ppg - MW_min_ppg);
+
+  const stable = ecd > MW_min_ppg && ecd < MW_max_ppg;
+
+  return {
+    MW_min_ppg,
+    MW_max_ppg,
+    MW_recommended_ppg,
+    ECD_ppg: ecd,
+    BP_psia,
+    CP_psia,
+    stable,
+  };
+}

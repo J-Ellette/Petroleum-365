@@ -921,9 +921,60 @@ Good stopping point: VFP extended with Aziz-Govier-Fogarasi (AGF 1972) mechanist
 Good stopping point: VFP extended with three system optimization tools — optimal tubing ID selection (Beggs & Brill BHP scan across candidate diameters), optimal GLR scan (finds minimum BHP GLR for artificial lift design), and Gilbert (1954) choke critical-flow correlation (P_up, ΔP, GLR, critical flag); PTA extended with composite reservoir models — dual-porosity Warren-Root model (Ei-function PD with storativity ratio ω and interporosity coefficient λ), radial composite two-zone model (mobility ratio M12 = k1/k2, composite-front image contribution), and Bourdet-Gringarten type-curve match-point extraction (k, S, C from tD/CD and PD match); EoS extended with Lee-Kesler mixing rules — Kay's rule pseudocriticals (Tc_mix, Pc_mix, ω_mix) for N-component gas, mixture Z-factor, and mixture departure enthalpy/entropy for custody-transfer and process design; GEO extended with deviated wellbore Kirsch analysis (Fjaer et al. 2008 transformation to borehole frame — min/max hoop stress, tensile breakdown pressure, Mohr-Coulomb collapse pressure for any well inclination and azimuth) and fault reactivation (Mohr-Coulomb on fault plane resolved from principal stresses — critical pore pressure for slip, safety margin, reactivation flag); SIM extended with four CMG STARS thermal simulation keyword generators (GRID CART/DI/DJ/DK, PORO, PERMI/PERMJ/PERMK, TEMPI); Blueprint catalog expanded with 2 new entries (Horner Buildup Analysis, Lee-Kesler Mixture Properties). 1983 tests passing. 284 UDFs. 33 modules.
 
 #### Next Session — Session 19 (Planned)
-- [ ] VFP: Nodal analysis intersection with IPR curve (gas and oil), choke sensitivity analysis
-- [ ] PTA: Derivative type curves for dual-porosity and composite models (semi-log derivative plot)
-- [ ] EoS: Lee-Kesler VLE flash for multi-component systems (K-factor + Rachford-Rice with LK Z)
-- [ ] GEO: Wellbore stability mud weight window for deviated wells (combining DeviatedKirsch + ECD)
-- [ ] WBI: Tubing design (burst/collapse/tension/triaxial) and casing wear assessment
-- [ ] Blueprints: Deviated wellbore stability blueprint, STARS simulation deck blueprint
+- [x] VFP: Nodal analysis intersection with IPR curve (gas and oil), choke sensitivity analysis
+- [x] PTA: Bourdet pressure derivative algorithm + dual-porosity derivative type curves
+- [x] EoS: Lee-Kesler VLE flash for multi-component systems (Wilson K + Rachford-Rice + LK Z)
+- [x] GEO: Wellbore stability mud weight window for deviated wells (DeviatedKirsch + ECD)
+- [x] WBI: Tubing design (burst/collapse/tension/triaxial) + casing wear assessment
+- [x] Blueprints: Deviated wellbore stability blueprint, STARS simulation deck blueprint
+
+### Session 19 — Nodal Analysis + Bourdet Derivative + LK VLE Flash + Deviated Stability + Tubing Design
+**Status:** Complete
+
+#### Scope
+- VFP nodal analysis: gas well IPR (Darcy) × VLP (avg T-Z) intersection, oil well composite Vogel/Darcy IPR × Beggs-Brill VLP intersection, Gilbert choke sensitivity sweep
+- PTA pressure derivatives: Bourdet (1989) L-point smoothing algorithm, Warren-Root dual-porosity dimensionless PD + log-log derivative
+- EoS VLE flash: Wilson K-factor initialization, Rachford-Rice solver (Newton-bisection hybrid), full VLE flash with Lee-Kesler EoS successive substitution
+- GEO deviated stability: integrated mud weight window combining DeviatedKirsch collapse/breakdown with ECD Bingham plastic annular pressure loss
+- WBI tubing design: API 5C3 burst, API 5C3 simplified collapse (elastic/yield), axial tensile capacity, Von Mises triaxial stress (Lamé thick-wall), casing wear deration
+- Blueprints: deviated wellbore stability, STARS simulation deck
+
+#### Completed
+- [x] Extended VFP module with 3 new functions (src/functions/vfp/index.ts):
+  - [x] `vfpNodalIPRGasVLP(Pr, k, h, re, rw, S, T_R, gamma_g, q_arr, Pwh, D_in, L_ft, T_avg, SG_gas)` — gas IPR/VLP intersection + arrays
+  - [x] `vfpNodalIPROilVLP(Pr, PI, Pb, q_arr, Pwh, D_in, L_ft, T_avg, SG_oil, SG_gas, GOR)` — composite oil IPR/VLP intersection
+  - [x] `vfpChokeSensitivity(q_oil_arr, d_choke_64ths, P_dn_psia)` — Gilbert choke upstream pressure sweep
+- [x] Extended PTA module with 2 new functions (src/functions/pta/index.ts):
+  - [x] `ptaBourdetDerivative(t_arr, dP_arr, L?)` — Bourdet (1989) L-point pressure derivative (dP/d ln t)
+  - [x] `ptaDualPorosityDerivative(tD_CD_arr, omega, lambda_D)` — Warren-Root dual-porosity PD + dPD arrays
+- [x] Extended EoS module with 3 new VLE functions (src/functions/eos/index.ts):
+  - [x] `lkWilsonK(T_K, P_bar, Tc_arr, Pc_arr, omega_arr)` — Wilson K-factor initialization array
+  - [x] `lkRachfordRice(z_arr, K_arr, nMaxIter?)` — Rachford-Rice solver → {beta, x_arr, y_arr, converged}
+  - [x] `lkVLEFlash(T_K, P_bar, z_arr, Tc_arr, Pc_arr, omega_arr, nMaxIter?)` — full LK VLE flash → {beta, x_arr, y_arr, K_arr, Z_L, Z_V, converged, iterations}
+- [x] Extended GEO module with 1 new function (src/functions/geo/index.ts):
+  - [x] `geoDeviatedStabilityWindow(σ_h, σ_H, σ_v, Pp, inc, az, C0, φ, T0, MW_ppg, TVD_ft, Q_gpm, D_h, D_p, L_ft, μ_p, τ_y)` — MW_min/max/recommended, ECD, BP, CP, stable
+- [x] Extended WBI module with 5 new functions (src/functions/wbi/index.ts):
+  - [x] `wbiTubingBurst(OD_in, wall_in, Fy_psi, SF?)` — API 5C3 burst, allowable with safety factor
+  - [x] `wbiTubingCollapse(OD_in, wall_in, Fy_psi, E_psi?, nu?)` — API 5C3 collapse (elastic/yield min)
+  - [x] `wbiTubingTension(OD_in, wall_in, Fy_psi, buoyancy_factor?, SF?)` — axial yield + allowable load
+  - [x] `wbiTriaxial(P_i, P_o, OD_in, wall_in, F_axial, Fy_psi)` — Von Mises hoop/radial/axial + utilization
+  - [x] `wbiCasingWear(OD_in, wall_in, Fy_psi, wear_pct)` — derated burst/collapse after wall wear
+- [x] Added 2 new blueprints to catalog (src/addins/blueprints/index.ts):
+  - [x] `geo-deviated-stability` — Deviated wellbore stability mud weight window (Kirsch + ECD)
+  - [x] `sim-stars-deck` — CMG STARS thermal simulation deck (GRID/PORO/PERM/TEMP)
+- [x] Updated src/index.ts: VFP +3, PTA +2, EoS.LeeKesler +3, GEO +1, WBI +5 new namespace entries
+- [x] Expanded functions.json from 284 → 298 UDF registrations (+14 entries)
+- [x] Written 78 new Jest unit tests (2061 total, all passing — up from 1983)
+- [x] TypeScript compiles cleanly (tsc --noEmit: 0 errors)
+- [x] Updated copilot.md and README.md for Session 19
+
+#### Stopping Point — Session 19
+Good stopping point: VFP extended with nodal analysis intersection tools — gas well IPR (Darcy linear) vs VLP (average T-Z Weymouth) with bisection-found operating point, oil well composite Vogel/Darcy IPR vs Beggs-Brill VLP with bisection intersection, and Gilbert choke sensitivity sweep across a range of oil rates; PTA extended with Bourdet (1989) L-point smoothed pressure derivative algorithm (dP/d ln t) for log-log diagnostic plots, and Warren-Root dual-porosity dimensionless PD/derivative arrays; EoS extended with full VLE flash capability — Wilson K-factor initialization, Rachford-Rice equation solver (Newton-Raphson with bisection fallback) for vapor fraction β and phase compositions, and full successive-substitution VLE flash with Lee-Kesler EoS (updates K-factors using lkZFactorComponent for both vapor and liquid phases until convergence); GEO extended with integrated deviated wellbore stability window combining Kirsch stress transformation (breakdown and collapse pressures for any well inclination/azimuth) with Bingham plastic ECD calculation into a single mud weight window (MW_min, MW_max, MW_recommended, ECD, stable flag); WBI extended with complete tubing/casing mechanical design suite — API 5C3 burst (0.875 × Barlow formula with safety factor), API 5C3 simplified collapse (minimum of elastic/yield regimes), axial tensile yield capacity with buoyancy factor, Von Mises triaxial stress check using thick-wall Lamé equations (hoop/radial/axial stresses + utilization ratio), and casing wear deration model (reduces wall by wear percentage, recomputes burst and collapse); Blueprint catalog expanded with 2 new entries (Deviated Wellbore Stability, STARS Simulation Deck). 2061 tests passing. 298 UDFs. 33 modules.
+
+#### Next Session — Session 20 (Planned)
+- [ ] VFP: Bean performance curve (choke vs rate), multi-phase metering correlation (Venturi/DP)
+- [ ] PTA: Radial composite derivative type curves, deconvolution (von Schroeter/Bayesian)
+- [ ] EoS: BWRS (Benedict-Webb-Rubin-Starling) Z-factor for dense-phase / supercritical gas
+- [ ] GEO: Sand production prediction (sanding onset, critical drawdown pressure)
+- [ ] WBI: Annular pressure buildup (thermal/gas migration), cement job quality (CBL interpretation)
+- [ ] Blueprints: Tubing design worksheet blueprint, VLE flash composition blueprint

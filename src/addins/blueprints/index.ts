@@ -41,6 +41,7 @@ export type BlueprintCategory =
   | "ECO"
   | "WPA"
   | "RTA"
+  | "SIM"
   | "Utilities";
 
 /** A single blueprint catalog entry. */
@@ -861,6 +862,28 @@ export const BLUEPRINT_CATALOG: Blueprint[] = [
     tags: ["eos", "lee-kesler", "mixture", "pseudocriticals", "kay's rule", "z-factor", "departure enthalpy", "departure entropy", "thermodynamics", "gas properties"],
     rowCount: 35,
     colCount: 10,
+  },
+  {
+    id: "geo-deviated-stability",
+    name: "Deviated Wellbore Stability",
+    category: "GEO",
+    description:
+      "Mud weight window for deviated wells combining Kirsch stress analysis with ECD. Computes breakdown and collapse pressures for an inclined wellbore using the Kirsch transformation of the in-situ stress tensor, converts to equivalent mud weight, and overlays the equivalent circulating density to flag whether the circulating mud weight falls within the stability window.",
+    requiredFunctions: ["GEO.DeviatedKirsch", "GEO.ECD", "GEO.MudWeightWindowECD"],
+    tags: ["geo", "deviated well", "kirsch", "stability", "mud weight", "ecd", "wellbore", "collapse", "breakdown"],
+    rowCount: 45,
+    colCount: 8,
+  },
+  {
+    id: "sim-stars-deck",
+    name: "STARS Simulation Deck",
+    category: "SIM",
+    description:
+      "CMG STARS keyword generator for thermal simulation (GRID/PORO/PERM/TEMP). Generates the full set of CMG STARS include-file keywords for grid geometry, initial porosity, permeability tensor, and initial temperature distribution. Useful for heavy oil, SAGD, and steamflood simulation setups.",
+    requiredFunctions: ["SIM.StarsGrid", "SIM.StarsPoro", "SIM.StarsPerm", "SIM.StarsTemp"],
+    tags: ["sim", "cmg", "stars", "thermal", "sagd", "steam", "heavy oil", "grid", "porosity", "permeability", "temperature"],
+    rowCount: 50,
+    colCount: 8,
   },
 ];
 

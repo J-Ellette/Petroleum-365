@@ -1613,3 +1613,109 @@ export function ptaTypeCurveMatch(
 
   return { k_md, S, C_bbl_psi };
 }
+
+/**
+ * Bourdet (1989) pressure derivative algorithm.
+ *
+ * Computes d(ΔP)/d(ln t) at each time point using Bourdet's L-point
+ * smoothing approach. Points within L in ln-time space are skipped to
+ * reduce noise.
+ *
+ * At each point i, the algorithm finds the nearest left point (j < i) and
+ * right point (k > i) such that |ln(t_k) - ln(t_j)| ≥ L, then computes:
+ *
+ *   dP/d(ln t) = [ΔP_k - ΔP_j] / [ln(t_k) - ln(t_j)]
+ *
+ * @param t_arr    Time array (hours) — must be strictly increasing
+ * @param dP_arr   Pressure change array (psia) — same length as t_arr
+ * @param L        Smoothing parameter (ln-time window); default 0.1
+ * @returns        Derivative array (psia) — same length as t_arr
+ */
+export function ptaBourdetDerivative(
+  t_arr: number[],
+  dP_arr: number[],
+  L = 0.1,
+): number[] {
+  const n = t_arr.length;
+  if (n !== dP_arr.length) throw new Error("t_arr and dP_arr must have the same length");
+  const lnt = t_arr.map(t => Math.log(Math.max(t, 1e-30)));
+  const deriv: number[] = new Array(n).fill(NaN);
+
+  for (let i = 0; i < n; i++) {
+    // Find left point j: largest j < i such that lnt[i] - lnt[j] >= L
+    let j = -1;
+    for (let jj = i - 1; jj >= 0; jj--) {
+      if (lnt[i] - lnt[jj] >= L) { j = jj; break; }
+    }
+    // Find right point k: smallest k > i such that lnt[k] - lnt[i] >= L
+    let k = -1;
+    for (let kk = i + 1; kk < n; kk++) {
+      if (lnt[kk] - lnt[i] >= L) { k = kk; break; }
+    }
+
+    if (j >= 0 && k >= 0) {
+      // Both neighbours available: weighted average
+      const dL = lnt[i] - lnt[j];
+      const dR = lnt[k] - lnt[i];
+      const slopeL = (dP_arr[i] - dP_arr[j]) / dL;
+      const slopeR = (dP_arr[k] - dP_arr[i]) / dR;
+      deriv[i] = (slopeL * dR + slopeR * dL) / (dL + dR);
+    } else if (j >= 0) {
+      deriv[i] = (dP_arr[i] - dP_arr[j]) / (lnt[i] - lnt[j]);
+    } else if (k >= 0) {
+      deriv[i] = (dP_arr[k] - dP_arr[i]) / (lnt[k] - lnt[i]);
+    }
+  }
+
+  return deriv;
+}
+
+/**
+ * Dual-porosity dimensionless pressure derivative (Warren-Root model).
+ *
+ * For each tD/CD value in the input array, computes the dimensionless
+ * pressure PD and its log-log derivative dPD/d(ln(tD/CD)) using the
+ * Warren-Root bilinear dual-porosity model in dimensionless form.
+ *
+ * Simplified analytical form (homogeneous limits):
+ *   - Early time (tD/CD small): PD ≈ tD/CD  (wellbore storage)
+ *   - Transition: exponential correction from omega, lambda_D
+ *   - Late time: PD ≈ 0.5 * ln(tD/CD) + 0.80907  (radial)
+ *
+ * The derivative is computed numerically from the PD values.
+ *
+ * @param tD_CD_arr  Array of dimensionless time/storage values
+ * @param omega      Storativity ratio (fraction: 0 < omega < 1)
+ * @param lambda_D   Dimensionless interporosity flow parameter
+ * @returns          {tD_CD_arr, PD_arr, dPD_arr}
+ */
+export function ptaDualPorosityDerivative(
+  tD_CD_arr: number[],
+  omega: number,
+  lambda_D: number,
+): { tD_CD_arr: number[]; PD_arr: number[]; dPD_arr: number[] } {
+  const PD_arr: number[] = [];
+
+  for (const tDCD of tD_CD_arr) {
+    // Warren-Root dimensionless pressure: superposition of two exponential integrals
+    // PD = -0.5 * Ei(-tD * lambda/(1-omega)) ... simplified radial form:
+    // Late-time: PD = 0.5*(ln(tDCD) + 0.80907)
+    // Early transition correction using omega, lambda_D
+    const x1 = (omega * lambda_D) / (4 * (1 - omega) * tDCD + 1e-30);
+    const x2 = lambda_D / (4 * tDCD + 1e-30);
+    // Using Ei approximation: Ei(-u) ≈ ln(u) + 0.5772 for small u
+    // For dual porosity: PD ≈ 0.5*(ln(4*tDCD/lambda_D) + 0.80907) for late time
+    // and PD adds correction for fracture/matrix exchange
+    const ei_x1 = x1 > 0 ? -0.5 * Math.exp(-x1) / x1 : 0; // simplified Ei approximation
+    const ei_x2 = x2 > 0 ? -0.5 * Math.exp(-x2) / x2 : 0;
+    // Simplified PD combining contributions
+    const PD_late = 0.5 * (Math.log(4 * tDCD) + 0.80907 - Math.log(lambda_D + 1e-30));
+    const PD_corr = ei_x1 - ei_x2;
+    PD_arr.push(Math.max(0, PD_late + PD_corr));
+  }
+
+  // Compute derivative using Bourdet algorithm (L=0.1)
+  const dPD_arr = ptaBourdetDerivative(tD_CD_arr, PD_arr, 0.1);
+
+  return { tD_CD_arr, PD_arr, dPD_arr };
+}

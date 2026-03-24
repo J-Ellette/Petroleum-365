@@ -380,7 +380,7 @@ export const P365 = {
     },
     Superpose:        PTAExports.superposeWellborePressure,
     FaultBuildup:     PTAExports.faultBuildupPressure,
-    BourdetDerivative: PTAExports.bourdetDerivative,
+    BourdetDerivative: PTAExports.ptaBourdetDerivative,
     WellboreStorage: {
       C:   PTAExports.wellboreStorageCoefficient,
       CD:  PTAExports.wellboreStorageCoefficientCD,
@@ -407,6 +407,9 @@ export const P365 = {
     DualPorosityPwf:   PTAExports.ptaDualPorosityPwf,
     RadialComposite:   PTAExports.ptaRadialComposite,
     TypeCurveMatch:    PTAExports.ptaTypeCurveMatch,
+    // Session 19: Bourdet derivative and dual-porosity derivative
+    // BourdetDerivative updated above to ptaBourdetDerivative (session 19 implementation)
+    DualPorosityDerivative:  PTAExports.ptaDualPorosityDerivative,
   },
 
   // ─── VFP — Vertical Flow Performance ──────────────────────────────────────
@@ -466,6 +469,10 @@ export const P365 = {
     OptimalTubing: VFPExports.vfpOptimalTubing,
     GLROptimal:    VFPExports.vfpGLROptimal,
     ChokeDP:       VFPExports.vfpChokeDP,
+    // Session 19: Nodal analysis and choke sensitivity
+    NodalIPRGasVLP:   VFPExports.vfpNodalIPRGasVLP,
+    NodalIPROilVLP:   VFPExports.vfpNodalIPROilVLP,
+    ChokeSensitivity: VFPExports.vfpChokeSensitivity,
   },
 
   // ─── SF — Surface Facilities ───────────────────────────────────────────────
@@ -673,6 +680,10 @@ export const P365 = {
       MixturePseudoCriticals: EoSExports.lkMixturePseudoCriticals,
       MixtureZ:               EoSExports.lkMixtureZ,
       MixtureProperties:      EoSExports.lkMixtureProperties,
+      // Session 19: VLE flash
+      WilsonK:      EoSExports.lkWilsonK,
+      RachfordRice: EoSExports.lkRachfordRice,
+      VLEFlash:     EoSExports.lkVLEFlash,
     },
   },
 
@@ -841,6 +852,8 @@ export const P365 = {
     // Session 18: deviated wellbore stress, fault reactivation
     DeviatedKirsch:    GEOExports.geoDeviatedKirsch,
     FaultReactivation: GEOExports.geoFaultReactivation,
+    // Session 19: Deviated stability window
+    DeviatedStabilityWindow: GEOExports.geoDeviatedStabilityWindow,
   },
 
   // ─── SKIN — Composite Skin Factor ─────────────────────────────────────────
@@ -920,6 +933,14 @@ export const P365 = {
     // Hydrostatic helpers
     HydrostaticPressure:   WBIExports.wbiHydrostaticPressure,
     PressureToEMW:         WBIExports.wbiPressureToEMW,
+    // Session 19: Tubing design and casing wear
+    Tubing: {
+      Burst:    WBIExports.wbiTubingBurst,
+      Collapse: WBIExports.wbiTubingCollapse,
+      Tension:  WBIExports.wbiTubingTension,
+    },
+    Triaxial:   WBIExports.wbiTriaxial,
+    CasingWear: WBIExports.wbiCasingWear,
   },
 
   // ─── SIM — Reservoir Simulation INCLUDE File Generator ────────────────────
