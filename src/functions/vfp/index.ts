@@ -1880,9 +1880,11 @@ export function vfpNodalIPRGasVLP(
   IPR_Pwf_arr: number[];
   VLP_Pwf_arr: number[];
 } {
-  // Default viscosity and Z (approximate for lean gas)
-  const mu = 0.02;  // cp, typical lean gas
-  const Z  = 0.85;  // approximate Z at mid-conditions
+  // Default viscosity and Z — approximate for lean natural gas at typical reservoir conditions.
+  // Valid for SG ~0.6-0.7 natural gas, Pr 1000-5000 psia, T_R 550-700 °R.
+  // Accuracy ~±15%; use component-level EoS for sour/rich gas.
+  const mu = 0.02;  // cp, typical lean gas reservoir viscosity
+  const Z  = 0.85;  // Z-factor at approximate mid-conditions
 
   const lnPart = Math.log(re / rw) - 0.75 + S;
   const C_ipr  = (k * h) / (1422 * T_R * mu * Z * lnPart); // Mscfd/psia²
