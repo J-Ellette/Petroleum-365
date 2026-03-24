@@ -1503,7 +1503,7 @@ export function lkVLEFlash(
     const K_new: number[] = [];
     let maxRelChange = 0;
     for (let i = 0; i < K_arr.length; i++) {
-      const K_new_i = K_arr[i] * (Z_V / Z_L);
+      const K_new_i = K_arr[i] * (Z_V / Math.max(Z_L, 1e-10));
       K_new.push(K_new_i);
       maxRelChange = Math.max(maxRelChange, Math.abs(K_new_i - K_arr[i]) / (Math.abs(K_arr[i]) + 1e-10));
     }

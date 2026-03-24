@@ -877,7 +877,7 @@ export const BLUEPRINT_CATALOG: Blueprint[] = [
   {
     id: "sim-stars-deck",
     name: "STARS Simulation Deck",
-    category: "SIM" as BlueprintCategory,
+    category: "SIM",
     description:
       "CMG STARS keyword generator for thermal simulation (GRID/PORO/PERM/TEMP). Generates the full set of CMG STARS include-file keywords for grid geometry, initial porosity, permeability tensor, and initial temperature distribution. Useful for heavy oil, SAGD, and steamflood simulation setups.",
     requiredFunctions: ["SIM.StarsGrid", "SIM.StarsPoro", "SIM.StarsPerm", "SIM.StarsTemp"],

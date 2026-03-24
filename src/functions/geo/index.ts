@@ -1092,7 +1092,8 @@ export function geoDeviatedStabilityWindow(
   const ecdResult = geoECD(MW_ppg, TVD_ft, Q_gpm, D_h_in, D_p_in, L_ft, mu_p, tau_y);
   const ecd = ecdResult.ECD_ppg;
 
-  // Recommended MW: midpoint of stability window, biased toward collapse side
+  // Recommended MW: midpoint of stability window, biased 40% toward the collapse side
+  // (conservative: stay closer to collapse pressure than to fracture gradient)
   const MW_recommended_ppg = MW_min_ppg + 0.4 * (MW_max_ppg - MW_min_ppg);
 
   const stable = ecd > MW_min_ppg && ecd < MW_max_ppg;
