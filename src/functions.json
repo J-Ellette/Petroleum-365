@@ -7942,6 +7942,468 @@
           "description": "Temperature values (\u00b0F) \u2014 scalar or array"
         }
       ]
+    },
+    {
+      "id": "P365.VFP.NodalIPRGasVLP",
+      "name": "P365.VFP.NodalIPRGasVLP",
+      "description": "Nodal analysis: gas well IPR (Darcy) meets VLP (average T-Z gas BHP). Builds IPR and VLP curves and returns the operating-point intersection.",
+      "parameters": [
+        {
+          "name": "Pr",
+          "description": "Reservoir pressure (psia)"
+        },
+        {
+          "name": "k",
+          "description": "Permeability (md)"
+        },
+        {
+          "name": "h",
+          "description": "Net pay (ft)"
+        },
+        {
+          "name": "re",
+          "description": "Drainage radius (ft)"
+        },
+        {
+          "name": "rw",
+          "description": "Wellbore radius (ft)"
+        },
+        {
+          "name": "S",
+          "description": "Skin factor"
+        },
+        {
+          "name": "T_R",
+          "description": "Reservoir temperature (\u00b0R)"
+        },
+        {
+          "name": "gamma_g",
+          "description": "Gas specific gravity (air=1)"
+        },
+        {
+          "name": "q_arr",
+          "description": "Flow rate evaluation array (Mscf/d)"
+        },
+        {
+          "name": "Pwh_psia",
+          "description": "Wellhead pressure (psia)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing ID (in)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Tubing length (ft)"
+        },
+        {
+          "name": "T_avg_F",
+          "description": "Average temperature (\u00b0F)"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity for VLP"
+        }
+      ]
+    },
+    {
+      "id": "P365.VFP.NodalIPROilVLP",
+      "name": "P365.VFP.NodalIPROilVLP",
+      "description": "Nodal analysis: composite Vogel/Darcy oil IPR meets Beggs-Brill VLP. Finds the operating-point intersection.",
+      "parameters": [
+        {
+          "name": "Pr",
+          "description": "Reservoir pressure (psia)"
+        },
+        {
+          "name": "PI",
+          "description": "Productivity index above bubble point (bpd/psi)"
+        },
+        {
+          "name": "Pb",
+          "description": "Bubble point pressure (psia)"
+        },
+        {
+          "name": "q_arr",
+          "description": "Flow rate evaluation array (bpd)"
+        },
+        {
+          "name": "Pwh_psia",
+          "description": "Wellhead pressure (psia)"
+        },
+        {
+          "name": "D_in",
+          "description": "Tubing ID (in)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Tubing length (ft)"
+        },
+        {
+          "name": "T_avg_F",
+          "description": "Average temperature (\u00b0F)"
+        },
+        {
+          "name": "SG_oil",
+          "description": "Oil specific gravity"
+        },
+        {
+          "name": "SG_gas",
+          "description": "Gas specific gravity"
+        },
+        {
+          "name": "GOR",
+          "description": "Solution GOR (scf/bbl)"
+        }
+      ]
+    },
+    {
+      "id": "P365.VFP.ChokeSensitivity",
+      "name": "P365.VFP.ChokeSensitivity",
+      "description": "Choke sensitivity analysis using Gilbert critical-flow correlation. Computes upstream pressure and pressure drop for each flow rate in the array.",
+      "parameters": [
+        {
+          "name": "q_oil_arr",
+          "description": "Oil rate array (bpd)"
+        },
+        {
+          "name": "GLR_scf_bbl",
+          "description": "Gas-liquid ratio (scf/bbl)"
+        },
+        {
+          "name": "d_choke_64ths",
+          "description": "Choke bean size in 64ths of an inch"
+        },
+        {
+          "name": "P_dn_psia",
+          "description": "Downstream pressure (psia)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PTA.BourdetDerivative",
+      "name": "P365.PTA.BourdetDerivative",
+      "description": "Bourdet (1989) pressure derivative: d(\u0394P)/d(ln t) using L-point smoothing. Returns derivative array same length as input.",
+      "parameters": [
+        {
+          "name": "t_arr",
+          "description": "Time array (hours), strictly increasing"
+        },
+        {
+          "name": "dP_arr",
+          "description": "Pressure change array (psia)"
+        },
+        {
+          "name": "L",
+          "description": "Smoothing window in ln-time (default 0.1)"
+        }
+      ]
+    },
+    {
+      "id": "P365.PTA.DualPorosityDerivative",
+      "name": "P365.PTA.DualPorosityDerivative",
+      "description": "Dual-porosity dimensionless pressure and derivative (Warren-Root model). Returns PD and dPD/d(ln(tD/CD)) arrays.",
+      "parameters": [
+        {
+          "name": "tD_CD_arr",
+          "description": "Array of dimensionless time/storage values"
+        },
+        {
+          "name": "omega",
+          "description": "Storativity ratio (0 < omega < 1)"
+        },
+        {
+          "name": "lambda_D",
+          "description": "Dimensionless interporosity flow parameter"
+        }
+      ]
+    },
+    {
+      "id": "P365.EoS.LeeKesler.WilsonK",
+      "name": "P365.EoS.LeeKesler.WilsonK",
+      "description": "Wilson K-factor correlation for VLE initialization. Ki = (Pci/P)*exp(5.373*(1+\u03c9i)*(1-Tci/T)).",
+      "parameters": [
+        {
+          "name": "T_K",
+          "description": "Temperature (K)"
+        },
+        {
+          "name": "P_bar",
+          "description": "Pressure (bar)"
+        },
+        {
+          "name": "Tc_arr",
+          "description": "Critical temperatures array (K)"
+        },
+        {
+          "name": "Pc_arr",
+          "description": "Critical pressures array (bar)"
+        },
+        {
+          "name": "omega_arr",
+          "description": "Acentric factors array"
+        }
+      ]
+    },
+    {
+      "id": "P365.EoS.LeeKesler.RachfordRice",
+      "name": "P365.EoS.LeeKesler.RachfordRice",
+      "description": "Rachford-Rice VLE equation solver for vapor fraction beta. Returns beta, liquid mole fractions x, vapor mole fractions y.",
+      "parameters": [
+        {
+          "name": "z_arr",
+          "description": "Overall mole fractions (auto-normalized)"
+        },
+        {
+          "name": "K_arr",
+          "description": "K-factors (y_i/x_i)"
+        },
+        {
+          "name": "nMaxIter",
+          "description": "Maximum iterations (default 100)"
+        }
+      ]
+    },
+    {
+      "id": "P365.EoS.LeeKesler.VLEFlash",
+      "name": "P365.EoS.LeeKesler.VLEFlash",
+      "description": "Full VLE flash using Lee-Kesler EoS with successive substitution. Returns vapor fraction, phase compositions, Z-factors, convergence status.",
+      "parameters": [
+        {
+          "name": "T_K",
+          "description": "Temperature (K)"
+        },
+        {
+          "name": "P_bar",
+          "description": "Pressure (bar)"
+        },
+        {
+          "name": "z_arr",
+          "description": "Overall mole fractions"
+        },
+        {
+          "name": "Tc_arr",
+          "description": "Critical temperatures (K)"
+        },
+        {
+          "name": "Pc_arr",
+          "description": "Critical pressures (bar)"
+        },
+        {
+          "name": "omega_arr",
+          "description": "Acentric factors"
+        },
+        {
+          "name": "nMaxIter",
+          "description": "Maximum outer iterations (default 50)"
+        }
+      ]
+    },
+    {
+      "id": "P365.GEO.DeviatedStabilityWindow",
+      "name": "P365.GEO.DeviatedStabilityWindow",
+      "description": "Deviated wellbore stability mud weight window: combines Kirsch stress analysis with ECD to compute MW_min, MW_max, and stability flag.",
+      "parameters": [
+        {
+          "name": "sigma_h",
+          "description": "Min horizontal stress (psi)"
+        },
+        {
+          "name": "sigma_H",
+          "description": "Max horizontal stress (psi)"
+        },
+        {
+          "name": "sigma_v",
+          "description": "Vertical stress (psi)"
+        },
+        {
+          "name": "Pp",
+          "description": "Pore pressure (psi)"
+        },
+        {
+          "name": "inc_deg",
+          "description": "Wellbore inclination (\u00b0)"
+        },
+        {
+          "name": "az_deg",
+          "description": "Wellbore azimuth from \u03c3H (\u00b0)"
+        },
+        {
+          "name": "C0",
+          "description": "Unconfined compressive strength (psi)"
+        },
+        {
+          "name": "phi_deg",
+          "description": "Friction angle (\u00b0)"
+        },
+        {
+          "name": "T0",
+          "description": "Tensile strength (psi)"
+        },
+        {
+          "name": "MW_ppg",
+          "description": "Mud weight for ECD calculation (ppg)"
+        },
+        {
+          "name": "TVD_ft",
+          "description": "True vertical depth (ft)"
+        },
+        {
+          "name": "Q_gpm",
+          "description": "Circulation rate (gpm)"
+        },
+        {
+          "name": "D_h_in",
+          "description": "Hole diameter (in)"
+        },
+        {
+          "name": "D_p_in",
+          "description": "Drill pipe OD (in)"
+        },
+        {
+          "name": "L_ft",
+          "description": "Interval length (ft)"
+        },
+        {
+          "name": "mu_p",
+          "description": "Plastic viscosity (cp)"
+        },
+        {
+          "name": "tau_y",
+          "description": "Yield point (lbf/100ft\u00b2)"
+        }
+      ]
+    },
+    {
+      "id": "P365.WBI.Tubing.Burst",
+      "name": "P365.WBI.Tubing.Burst",
+      "description": "Tubing burst rating per API 5C3: P_burst = 0.875 \u00d7 2 \u00d7 Fy \u00d7 wall / OD, divided by safety factor.",
+      "parameters": [
+        {
+          "name": "OD_in",
+          "description": "Tubing outside diameter (in)"
+        },
+        {
+          "name": "wall_in",
+          "description": "Wall thickness (in)"
+        },
+        {
+          "name": "Fy_psi",
+          "description": "Yield strength (psi)"
+        },
+        {
+          "name": "SF",
+          "description": "Safety factor (default 1.0)"
+        }
+      ]
+    },
+    {
+      "id": "P365.WBI.Tubing.Collapse",
+      "name": "P365.WBI.Tubing.Collapse",
+      "description": "Tubing collapse rating per API 5C3 simplified: min of elastic and yield collapse pressures.",
+      "parameters": [
+        {
+          "name": "OD_in",
+          "description": "Tubing outside diameter (in)"
+        },
+        {
+          "name": "wall_in",
+          "description": "Wall thickness (in)"
+        },
+        {
+          "name": "Fy_psi",
+          "description": "Yield strength (psi)"
+        },
+        {
+          "name": "_E_psi",
+          "description": "Young's modulus (psi, unused in simplified formula)"
+        },
+        {
+          "name": "_nu",
+          "description": "Poisson's ratio (unused in simplified formula)"
+        }
+      ]
+    },
+    {
+      "id": "P365.WBI.Tubing.Tension",
+      "name": "P365.WBI.Tubing.Tension",
+      "description": "Tubing tensile capacity: API axial yield load from cross-section area, with buoyancy factor and safety factor.",
+      "parameters": [
+        {
+          "name": "OD_in",
+          "description": "Tubing outside diameter (in)"
+        },
+        {
+          "name": "wall_in",
+          "description": "Wall thickness (in)"
+        },
+        {
+          "name": "Fy_psi",
+          "description": "Yield strength (psi)"
+        },
+        {
+          "name": "buoyancy_factor",
+          "description": "Buoyancy reduction factor (default 1.0 = in air)"
+        },
+        {
+          "name": "SF",
+          "description": "Safety factor (default 1.0)"
+        }
+      ]
+    },
+    {
+      "id": "P365.WBI.Triaxial",
+      "name": "P365.WBI.Triaxial",
+      "description": "Triaxial (Von Mises) stress check for tubing/casing using thick-wall Lam\u00e9 equations. Returns hoop, radial, axial stresses and utilization ratio.",
+      "parameters": [
+        {
+          "name": "P_i",
+          "description": "Internal pressure (psia)"
+        },
+        {
+          "name": "P_o",
+          "description": "External pressure (psia)"
+        },
+        {
+          "name": "OD_in",
+          "description": "Outside diameter (in)"
+        },
+        {
+          "name": "wall_in",
+          "description": "Wall thickness (in)"
+        },
+        {
+          "name": "F_axial",
+          "description": "Axial force (lbf, positive = tension)"
+        },
+        {
+          "name": "Fy_psi",
+          "description": "Yield strength (psi)"
+        }
+      ]
+    },
+    {
+      "id": "P365.WBI.CasingWear",
+      "name": "P365.WBI.CasingWear",
+      "description": "Casing wear: derated burst and collapse ratings after reducing wall thickness by wear percentage.",
+      "parameters": [
+        {
+          "name": "OD_in",
+          "description": "Casing outside diameter (in)"
+        },
+        {
+          "name": "wall_in",
+          "description": "Original wall thickness (in)"
+        },
+        {
+          "name": "Fy_psi",
+          "description": "Yield strength (psi)"
+        },
+        {
+          "name": "wear_pct",
+          "description": "Wall thickness wear percentage (e.g. 20 = 20%)"
+        }
+      ]
     }
   ]
 }

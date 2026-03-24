@@ -1316,3 +1316,201 @@ export function lkMixtureProperties(
   );
   return { Z, H_dep_RTc, S_dep_R, Tc_mix_K, Pc_mix_bar, omega_mix };
 }
+
+// ─── Lee-Kesler VLE Flash ────────────────────────────────────────────────────
+
+/**
+ * Wilson K-factors for vapor-liquid equilibrium initialization.
+ *
+ * Ki = (Pci/P) * exp(5.373 * (1 + ωi) * (1 - Tci/T))
+ *
+ * @param T_K       Temperature (K)
+ * @param P_bar     Pressure (bar)
+ * @param Tc_arr    Critical temperatures (K)
+ * @param Pc_arr    Critical pressures (bar)
+ * @param omega_arr Acentric factors
+ * @returns         Array of K-factors (y_i / x_i)
+ */
+export function lkWilsonK(
+  T_K: number,
+  P_bar: number,
+  Tc_arr: number[],
+  Pc_arr: number[],
+  omega_arr: number[],
+): number[] {
+  const n = Tc_arr.length;
+  if (Pc_arr.length !== n || omega_arr.length !== n) {
+    throw new Error("All arrays must have the same length");
+  }
+  const K: number[] = [];
+  for (let i = 0; i < n; i++) {
+    K.push((Pc_arr[i] / P_bar) * Math.exp(5.373 * (1 + omega_arr[i]) * (1 - Tc_arr[i] / T_K)));
+  }
+  return K;
+}
+
+/**
+ * Rachford-Rice equation solver for vapor fraction beta.
+ *
+ * Solves Σ z_i*(K_i-1)/(1+β*(K_i-1)) = 0 for β ∈ [0,1]
+ * using bisection (robust) then Newton-Raphson (fast).
+ *
+ * @param z_arr     Overall mole fractions (auto-normalized)
+ * @param K_arr     K-factors (y_i/x_i)
+ * @param nMaxIter  Maximum iterations (default 100)
+ * @returns         {beta, x_arr, y_arr, converged}
+ */
+export function lkRachfordRice(
+  z_arr: number[],
+  K_arr: number[],
+  nMaxIter = 100,
+): { beta: number; x_arr: number[]; y_arr: number[]; converged: boolean } {
+  const n = z_arr.length;
+  if (K_arr.length !== n) throw new Error("z_arr and K_arr must have the same length");
+
+  // Normalize z
+  const zSum = z_arr.reduce((s, v) => s + v, 0);
+  const z = z_arr.map(v => v / zSum);
+
+  // Rachford-Rice function
+  const g = (beta: number) => {
+    let s = 0;
+    for (let i = 0; i < n; i++) s += z[i] * (K_arr[i] - 1) / (1 + beta * (K_arr[i] - 1));
+    return s;
+  };
+  const dg = (beta: number) => {
+    let s = 0;
+    for (let i = 0; i < n; i++) {
+      const denom = 1 + beta * (K_arr[i] - 1);
+      s -= z[i] * (K_arr[i] - 1) * (K_arr[i] - 1) / (denom * denom);
+    }
+    return s;
+  };
+
+  // Bisection bounds
+  const Kmax = Math.max(...K_arr);
+  const Kmin = Math.min(...K_arr);
+  let lo = 1 / (1 - Kmax + 1e-10);
+  let hi = 1 / (1 - Kmin + 1e-10);
+  if (lo > hi) { const tmp = lo; lo = hi; hi = tmp; }
+  lo = Math.max(lo, -0.01);
+  hi = Math.min(hi,  1.01);
+
+  // Check trivial cases
+  if (g(1e-10) < 0) {
+    // All liquid
+    return { beta: 0, x_arr: [...z], y_arr: K_arr.map((K, i) => K * z[i]), converged: true };
+  }
+  if (g(1 - 1e-10) > 0) {
+    // All vapor
+    return { beta: 1, x_arr: z.map((zi, i) => zi / K_arr[i]), y_arr: [...z], converged: true };
+  }
+
+  // Bisection
+  let beta = 0.5;
+  let converged = false;
+  for (let iter = 0; iter < nMaxIter; iter++) {
+    const f = g(beta);
+    if (Math.abs(f) < 1e-10) { converged = true; break; }
+    // Newton step
+    const df = dg(beta);
+    const betaNew = beta - f / df;
+    if (betaNew > lo && betaNew < hi) {
+      beta = betaNew;
+    } else {
+      // Bisection fallback
+      if (g(lo) * f < 0) hi = beta;
+      else lo = beta;
+      beta = (lo + hi) / 2;
+    }
+    if (Math.abs(hi - lo) < 1e-12) { converged = true; break; }
+  }
+
+  // Compute x and y
+  const x_arr: number[] = [];
+  const y_arr: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const xi = z[i] / (1 + beta * (K_arr[i] - 1));
+    x_arr.push(xi);
+    y_arr.push(K_arr[i] * xi);
+  }
+
+  return { beta, x_arr, y_arr, converged };
+}
+
+/**
+ * Full VLE flash using Lee-Kesler EoS with successive substitution.
+ *
+ * Uses Wilson K-factors as initial guess, then iterates:
+ *   1. Solve Rachford-Rice for beta, x, y
+ *   2. Compute Z_L (liquid) and Z_V (vapor) from LK EoS
+ *   3. Update K from fugacity coefficients (simplified: use LK Z ratio)
+ *   4. Repeat until convergence
+ *
+ * @param T_K       Temperature (K)
+ * @param P_bar     Pressure (bar)
+ * @param z_arr     Overall mole fractions
+ * @param Tc_arr    Critical temperatures (K)
+ * @param Pc_arr    Critical pressures (bar)
+ * @param omega_arr Acentric factors
+ * @param nMaxIter  Maximum outer iterations (default 50)
+ * @returns         {beta, x_arr, y_arr, K_arr, Z_L, Z_V, converged, iterations}
+ */
+export function lkVLEFlash(
+  T_K: number,
+  P_bar: number,
+  z_arr: number[],
+  Tc_arr: number[],
+  Pc_arr: number[],
+  omega_arr: number[],
+  nMaxIter = 50,
+): {
+  beta: number;
+  x_arr: number[];
+  y_arr: number[];
+  K_arr: number[];
+  Z_L: number;
+  Z_V: number;
+  converged: boolean;
+  iterations: number;
+} {
+  // Initial K from Wilson correlation
+  let K_arr = lkWilsonK(T_K, P_bar, Tc_arr, Pc_arr, omega_arr);
+
+  let beta = 0.5;
+  let x_arr = [...z_arr];
+  let y_arr = [...z_arr];
+  let Z_L = 0.3;
+  let Z_V = 0.85;
+  let converged = false;
+  let iterations = 0;
+
+  for (let iter = 0; iter < nMaxIter; iter++) {
+    iterations = iter + 1;
+
+    // Solve Rachford-Rice
+    const rr = lkRachfordRice(z_arr, K_arr, 100);
+    beta  = rr.beta;
+    x_arr = rr.x_arr;
+    y_arr = rr.y_arr;
+
+    // Compute Z for liquid phase (Kay's rule with x)
+    Z_L = lkMixtureZ(T_K, P_bar, Tc_arr, Pc_arr, omega_arr, x_arr);
+    // Compute Z for vapor phase (Kay's rule with y)
+    Z_V = lkMixtureZ(T_K, P_bar, Tc_arr, Pc_arr, omega_arr, y_arr);
+
+    // Update K using simplified fugacity ratio: phi_L/phi_V ≈ Z_V/Z_L
+    const K_new: number[] = [];
+    let maxRelChange = 0;
+    for (let i = 0; i < K_arr.length; i++) {
+      const K_new_i = K_arr[i] * (Z_V / Z_L);
+      K_new.push(K_new_i);
+      maxRelChange = Math.max(maxRelChange, Math.abs(K_new_i - K_arr[i]) / (Math.abs(K_arr[i]) + 1e-10));
+    }
+
+    K_arr = K_new;
+    if (maxRelChange < 1e-6) { converged = true; break; }
+  }
+
+  return { beta, x_arr, y_arr, K_arr, Z_L, Z_V, converged, iterations };
+}

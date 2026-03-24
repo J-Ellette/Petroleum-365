@@ -460,3 +460,180 @@ export function wbiPressureToEMW(P_psia: number, TVD_ft: number): number {
   if (TVD_ft <= 0) return 0;
   return P_psia / (0.052 * TVD_ft);
 }
+
+// ─── Session 19: Tubing Design & Casing Wear ──────────────────────────────────
+
+/**
+ * Tubing burst rating — API 5C3 formula.
+ *
+ * P_burst = 0.875 × 2 × Fy × wall / OD
+ *
+ * @param OD_in   Tubing outside diameter (in)
+ * @param wall_in Wall thickness (in)
+ * @param Fy_psi  Yield strength (psi)
+ * @param SF      Safety factor (default 1.0)
+ * @returns       Allowable burst pressure (psia) = P_burst / SF
+ */
+export function wbiTubingBurst(
+  OD_in: number,
+  wall_in: number,
+  Fy_psi: number,
+  SF = 1.0,
+): number {
+  const P_burst = 0.875 * 2 * Fy_psi * wall_in / OD_in;
+  return P_burst / SF;
+}
+
+/**
+ * Tubing collapse rating — API 5C3 simplified (elastic vs yield governs).
+ *
+ * Elastic: P_e = 46.95e6 / (D/t × (D/t − 1)²)
+ * Yield:   P_y = 2 × Fy × (D/t − 1) / (D/t)²
+ * Returns min(P_e, P_y).
+ *
+ * @param OD_in   Tubing outside diameter (in)
+ * @param wall_in Wall thickness (in)
+ * @param Fy_psi  Yield strength (psi)
+ * @param _E_psi  Young's modulus (psi); unused in simplified formula
+ * @param _nu     Poisson's ratio; unused in simplified formula
+ * @returns       Collapse pressure (psia)
+ */
+export function wbiTubingCollapse(
+  OD_in: number,
+  wall_in: number,
+  Fy_psi: number,
+  _E_psi = 30e6,
+  _nu    = 0.3,
+): number {
+  const Dt = OD_in / wall_in;
+  const P_e = 46.95e6 / (Dt * (Dt - 1) * (Dt - 1));
+  const P_y = 2 * Fy_psi * (Dt - 1) / (Dt * Dt);
+  return Math.min(P_e, P_y);
+}
+
+/**
+ * Tubing tensile capacity — API axial yield load.
+ *
+ * Cross-section area A = π/4 × (OD² − ID²), ID = OD − 2×wall
+ * P_yield = Fy × A
+ * P_allowable = P_yield × buoyancy_factor / SF
+ *
+ * @param OD_in           Tubing outside diameter (in)
+ * @param wall_in         Wall thickness (in)
+ * @param Fy_psi          Yield strength (psi)
+ * @param buoyancy_factor Buoyancy reduction factor (default 1.0 = in air)
+ * @param SF              Safety factor (default 1.0)
+ * @returns               {P_yield_lbf, P_allowable_lbf}
+ */
+export function wbiTubingTension(
+  OD_in: number,
+  wall_in: number,
+  Fy_psi: number,
+  buoyancy_factor = 1.0,
+  SF = 1.0,
+): { P_yield_lbf: number; P_allowable_lbf: number } {
+  const ID_in    = OD_in - 2 * wall_in;
+  const A_in2    = Math.PI / 4 * (OD_in * OD_in - ID_in * ID_in);
+  const P_yield  = Fy_psi * A_in2;
+  const P_allow  = P_yield * buoyancy_factor / SF;
+  return { P_yield_lbf: P_yield, P_allowable_lbf: P_allow };
+}
+
+/**
+ * Triaxial (Von Mises) stress check for tubing/casing.
+ *
+ * Thick-wall Lamé equations at the inner radius:
+ *   ri = ID/2 = (OD - 2t)/2,  ro = OD/2
+ *   σ_hoop   = (Pi·ri² − Po·ro²)/(ro²−ri²) + ri²·ro²·(Pi−Po)/((ro²−ri²)·ri²)
+ *   σ_radial = −Pi  (compressive at inner wall)
+ *   σ_axial  = F_axial / A
+ *
+ * Von Mises: σ_VM = √[½((σh−σr)²+(σr−σa)²+(σa−σh)²)]
+ * Utilization = σ_VM / Fy
+ *
+ * @param P_i       Internal pressure (psia)
+ * @param P_o       External pressure (psia)
+ * @param OD_in     Outside diameter (in)
+ * @param wall_in   Wall thickness (in)
+ * @param F_axial   Axial force (lbf, positive = tension)
+ * @param Fy_psi    Yield strength (psi)
+ * @returns         {sigma_hoop_psi, sigma_radial_psi, sigma_axial_psi, sigma_VM_psi, utilization}
+ */
+export function wbiTriaxial(
+  P_i: number,
+  P_o: number,
+  OD_in: number,
+  wall_in: number,
+  F_axial: number,
+  Fy_psi: number,
+): {
+  sigma_hoop_psi:   number;
+  sigma_radial_psi: number;
+  sigma_axial_psi:  number;
+  sigma_VM_psi:     number;
+  utilization:      number;
+} {
+  const ri = (OD_in - 2 * wall_in) / 2;
+  const ro = OD_in / 2;
+  const ri2 = ri * ri;
+  const ro2 = ro * ro;
+  const A_in2 = Math.PI * (ro2 - ri2);
+
+  // Lamé at inner wall
+  const sigma_h = (P_i * ri2 - P_o * ro2) / (ro2 - ri2)
+                + ri2 * ro2 * (P_i - P_o) / ((ro2 - ri2) * ri2);
+  const sigma_r = -P_i;
+  const sigma_a = F_axial / A_in2;
+
+  const VM = Math.sqrt(0.5 * (
+    (sigma_h - sigma_r) ** 2 +
+    (sigma_r - sigma_a) ** 2 +
+    (sigma_a - sigma_h) ** 2
+  ));
+
+  return {
+    sigma_hoop_psi:   sigma_h,
+    sigma_radial_psi: sigma_r,
+    sigma_axial_psi:  sigma_a,
+    sigma_VM_psi:     VM,
+    utilization:      VM / Fy_psi,
+  };
+}
+
+/**
+ * Casing wear — derated burst and collapse ratings.
+ *
+ * Reduces wall thickness by wear_pct percent, then recomputes burst and
+ * collapse using the worn wall thickness.
+ *
+ * @param OD_in    Casing outside diameter (in)
+ * @param wall_in  Original wall thickness (in)
+ * @param Fy_psi   Yield strength (psi)
+ * @param wear_pct Wall thickness wear as a percentage (e.g. 20 = 20%)
+ * @returns        {new_wall_in, burst_psi, collapse_psi, burst_derated, collapse_derated}
+ */
+export function wbiCasingWear(
+  OD_in: number,
+  wall_in: number,
+  Fy_psi: number,
+  wear_pct: number,
+): {
+  new_wall_in:      number;
+  burst_psi:        number;
+  collapse_psi:     number;
+  burst_derated:    number;
+  collapse_derated: number;
+} {
+  const new_wall = wall_in * (1 - wear_pct / 100);
+  const burst_new    = wbiTubingBurst(OD_in, new_wall, Fy_psi, 1.0);
+  const collapse_new = wbiTubingCollapse(OD_in, new_wall, Fy_psi);
+  const burst_orig    = wbiTubingBurst(OD_in, wall_in, Fy_psi, 1.0);
+  const collapse_orig = wbiTubingCollapse(OD_in, wall_in, Fy_psi);
+  return {
+    new_wall_in:      new_wall,
+    burst_psi:        burst_orig,
+    collapse_psi:     collapse_orig,
+    burst_derated:    burst_new,
+    collapse_derated: collapse_new,
+  };
+}
