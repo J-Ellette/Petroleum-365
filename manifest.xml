@@ -8,12 +8,17 @@
 
   <!-- Basic metadata -->
   <Id>a3b4c5d6-e7f8-9012-abcd-ef0123456789</Id>
-  <Version>0.1.0</Version>
+  <Version>1.0.0.0</Version>
   <ProviderName>Petroleum 365</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Petroleum 365" />
   <Description DefaultValue="Professional petroleum engineering functions for Excel — PVT, DCA, IPR, VFP, MBE, PTA, FRAC, GEO, SKIN, WBI, SIM and more." />
   <SupportUrl DefaultValue="https://github.com/J-Ellette/Petroleum-365" />
+
+  <!-- Trusted domains -->
+  <AppDomains>
+    <AppDomain>https://petroleum365.app</AppDomain>
+  </AppDomains>
 
   <!-- Icon resources -->
   <IconUrl DefaultValue="https://petroleum365.app/assets/icon-32.png" />
@@ -53,6 +58,8 @@
         </AllFormFactors>
 
         <DesktopFormFactor>
+          <!-- FunctionFile hosts the JS for ExecuteFunction ribbon actions -->
+          <FunctionFile resid="Functions.Script.Url" />
           <!-- ═══════════════════════════════════════════════════════════════
                Custom ribbon tab: Petroleum 365
                Groups (left to right):
